@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>qtquickcontrols2.conf</file>
+        <file>MessageDelegate.qml</file>
+        <file>MessagePage.qml</file>
+        <file>MessageListView.qml</file>
+        <file>MessageDetails.qml</file>
+        <file>ApplicationPages.qml</file>
+        <file>RootDevicePage.qml</file>
+        <file>RootDeviceListView.qml</file>
+        <file>RootDeviceDelegate.qml</file>
+        <file>RootDeviceDetails.qml</file>
+        <file>DeviceDelegate.qml</file>
+        <file>ServiceDelegate.qml</file>
+    </qresource>
+</RCC>

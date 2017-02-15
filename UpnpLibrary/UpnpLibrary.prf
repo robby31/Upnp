@@ -1,0 +1,9 @@
+QT += xml
+
+INCLUDEPATH += $$PWD
+
+!exists($$(MYLIBRARY)) {
+    error("variable MYLIBRARY not set.")
+}
+
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)
