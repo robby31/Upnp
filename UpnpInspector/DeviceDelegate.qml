@@ -62,5 +62,8 @@ Item {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
+        onClicked: {
+            delegate.ListView.view.selectDevice(index)
+        }
     }
 }

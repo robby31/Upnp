@@ -4,30 +4,22 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     UpnpObject(parent),
     m_message(),
     m_uuid(),
-    m_services(0),
-    m_devices(0),
+    m_device(0),
     m_iconUrl()
 {
-    initRoles();
-
-    m_services = new ListModel(new UpnpService, this);
-    m_devices = new ListModel(new UpnpDevice, this);    
+    initRoles();   
 }
 
 UpnpRootDevice::UpnpRootDevice(QHostAddress host, QString uuid, SsdpMessage message, QObject *parent) :
     UpnpObject(RootDevice, host, parent),
     m_message(message),
     m_uuid(uuid),
-    m_services(0),
-    m_devices(0),
+    m_device(0),
     m_iconUrl()
 {
     connect(this, SIGNAL(availableChanged()), this, SLOT(availableSlotChanged()));
 
     initRoles();
-
-    m_services = new ListModel(new UpnpService, this);
-    m_devices = new ListModel(new UpnpDevice, this);
 }
 
 void UpnpRootDevice::initRoles()
@@ -40,6 +32,8 @@ void UpnpRootDevice::initRoles()
     roles[IconUrlRole] = "iconurl";
     roles[AvailableRole] = "available";
     roles[DeviceTypeRole] = "devicetype";
+    roles[PresentationUrlRole] = "presentationurl";
+    roles[VersionRole] = "version";
     setRoles(roles);
 }
 
@@ -65,6 +59,10 @@ QVariant UpnpRootDevice::data(int role) const
         return available();
     case DeviceTypeRole:
         return deviceType();
+    case PresentationUrlRole:
+        return valueFromDescription("presentationURL");
+    case VersionRole:
+        return version();
     default:
         return QVariant::Invalid;
     }
@@ -72,9 +70,50 @@ QVariant UpnpRootDevice::data(int role) const
     return QVariant::Invalid;
 }
 
+QString UpnpRootDevice::version() const
+{
+    QDomDocument desc = description();
+
+    if (!desc.isNull())
+    {
+        QDomNode root = desc.firstChildElement("root");
+        if (!root.isNull())
+        {
+            QDomNode specVersion = root.firstChildElement("specVersion");
+            if (!specVersion.isNull())
+            {
+                QString major = specVersion.firstChildElement("major").firstChild().nodeValue();
+                QString minor = specVersion.firstChildElement("minor").firstChild().nodeValue();
+                if (!major.isNull() && !minor.isNull())
+                    return QString("%1.%2").arg(major).arg(minor);
+                else
+                    qCritical() << "unable to find major and minor" << major << minor;
+            }
+            else
+            {
+                qCritical() << "unable to find specVersion";
+            }
+        }
+        else
+        {
+            qCritical() << "unable to find root";
+        }
+    }
+
+    return QString();
+}
+
 QString UpnpRootDevice::servername() const
 {
     return getMessageHeader("SERVER");
+}
+
+QString UpnpRootDevice::friendlyName() const
+{
+    if (m_device)
+        return m_device->friendlyName();
+    else
+        return QString();
 }
 
 QString UpnpRootDevice::getMessageHeader(const QString &param) const
@@ -82,81 +121,21 @@ QString UpnpRootDevice::getMessageHeader(const QString &param) const
     return m_message.getHeader(param);
 }
 
-void UpnpRootDevice::addService(const QDomNode &descr)
-{
-    QDomElement type = descr.firstChildElement("serviceType");
-    if (type.isNull())
-    {
-        qCritical() << "unable to get service type";
-    }
-    else
-    {
-        QString serviceType = type.firstChild().nodeValue();
-
-        UpnpService *service = qobject_cast<UpnpService*>(m_services->find(serviceType));
-
-        if (service == 0)
-        {
-            UpnpService *service = new UpnpService(host(), descr, m_services);
-            service->setNetworkManager(getNetworkManager());
-            service->setUrl(url());
-            service->getDescription();
-            m_services->appendRow(service);
-        }
-        else
-        {
-            qCritical() << "service already exists" << serviceType;
-        }
-    }
-}
-
-void UpnpRootDevice::addDevice(const QDomNode &descr)
-{
-    QDomElement type = descr.firstChildElement("deviceType");
-    if (type.isNull())
-    {
-        qCritical() << "unable to get device type";
-    }
-    else
-    {
-        QString deviceType = type.firstChild().nodeValue();
-
-        UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->find(deviceType));
-
-        if (device == 0)
-        {
-            UpnpDevice *device = new UpnpDevice(host(), descr, m_devices);
-            device->setNetworkManager(getNetworkManager());
-            device->setUrl(url());
-            m_devices->appendRow(device);
-        }
-        else
-        {
-            qCritical() << "device already exists" << deviceType;
-        }
-    }
-}
-
-ListModel *UpnpRootDevice::devicesModel() const
-{
-    return m_devices;
-}
-
-ListModel *UpnpRootDevice::servicesModel() const
-{
-    return m_services;
-}
-
-QString UpnpRootDevice::friendlyName() const
-{
-    return valueFromDescription("friendlyName");
-}
-
 QString UpnpRootDevice::deviceType() const
 {
-    return valueFromDescription("deviceType");
+    if (m_device)
+        return m_device->deviceType();
+    else
+        return QString();
 }
 
+bool UpnpRootDevice::deviceAvailable() const
+{
+    if (m_device)
+        return m_device->data(UpnpDevice::AvailableRole).toBool();
+    else
+        return false;
+}
 void UpnpRootDevice::getDescription()
 {
     QString p_url = getMessageHeader("LOCATION");
@@ -196,6 +175,16 @@ void UpnpRootDevice::descriptionReceived()
             QDomElement device = root.firstChildElement("device");
             if (!device.isNull())
             {
+                m_device = new UpnpDevice(host(), device, this);
+                connect(m_device, SIGNAL(availableChanged()), this, SIGNAL(deviceAvailableChanged()));
+                m_device->setNetworkManager(getNetworkManager());
+                m_device->setUrl(url());
+                m_device->readServices();
+                m_device->readDevices();
+
+                emit deviceTypeChanged();
+                emit deviceAvailableChanged();
+
                 // read UUID
                 QDomElement udn = device.firstChildElement("UDN");
                 if (!udn.isNull())
@@ -214,30 +203,6 @@ void UpnpRootDevice::descriptionReceived()
                 else
                 {
                     qCritical() << "unable to find UUID in description";
-                }
-
-                // read devices
-                QDomElement l_devices = device.firstChildElement("deviceList");
-                if (!l_devices.isNull())
-                {
-                    QDomNode deviceElt = l_devices.firstChild();
-                    while (!deviceElt.isNull())
-                    {
-                        addDevice(deviceElt);
-                        deviceElt = deviceElt.nextSibling();
-                    }
-                }
-
-                // read services
-                QDomElement l_services = device.firstChildElement("serviceList");
-                if (!l_services.isNull())
-                {
-                    QDomNode serviceElt = l_services.firstChild();
-                    while (!serviceElt.isNull())
-                    {
-                        addService(serviceElt);
-                        serviceElt = serviceElt.nextSibling();
-                    }
                 }
 
                 // read icon
@@ -275,7 +240,6 @@ void UpnpRootDevice::descriptionReceived()
                         emit itemChanged(roles);
                     }
                 }
-
             }
             else
             {
@@ -293,44 +257,57 @@ void UpnpRootDevice::descriptionReceived()
     emit itemChanged();
 }
 
-void UpnpRootDevice::updateCapability(const SsdpMessage &message)
-{
-    if (!description().isNull())
-    {
-        // description of device received
-
-        QString nt = message.getHeader("NT");
-
-        if (deviceType() == nt or nt.startsWith("uuid:"))
-        {
-            update(message);
-        }
-        else if (nt.contains(":service:"))
-        {
-            UpnpService *service = qobject_cast<UpnpService*>(m_services->find(nt));
-            if (service)
-                service->update(message);
-            else
-                qCritical() << host().toString() << "unable to find service" << nt;
-        }
-        else if (nt.contains(":device:"))
-        {
-            UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->find(nt));
-            if (device)
-                device->update(message);
-            else
-                qCritical() << host().toString() << "unable to find device" << nt;
-        }
-        else
-        {
-            qCritical() << host().toString() << "unable to update capability" << nt;
-        }
-    }
-}
-
 void UpnpRootDevice::availableSlotChanged()
 {
     QVector<int> roles;
     roles << AvailableRole;
     emit itemChanged(roles);
 }
+
+UpnpDevice *UpnpRootDevice::getDeviceFromUuid(const QString &uuid)
+{
+    if (m_device)
+        return m_device->getDeviceFromUuid(uuid);
+    else
+        return 0;
+}
+
+UpnpDevice *UpnpRootDevice::getDeviceFromType(const QString &type)
+{
+    if (m_device)
+    {
+        if (m_device->deviceType() == type)
+            return m_device;
+        else
+            return m_device->getDeviceFromType(type);
+    }
+    else
+        return 0;
+}
+
+UpnpService *UpnpRootDevice::getServiceFromType(const QString &type)
+{
+    if (m_device)
+    {
+        return m_device->getServiceFromType(type);
+    }
+    else
+        return 0;
+}
+
+ListModel *UpnpRootDevice::devicesModel() const
+{
+    if (m_device)
+        return m_device->devicesModel();
+    else
+        return 0;
+}
+
+ListModel *UpnpRootDevice::servicesModel() const
+{
+    if (m_device)
+        return m_device->servicesModel();
+    else
+        return 0;
+}
+

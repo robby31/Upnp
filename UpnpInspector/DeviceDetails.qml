@@ -8,7 +8,7 @@ ColumnLayout {
 
     property var device
     property int rootIndex
-    property string iconurl
+    property string rootIconUrl
 
     Row {
         anchors { left: parent.left; leftMargin: 10; right: parent.right; rightMargin: 10 }
@@ -20,24 +20,13 @@ ColumnLayout {
             id: backButton
             anchors { verticalCenter: parent.verticalCenter }
             sourceComponent: Text { id: text; text: "< Back" }
-            onButtonClicked: setRootDeviceListView()
-        }
-
-        Image {
-            anchors { verticalCenter: parent.verticalCenter }
-            width: parent.height*0.9
-            height: width
-            sourceSize.width: width
-            sourceSize.height: width
-            fillMode: Image.PreserveAspectFit
-            source: iconurl
+            onButtonClicked: setRootDeviceDetails(rootIndex, rootIconUrl)
         }
 
         Text {
             width: contentWidth
             anchors.verticalCenter: parent.verticalCenter
             text: device.deviceType
-            color: device.deviceAvailable ? "black" : "red"
             clip: true
         }
     }
@@ -48,12 +37,6 @@ ColumnLayout {
         currentIndex: swipeView.currentIndex
         TabButton {
             text: qsTr("Description")
-        }
-        TabButton {
-            text: qsTr("Devices")
-        }
-        TabButton {
-            text: qsTr("Services")
         }
     }
 
@@ -73,28 +56,6 @@ ColumnLayout {
 
             ScrollBar.vertical: ScrollBar { }
         }
-
-
-        ListView {
-            id: devicesView
-            model: item.device.devicesModel
-
-            delegate: DeviceDelegate { }
-
-            function selectDevice(index) {
-                setDeviceDetails(item.device.devicesModel.at(index), item.rootIndex, item.iconurl)
-            }
-        }
-
-        ListView {
-            id: servicesView
-            model: item.device.servicesModel
-
-            delegate: ServiceDelegate { }
-
-            function selectService(index) {
-                setServiceDetails(item.device.servicesModel.at(index), item.rootIndex, item.iconurl)
-            }
-        }
     }
 }
+

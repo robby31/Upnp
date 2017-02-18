@@ -146,6 +146,20 @@ void UpnpObject::setDescription(QByteArray data)
     emit descriptionChanged();
 }
 
+void UpnpObject::setDescription(QDomNode node)
+{
+    m_description.clear();
+
+    QDomElement root = m_description.createElement("root");
+
+    QDomNode elt = m_description.importNode(node, true);
+    root.appendChild(elt);
+
+    m_description.appendChild(root);
+
+    emit descriptionChanged();
+}
+
 void UpnpObject::timeout()
 {
     setAvailable(false);

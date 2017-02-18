@@ -12,6 +12,8 @@ UpnpService::UpnpService(QHostAddress host, QDomNode info, QObject *parent) :
     m_info(info)
 {
     initRoles();
+
+    connect(this, SIGNAL(availableChanged()), this, SLOT(availableSlotChanged()));
 }
 
 void UpnpService::initRoles()
@@ -24,14 +26,14 @@ void UpnpService::initRoles()
 
 QString UpnpService::id() const
 {
-    return getInfo("serviceType");
+    return serviceId();
 }
 
 QVariant UpnpService::data(int role) const
 {
     switch (role) {
     case ServiceTypeRole:
-        return getInfo("serviceType");
+        return serviceType();
     case AvailableRole:
         return available();
     default:
@@ -39,6 +41,16 @@ QVariant UpnpService::data(int role) const
     }
 
     return QVariant::Invalid;
+}
+
+QString UpnpService::serviceType() const
+{
+    return getInfo("serviceType");
+}
+
+QString UpnpService::serviceId() const
+{
+    return getInfo("serviceId");
 }
 
 QString UpnpService::getInfo(const QString &param) const
@@ -54,7 +66,7 @@ void UpnpService::getDescription()
     QNetworkReply *reply = get(p_url);
     if (reply == 0)
     {
-        qCritical() << "Unable to get description" << this << getInfo("serviceType") << p_url;
+        qCritical() << "Unable to get description" << this << serviceType() << p_url;
     }
     else
     {
@@ -71,6 +83,8 @@ void UpnpService::descriptionReceived()
         setDescription(reply->readAll());
 
         qDebug() << "description received" << this << reply->request().url();
+
+        readActions();
     }
     else
     {
@@ -80,4 +94,101 @@ void UpnpService::descriptionReceived()
     reply->deleteLater();
 
     emit itemChanged();
+}
+
+void UpnpService::readActions()
+{
+    m_actionsModel.clear();
+
+    QDomNode scpd = description().firstChildElement("scpd");
+    if (!scpd.isNull())
+    {
+        QDomElement actionList = scpd.firstChildElement("actionList");
+        if (!actionList.isNull())
+        {
+            QDomNodeList l_action = actionList.elementsByTagName("action");
+            for (int i=0;i<l_action.size();++i)
+            {
+                QDomNode action = l_action.at(i);
+                m_actionsModel << action.firstChildElement("name").firstChild().nodeValue();
+            }
+        }
+        else
+        {
+            qCritical() << "unable to find actionList element";
+        }
+    }
+    else
+    {
+        qCritical() << host() << serviceType() << "unable to find scpd element";
+    }
+}
+
+QStringList UpnpService::actionsModel() const
+{
+    return m_actionsModel;
+}
+
+void UpnpService::runAction(const int &index)
+{
+    QString name;
+    QStringList in;
+    QStringList out;
+
+    QDomNode scpd = description().firstChildElement("scpd");
+    if (!scpd.isNull())
+    {
+        QDomElement actionList = scpd.firstChildElement("actionList");
+        if (!actionList.isNull())
+        {
+            QDomNodeList l_action = actionList.elementsByTagName("action");
+            if (index < l_action.size())
+            {
+                QDomNode action = l_action.at(index);
+
+                name = action.firstChildElement("name").firstChild().nodeValue();
+
+                QDomElement argumentList = action.firstChildElement("argumentList");
+                if (!argumentList.isNull())
+                {
+                    QDomNodeList l_arguments = argumentList.elementsByTagName("argument");
+                    for (int i=0;i<l_arguments.size();++i)
+                    {
+                        QDomNode argument = l_arguments.at(i);
+
+                        QString argName = argument.firstChildElement("name").firstChild().nodeValue();
+                        QString direction = argument.firstChildElement("direction").firstChild().nodeValue();
+
+                        if (direction == "in")
+                            in << argName;
+                        else if (direction == "out")
+                            out << argName;
+                        else
+                            qCritical() << "invalid direction" << direction;
+                    }
+
+                    qWarning() << name << in << out;
+                }
+                else
+                {
+                    qCritical() << "unable to find argumentList";
+                }
+            }
+        }
+        else
+        {
+            qCritical() << "unable to find actionList element";
+        }
+    }
+    else
+    {
+        qCritical() << host() << serviceType() << "unable to find scpd element";
+    }
+}
+
+void UpnpService::availableSlotChanged()
+{
+    QVector<int> roles;
+    roles << AvailableRole;
+    emit itemChanged(roles);
 }

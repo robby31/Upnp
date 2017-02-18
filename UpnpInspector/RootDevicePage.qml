@@ -21,7 +21,15 @@ Page {
     }
 
     function setRootDeviceDetails(index, iconurl) {
-        loader.setSource("RootDeviceDetails.qml", { device: upnpControlPoint.rootDevices.at(index), iconurl: iconurl})
+        loader.setSource("RootDeviceDetails.qml", { device: upnpControlPoint.rootDevices.at(index), rootIndex: index, iconurl: iconurl})
+    }
+
+    function setServiceDetails(service, rootIndex, rootIconUrl) {
+        loader.setSource("ServiceDetails.qml", { service: service, rootIndex: rootIndex, rootIconUrl: rootIconUrl })
+    }
+
+    function setDeviceDetails(device, rootIndex, rootIconUrl) {
+        loader.setSource("DeviceDetails.qml", { device: device, rootIndex: rootIndex, rootIconUrl: rootIconUrl })
     }
 
     Component.onCompleted: {

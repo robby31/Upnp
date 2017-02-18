@@ -13,5 +13,8 @@
         <file>RootDeviceDetails.qml</file>
         <file>DeviceDelegate.qml</file>
         <file>ServiceDelegate.qml</file>
+        <file>ServiceDetails.qml</file>
+        <file>ServiceActionsDelegate.qml</file>
+        <file>DeviceDetails.qml</file>
     </qresource>
 </RCC>

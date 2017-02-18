@@ -6,7 +6,6 @@
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 #include "ssdpmessage.h"
-#include "upnpservice.h"
 #include "upnpdevice.h"
 #include "upnpobject.h"
 #include "Models/listmodel.h"
@@ -15,9 +14,10 @@ class UpnpRootDevice : public UpnpObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QString deviceType READ deviceType NOTIFY deviceTypeChanged)
+    Q_PROPERTY(bool deviceAvailable READ deviceAvailable NOTIFY deviceAvailableChanged)
     Q_PROPERTY(ListModel *devicesModel READ devicesModel NOTIFY devicesModelChanged)
     Q_PROPERTY(ListModel *servicesModel READ servicesModel NOTIFY servicesModelChanged)
-    Q_PROPERTY(QString deviceType READ deviceType NOTIFY deviceTypeChanged)
 
     enum Roles {
         HostRole = Qt::UserRole+1,
@@ -26,7 +26,9 @@ class UpnpRootDevice : public UpnpObject
         FriendlyNameRole,
         IconUrlRole,
         AvailableRole,
-        DeviceTypeRole
+        DeviceTypeRole,
+        PresentationUrlRole,
+        VersionRole
     };
 
 public:
@@ -37,7 +39,10 @@ public:
 
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
 
+    QString version() const;
     QString servername() const;
+    QString deviceType() const;
+    bool deviceAvailable() const;
     QString friendlyName() const;
 
     ListModel *devicesModel() const;
@@ -46,20 +51,19 @@ public:
     QString getMessageHeader(const QString &param) const;
 
     void getDescription();
-    QString deviceType() const;
 
-    void updateCapability(const SsdpMessage &message);
-
+    UpnpDevice *getDeviceFromUuid(const QString &uuid);
+    UpnpDevice *getDeviceFromType(const QString &type);
+    UpnpService *getServiceFromType(const QString &type);
 
 private:
     void initRoles();
-    void addService(const QDomNode &descr);
-    void addDevice(const QDomNode &descr);
 
 signals:
+    void deviceTypeChanged();
+    void deviceAvailableChanged();
     void devicesModelChanged();
     void servicesModelChanged();
-    void deviceTypeChanged();
 
 public slots:
 
@@ -70,8 +74,7 @@ private slots:
 private:
     SsdpMessage m_message;
     QString m_uuid;
-    ListModel *m_services;
-    ListModel *m_devices;
+    UpnpDevice *m_device;
     QString m_iconUrl;
 };
 

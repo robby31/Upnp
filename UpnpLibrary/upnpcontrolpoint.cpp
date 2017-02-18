@@ -53,6 +53,7 @@ void UpnpControlPoint::_start()
     // Start timer to broadcast UPnP ALIVE messages every 0.5 seconds 3 times
     timerAlive.start(500);
 
+    qDebug() << "discover rootdevice";
     _sendDiscover("upnp:rootdevice");
 }
 
@@ -86,18 +87,6 @@ void UpnpControlPoint::_processPendingUnicastDatagrams()
 
         qDebug() << "Receiving UNICAST message from [" << remoteAddr.toString() << ":" << QString("%1").arg(remotePort) << "] " << message.startLine();
         emit messageReceived(remoteAddr, remotePort, message);
-
-        // filter own hostadress
-        if (udpSocketMulticast.multicastInterface().allAddresses().contains(remoteAddr))
-        {
-            // message received from own hostadress
-            // message ignored
-        }
-        else
-        {
-            if (message.getHeader("ST") == "urn:schemas-upnp-org:device:MediaRenderer:1")
-                emit newMediaRenderer(remoteAddr, remotePort, message);
-        }
     }
 }
 
@@ -116,82 +105,6 @@ void UpnpControlPoint::_processPendingMulticastDatagrams()
 
         qDebug() << "Receiving MULTICAST message from [" << remoteAddr.toString() << ":" << QString("%1").arg(remotePort) << "] " << message.startLine();
         emit messageReceived(remoteAddr, remotePort, message);
-
-        // filter own hostadress
-        if (udpSocketMulticast.multicastInterface().allAddresses().contains(remoteAddr))
-        {
-            // message received from own hostadress
-            // message ignored
-        }
-        else
-        {
-            if (message.format() == SEARCH)
-            {
-                QString stValue = message.getHeader("ST");
-                if (!stValue.isEmpty())
-                {
-                    if (stValue == "urn:schemas-upnp-org:service:ContentDirectory:1")
-                    {
-                        _sendDiscoverAnswer(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
-                    }
-                    else if (stValue == "urn:schemas-upnp-org:service:ConnectionManager:1")
-                    {
-                        _sendDiscoverAnswer(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ConnectionManager:1");
-                    }
-                    else if (stValue == "upnp:rootdevice")
-                    {
-                        _sendDiscoverAnswer(remoteAddr, remotePort, "upnp:rootdevice");
-                    }
-                    else if (stValue == "urn:schemas-upnp-org:device:MediaServer:1")
-                    {
-                        _sendDiscoverAnswer(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-                    }
-                    else if (stValue == "ssdp:all")
-                    {
-                        _sendDiscoverAnswer(remoteAddr, remotePort, "upnp:rootdevice");
-                        _sendDiscoverAnswer(remoteAddr, remotePort, QString("uuid:%1").arg(m_uuid));
-                        _sendDiscoverAnswer(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-                        _sendDiscoverAnswer(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
-                        _sendDiscoverAnswer(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ConnectionManager:1");
-                    }
-                    else if (stValue == QString("uuid:%1").arg(m_uuid))
-                    {
-                        _sendDiscoverAnswer(remoteAddr, remotePort, QString("uuid:%1").arg(m_uuid));
-                    }
-                    else
-                    {
-                        qCritical() << QString("Invalid ST value: %1").arg(stValue);
-                    }
-                }
-                else
-                {
-                    qCritical() << QString("Unknown M-SEARCH request: %1").arg(message.toStringList().join(", "));
-                }
-            }
-            else if (message.format() == NOTIFY)
-            {
-                QString nts = message.getHeader("NTS");
-                if (nts == "ssdp:alive")
-                {
-                    emit deviceAlive(remoteAddr, remotePort, message);
-
-                    if (message.getHeader("NT") == "urn:schemas-upnp-org:device:MediaRenderer:1")
-                        emit newMediaRenderer(remoteAddr, remotePort, message);
-                }
-                else
-                {
-                    qCritical() << QString("Invalid NTS value %1 in NOTIFY").arg(nts);
-                }
-            }
-            else if (message.format() == HTTP)
-            {
-                //qDebug() << "Receiving an HTTP from [" << remoteAddr.toString() << ":" << QString("%1").arg(remotePort) + "]";
-            }
-            else
-            {
-                qCritical() << "Receiving an unknwon request from [" << remoteAddr.toString() << ":" << QString("%1").arg(remotePort) + "] " << message.toStringList().join(", ");
-            }
-        }
     }
 }
 
@@ -385,41 +298,62 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
             }
             else
             {
+                QString uuid = message.getUuidFromUsn();
+
+                if (nt == QString("uuid:%1").arg(uuid))
+                {
+                    UpnpRootDevice *device = getRootDeviceFromUuid(uuid);
+                    if (device != 0)
+                        device->update(message);
+                    else
+                        qCritical() << "root device not found" << host << uuid;
+                }
+                else if (nt.contains(":device:"))
+                {
+                    UpnpDevice *device = getDeviceFromType(nt);
+                    if (device != 0)
+                        device->update(message);
+                    else
+                        qCritical() << "device not found" << host << uuid << nt;
+                }
+                else if (nt.contains(":service:"))
+                {
+                    UpnpService *service = getServiceFromType(nt);
+                    if (service != 0)
+                        service->update(message);
+                    else
+                        qCritical() << "service not found" << host << uuid << nt;
+                }
+                else
+                {
+                    qCritical() << "unable to find" << host << uuid << nt;
+                }
+            }
+        }
+        else if (nts == "ssdp:byebye")
+        {
+            if (nt == "upnp:rootdevice")
+            {
                 UpnpRootDevice *device = getRootDeviceFromUuid(message.getUuidFromUsn());
 
                 if (device != 0)
                 {
-                    device->updateCapability(message);
+
+                    device->setAvailable(false);
                 }
                 else
                 {
                     qCritical() << "root device not found" << message.getUuidFromUsn();
                 }
             }
-        }
-        else if (nts == "ssdp:byebye")
-        {
-            UpnpRootDevice *device = getRootDeviceFromUuid(message.getUuidFromUsn());
-
-            if (device != 0)
-            {
-                if (nt == "upnp:rootdevice")
-                {
-                    device->setAvailable(false);
-                }
-                else
-                {
-                    device->updateCapability(message);
-                }
-            }
             else
             {
-                qCritical() << "root device not found" << message.getUuidFromUsn();
+                qCritical() << "device or servce not found" << nt;
             }
         }
         else
         {
-            qCritical() << "unknown" << nts << nt;
+            qCritical() << "Invalid NTS value" << nts << nt;
         }
     }
     else if (message.format() == HTTP)
@@ -444,11 +378,11 @@ void UpnpControlPoint::addRootDevice(QHostAddress host, SsdpMessage message)
 
     if (!uuid.isEmpty())
     {
-        UpnpRootDevice *device = qobject_cast<UpnpRootDevice*>(m_rootDevice->find(uuid));
+        UpnpRootDevice *device = getRootDeviceFromUuid(uuid);
 
         if (device == 0)
         {
-            device = new UpnpRootDevice(host, uuid, message, m_rootDevice);
+            device = new UpnpRootDevice(QHostAddress(host.toIPv4Address()), uuid, message, m_rootDevice);
             device->update(message);
             device->setNetworkManager(netManager);
             device->getDescription();
@@ -471,6 +405,42 @@ UpnpRootDevice *UpnpControlPoint::getRootDeviceFromUuid(const QString &uuid)
     {
         UpnpRootDevice *device = qobject_cast<UpnpRootDevice*>(m_rootDevice->find(uuid));
         return device;
+    }
+
+    return 0;
+}
+
+UpnpDevice *UpnpControlPoint::getDeviceFromUuid(const QString &uuid)
+{
+    for (int i=0;i<m_rootDevice->rowCount();++i)
+    {
+        UpnpDevice *device = qobject_cast<UpnpRootDevice*>(m_rootDevice->at(i))->getDeviceFromUuid(uuid);
+        if (device != 0)
+            return device;
+    }
+
+    return 0;
+}
+
+UpnpDevice *UpnpControlPoint::getDeviceFromType(const QString &type)
+{
+    for (int i=0;i<m_rootDevice->rowCount();++i)
+    {
+        UpnpDevice *device = qobject_cast<UpnpRootDevice*>(m_rootDevice->at(i))->getDeviceFromType(type);
+        if (device != 0)
+            return device;
+    }
+
+    return 0;
+}
+
+UpnpService *UpnpControlPoint::getServiceFromType(const QString &type)
+{
+    for (int i=0;i<m_rootDevice->rowCount();++i)
+    {
+        UpnpService *service = qobject_cast<UpnpRootDevice*>(m_rootDevice->at(i))->getServiceFromType(type);
+        if (service != 0)
+            return service;
     }
 
     return 0;

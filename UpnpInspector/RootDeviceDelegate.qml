@@ -62,6 +62,15 @@ Item {
 
         Label {
             anchors { verticalCenter: parent.verticalCenter }
+            text: "UPNP %1".arg(version)
+            width: 100
+            Layout.preferredWidth: width
+            elide: Text.ElideRight
+            color: delegate.color
+        }
+
+        Label {
+            anchors { verticalCenter: parent.verticalCenter }
             text: devicetype
             Layout.fillWidth: true
             elide: Text.ElideRight

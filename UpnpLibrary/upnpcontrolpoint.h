@@ -39,6 +39,9 @@ public:
 private:
     void addRootDevice(QHostAddress host, SsdpMessage message);
     UpnpRootDevice *getRootDeviceFromUuid(const QString &uuid);
+    UpnpDevice *getDeviceFromUuid(const QString &uuid);
+    UpnpDevice *getDeviceFromType(const QString &type);
+    UpnpService *getServiceFromType(const QString &type);
 
     void _sendAlive(const QString &notification_type);
     void _sendByeBye(const QString &notification_type);

@@ -51,6 +51,7 @@ public:
     QDomDocument description() const;
     QString strDescription() const;
     void setDescription(QByteArray data);
+    void setDescription(QDomNode node);
 
     QString valueFromDescription(const QString &param) const;
 

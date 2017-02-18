@@ -7,8 +7,6 @@ Item {
     width: parent.width
     height: row.height
 
-    property color color: available ? "black" : "red"
-
     Rectangle {
         id: hover
         anchors.fill: parent
@@ -29,16 +27,15 @@ Item {
     RowLayout {
         id: row
         anchors { left: parent.left; right: parent.right; margins: 10 }
-        height: urnLabel.height+10
+        height: actionName.height+10
         spacing: 10
 
         Label {
-            id: urnLabel
+            id: actionName
             anchors { verticalCenter: parent.verticalCenter }
-            text: servicetype
+            text: modelData
             Layout.fillWidth: true
             elide: Text.ElideRight
-            color: delegate.color
         }
     }
 
@@ -55,7 +52,8 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
         onClicked: {
-            delegate.ListView.view.selectService(index)
+            delegate.ListView.view.runAction(index)
         }
     }
 }
+
