@@ -25,6 +25,7 @@ public:
     explicit UpnpObject(TypeObject type, QHostAddress host, QObject *parent = 0);
 
     TypeObject type() const;
+    void setType(const TypeObject &type);
 
     virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
     virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
@@ -48,9 +49,8 @@ public:
 
     QUrl urlFromRelativePath(QString path);
 
-    QDomDocument description() const;
+    QDomNode description() const;
     QString strDescription() const;
-    void setDescription(QByteArray data);
     void setDescription(QDomNode node);
 
     QString valueFromDescription(const QString &param) const;
@@ -74,7 +74,7 @@ private:
     bool m_available;
     QHostAddress m_host;
     QUrl m_url;
-    QDomDocument m_description;
+    QDomNode m_description;
 
     QNetworkAccessManager *netManager;
 };

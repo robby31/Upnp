@@ -37,7 +37,7 @@ ColumnLayout {
             width: contentWidth
             anchors.verticalCenter: parent.verticalCenter
             text: device.deviceType
-            color: device.deviceAvailable ? "black" : "red"
+            color: device.available ? "black" : "red"
             clip: true
         }
     }
@@ -67,7 +67,7 @@ ColumnLayout {
             id: flickable
 
             TextArea.flickable: TextArea {
-                text: item.device.description
+                text: item.device.rootDescription
                 wrapMode: TextArea.Wrap
             }
 

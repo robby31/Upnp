@@ -13,7 +13,7 @@ UpnpService::UpnpService(QHostAddress host, QDomNode info, QObject *parent) :
 {
     initRoles();
 
-    connect(this, SIGNAL(availableChanged()), this, SLOT(availableSlotChanged()));
+    connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
 }
 
 void UpnpService::initRoles()
@@ -59,7 +59,7 @@ QString UpnpService::getInfo(const QString &param) const
     return elt.firstChild().nodeValue();
 }
 
-void UpnpService::getDescription()
+void UpnpService::requestDescription()
 {
     QString p_url = urlFromRelativePath(getInfo("SCPDURL")).url();
 
@@ -80,7 +80,9 @@ void UpnpService::descriptionReceived()
 
     if (reply->error() == QNetworkReply::NoError)
     {
-        setDescription(reply->readAll());
+        QDomDocument doc;
+        doc.setContent(reply->readAll());
+        setDescription(doc.documentElement());
 
         qDebug() << "description received" << this << reply->request().url();
 
@@ -92,18 +94,16 @@ void UpnpService::descriptionReceived()
     }
 
     reply->deleteLater();
-
-    emit itemChanged();
 }
 
 void UpnpService::readActions()
 {
     m_actionsModel.clear();
 
-    QDomNode scpd = description().firstChildElement("scpd");
-    if (!scpd.isNull())
+    QDomNode root = description();
+    if (root.nodeName() == "scpd")
     {
-        QDomElement actionList = scpd.firstChildElement("actionList");
+        QDomElement actionList = root.firstChildElement("actionList");
         if (!actionList.isNull())
         {
             QDomNodeList l_action = actionList.elementsByTagName("action");
@@ -135,10 +135,10 @@ void UpnpService::runAction(const int &index)
     QStringList in;
     QStringList out;
 
-    QDomNode scpd = description().firstChildElement("scpd");
-    if (!scpd.isNull())
+    QDomNode root = description();
+    if (root.nodeName() == "scpd")
     {
-        QDomElement actionList = scpd.firstChildElement("actionList");
+        QDomElement actionList = root.firstChildElement("actionList");
         if (!actionList.isNull())
         {
             QDomNodeList l_action = actionList.elementsByTagName("action");
@@ -166,13 +166,9 @@ void UpnpService::runAction(const int &index)
                         else
                             qCritical() << "invalid direction" << direction;
                     }
+                }
 
-                    qWarning() << name << in << out;
-                }
-                else
-                {
-                    qCritical() << "unable to find argumentList";
-                }
+                qWarning() << name << in << out;
             }
         }
         else
@@ -186,7 +182,7 @@ void UpnpService::runAction(const int &index)
     }
 }
 
-void UpnpService::availableSlotChanged()
+void UpnpService::itemAvailableChanged()
 {
     QVector<int> roles;
     roles << AvailableRole;

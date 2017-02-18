@@ -1,9 +1,6 @@
 #ifndef UPNPSERVICE_H
 #define UPNPSERVICE_H
 
-#include <QObject>
-#include <QDebug>
-#include <QDateTime>
 #include "upnpobject.h"
 
 class UpnpService : public UpnpObject
@@ -31,7 +28,7 @@ public:
     QString serviceType() const;
     QString serviceId() const;
 
-    void getDescription();
+    void requestDescription();
 
     QStringList actionsModel() const;
 
@@ -48,7 +45,7 @@ signals:
 public slots:
 
 private slots:
-    void availableSlotChanged();
+    void itemAvailableChanged();
     void descriptionReceived();
 
 private:

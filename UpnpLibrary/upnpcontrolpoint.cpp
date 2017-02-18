@@ -281,6 +281,42 @@ void UpnpControlPoint::setNetworkManager(QNetworkAccessManager *nam)
     netManager = nam;
 }
 
+UpnpObject *UpnpControlPoint::getUpnpObjectFromNt(const QString &nt)
+{
+    if (nt.startsWith("uuid:"))
+    {
+        QString uuid = nt.right(nt.size()-5);
+
+        UpnpDevice *device = getDeviceFromUuid(uuid);
+        if (device != 0)
+            return device;
+        else
+            qCritical() << "device/uuid not found" << uuid;
+    }
+    else if (nt.contains(":device:"))
+    {
+        UpnpDevice *device = getDeviceFromType(nt);
+        if (device != 0)
+            return device;
+        else
+            qCritical() << "device not found" << nt;
+    }
+    else if (nt.contains(":service:"))
+    {
+        UpnpService *service = getServiceFromType(nt);
+        if (service != 0)
+            return service;
+        else
+            qCritical() << "service not found" << nt;
+    }
+    else
+    {
+        qCritical() << "unable to find upnp object" << nt;
+    }
+
+    return 0;
+}
+
 void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message)
 {
     Q_UNUSED(port)
@@ -298,36 +334,11 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
             }
             else
             {
-                QString uuid = message.getUuidFromUsn();
-
-                if (nt == QString("uuid:%1").arg(uuid))
-                {
-                    UpnpRootDevice *device = getRootDeviceFromUuid(uuid);
-                    if (device != 0)
-                        device->update(message);
-                    else
-                        qCritical() << "root device not found" << host << uuid;
-                }
-                else if (nt.contains(":device:"))
-                {
-                    UpnpDevice *device = getDeviceFromType(nt);
-                    if (device != 0)
-                        device->update(message);
-                    else
-                        qCritical() << "device not found" << host << uuid << nt;
-                }
-                else if (nt.contains(":service:"))
-                {
-                    UpnpService *service = getServiceFromType(nt);
-                    if (service != 0)
-                        service->update(message);
-                    else
-                        qCritical() << "service not found" << host << uuid << nt;
-                }
+                UpnpObject *object = getUpnpObjectFromNt(nt);
+                if (object != 0)
+                    object->update(message);
                 else
-                {
-                    qCritical() << "unable to find" << host << uuid << nt;
-                }
+                    qCritical() << "unable to find" << host << nt;
             }
         }
         else if (nts == "ssdp:byebye")
@@ -337,18 +348,17 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
                 UpnpRootDevice *device = getRootDeviceFromUuid(message.getUuidFromUsn());
 
                 if (device != 0)
-                {
-
                     device->setAvailable(false);
-                }
                 else
-                {
                     qCritical() << "root device not found" << message.getUuidFromUsn();
-                }
             }
             else
             {
-                qCritical() << "device or servce not found" << nt;
+                UpnpObject *object = getUpnpObjectFromNt(nt);
+                if (object != 0)
+                    object->setAvailable(false);
+                else
+                    qCritical() << "device or servce not found" << nt;
             }
         }
         else
@@ -382,10 +392,10 @@ void UpnpControlPoint::addRootDevice(QHostAddress host, SsdpMessage message)
 
         if (device == 0)
         {
-            device = new UpnpRootDevice(QHostAddress(host.toIPv4Address()), uuid, message, m_rootDevice);
-            device->update(message);
+            device = new UpnpRootDevice(QHostAddress(host.toIPv4Address()), uuid, m_rootDevice);
             device->setNetworkManager(netManager);
-            device->getDescription();
+            device->update(message);
+            device->requestDescription(message.getHeader("LOCATION"));
             m_rootDevice->appendRow(device);
         }
         else

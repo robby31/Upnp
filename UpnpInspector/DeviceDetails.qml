@@ -23,6 +23,16 @@ ColumnLayout {
             onButtonClicked: setRootDeviceDetails(rootIndex, rootIconUrl)
         }
 
+        Image {
+            anchors { verticalCenter: parent.verticalCenter }
+            width: parent.height*0.9
+            height: width
+            sourceSize.width: width
+            sourceSize.height: width
+            fillMode: Image.PreserveAspectFit
+            source: rootIconUrl
+        }
+
         Text {
             width: contentWidth
             anchors.verticalCenter: parent.verticalCenter
@@ -37,6 +47,12 @@ ColumnLayout {
         currentIndex: swipeView.currentIndex
         TabButton {
             text: qsTr("Description")
+        }
+        TabButton {
+            text: qsTr("Devices")
+        }
+        TabButton {
+            text: qsTr("Services")
         }
     }
 
@@ -55,6 +71,28 @@ ColumnLayout {
             }
 
             ScrollBar.vertical: ScrollBar { }
+        }
+
+        ListView {
+            id: devicesView
+            model: item.device.devicesModel
+
+            delegate: DeviceDelegate { }
+
+            function selectDevice(index) {
+                setDeviceDetails(item.device.devicesModel.at(index), item.rootIndex, item.iconurl)
+            }
+        }
+
+        ListView {
+            id: servicesView
+            model: item.device.servicesModel
+
+            delegate: ServiceDelegate { }
+
+            function selectService(index) {
+                setServiceDetails(item.device.servicesModel.at(index), item.rootIndex, item.iconurl)
+            }
         }
     }
 }

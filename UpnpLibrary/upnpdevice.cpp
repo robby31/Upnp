@@ -2,18 +2,16 @@
 
 UpnpDevice::UpnpDevice(QObject *parent) :
     UpnpObject(parent),
-    m_info(),
-    m_host(),
+    m_uuid(),
     m_services(0),
     m_devices(0)
 {
     initRoles();
 }
 
-UpnpDevice::UpnpDevice(QHostAddress host, QDomNode info, QObject *parent) :
+UpnpDevice::UpnpDevice(QHostAddress host, QString uuid, QObject *parent) :
     UpnpObject(Device, host, parent),
-    m_info(info),
-    m_host(host),
+    m_uuid(uuid),
     m_services(0),
     m_devices(0)
 {
@@ -22,10 +20,8 @@ UpnpDevice::UpnpDevice(QHostAddress host, QDomNode info, QObject *parent) :
     m_services = new ListModel(new UpnpService, this);
     m_devices = new ListModel(new UpnpDevice, this);
 
-    connect(this, SIGNAL(availableChanged()), this, SLOT(availableSlotChanged()));
-
-    if (description().isNull())
-        setDescription(info);
+    connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(deviceTypeChanged()));
+    connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
 }
 
 void UpnpDevice::initRoles()
@@ -39,14 +35,14 @@ void UpnpDevice::initRoles()
 
 QString UpnpDevice::id() const
 {
-    return getUuid();
+    return m_uuid;
 }
 
 QVariant UpnpDevice::data(int role) const
 {
     switch (role) {
     case HostRole:
-        return m_host.toString();
+        return host().toString();
     case DeviceTypeRole:
         return deviceType();
     case AvailableRole:
@@ -58,21 +54,19 @@ QVariant UpnpDevice::data(int role) const
     return QVariant::Invalid;
 }
 
-
-QString UpnpDevice::getInfo(const QString &param) const
+QString UpnpDevice::uuid() const
 {
-    QDomElement elt = m_info.firstChildElement(param);
-    return elt.firstChild().nodeValue();
+    return m_uuid;
 }
 
 QString UpnpDevice::deviceType() const
 {
-    return getInfo("deviceType");
+    return valueFromDescription("deviceType");
 }
 
 QString UpnpDevice::friendlyName() const
 {
-    return getInfo("friendlyName");
+    return valueFromDescription("friendlyName");
 }
 
 ListModel *UpnpDevice::servicesModel() const
@@ -82,7 +76,9 @@ ListModel *UpnpDevice::servicesModel() const
 
 void UpnpDevice::readServices()
 {
-    QDomElement l_services = m_info.firstChildElement("serviceList");
+    QDomNode desc = description();
+
+    QDomElement l_services = desc.firstChildElement("serviceList");
     if (!l_services.isNull())
     {
         QDomNode serviceElt = l_services.firstChild();
@@ -96,8 +92,8 @@ void UpnpDevice::readServices()
 
 void UpnpDevice::readDevices()
 {
-    // read devices
-    QDomElement l_devices = m_info.firstChildElement("deviceList");
+    QDomNode desc = description();
+    QDomElement l_devices = desc.firstChildElement("deviceList");
     if (!l_devices.isNull())
     {
         QDomNode deviceElt = l_devices.firstChild();
@@ -127,7 +123,7 @@ void UpnpDevice::addService(const QDomNode &descr)
             UpnpService *service = new UpnpService(host(), descr, m_services);
             service->setNetworkManager(getNetworkManager());
             service->setUrl(url());
-            service->getDescription();
+            service->requestDescription();
             m_services->appendRow(service);
         }
         else
@@ -156,9 +152,10 @@ void UpnpDevice::addDevice(const QDomNode &descr)
 
             if (device == 0)
             {
-                UpnpDevice *device = new UpnpDevice(host(), descr, m_devices);
+                UpnpDevice *device = new UpnpDevice(host(), strUuid, m_devices);
                 device->setNetworkManager(getNetworkManager());
                 device->setUrl(url());
+                device->setDescription(descr);
                 device->readServices();
                 device->readDevices();
                 m_devices->appendRow(device);
@@ -175,34 +172,23 @@ void UpnpDevice::addDevice(const QDomNode &descr)
     }
 }
 
-QString UpnpDevice::getUuid() const
-{
-    QString udn = getInfo("UDN");
-
-    if (udn.startsWith("uuid:"))
-    {
-        return udn.right(udn.size()-5);
-    }
-    else
-    {
-        return QString();
-    }
-}
-
 ListModel *UpnpDevice::devicesModel() const
 {
     return m_devices;
 }
 
-UpnpDevice *UpnpDevice::getDeviceFromUuid(const QString &uuid)
+UpnpDevice *UpnpDevice::getDeviceFromUuid(const QString &p_uuid)
 {
+    if (uuid() == p_uuid)
+        return this;
+
     for (int i=0;i<m_devices->rowCount();++i)
     {
         UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
-        if (device->getUuid() == uuid)
-        {
-            return device;
-        }
+
+        UpnpDevice *foundDevice = device->getDeviceFromUuid(p_uuid);
+        if (foundDevice != 0)
+            return foundDevice;
     }
 
     return 0;
@@ -210,13 +196,16 @@ UpnpDevice *UpnpDevice::getDeviceFromUuid(const QString &uuid)
 
 UpnpDevice *UpnpDevice::getDeviceFromType(const QString &type)
 {
+    if (deviceType() == type)
+        return this;
+
     for (int i=0;i<m_devices->rowCount();++i)
     {
         UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
-        if (device->deviceType() == type)
-        {
-            return device;
-        }
+
+        UpnpDevice *foundDevice = device->getDeviceFromType(type);
+        if (foundDevice != 0)
+            return foundDevice;
     }
 
     return 0;
@@ -227,16 +216,26 @@ UpnpService *UpnpDevice::getServiceFromType(const QString &type)
     for (int i=0;i<m_services->rowCount();++i)
     {
         UpnpService *service = qobject_cast<UpnpService*>(m_services->at(i));
+
         if (service->serviceType() == type)
         {
             return service;
         }
     }
 
+    for (int i=0;i<m_devices->rowCount();++i)
+    {
+        UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
+
+        UpnpService *foundService = device->getServiceFromType(type);
+        if (foundService != 0)
+            return foundService;
+    }
+
     return 0;
 }
 
-void UpnpDevice::availableSlotChanged()
+void UpnpDevice::itemAvailableChanged()
 {
     QVector<int> roles;
     roles << AvailableRole;

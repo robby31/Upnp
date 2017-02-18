@@ -22,6 +22,8 @@ UpnpObject::UpnpObject(TypeObject type, QHostAddress host, QObject *parent) :
     m_description(),
     netManager(0)
 {
+    connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
+
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(timeout()));
 }
 
@@ -33,6 +35,11 @@ void UpnpObject::setRoles(QHash<int, QByteArray> roles)
 UpnpObject::TypeObject UpnpObject::type() const
 {
     return m_type;
+}
+
+void UpnpObject::setType(const TypeObject &type)
+{
+    m_type = type;
 }
 
 QHash<int, QByteArray>  UpnpObject::roleNames() const
@@ -117,45 +124,31 @@ QHostAddress UpnpObject::host() const
     return m_host;
 }
 
-QDomDocument UpnpObject::description() const
+QDomNode UpnpObject::description() const
 {
     return m_description;
 }
 
 QString UpnpObject::strDescription() const
 {
-    return m_description.toString();
+    QDomDocument doc;
+    QDomElement root = doc.createElement("description");
+    QDomNode elt = doc.importNode(m_description, true);
+    root.appendChild(elt);
+    doc.appendChild(root);
+    return doc.toString();
 }
 
 QString UpnpObject::valueFromDescription(const QString &param) const
 {
-    QDomNodeList l_elt = m_description.elementsByTagName(param);
+    QDomNode elt = m_description.firstChildElement(param);
 
-    if (l_elt.size() > 0)
-    {
-        QDomNode elt = l_elt.at(0);
-        return elt.firstChild().nodeValue();
-    }
-
-    return QString();
-}
-
-void UpnpObject::setDescription(QByteArray data)
-{
-    m_description.setContent(data);
-    emit descriptionChanged();
+    return elt.firstChild().nodeValue();
 }
 
 void UpnpObject::setDescription(QDomNode node)
 {
-    m_description.clear();
-
-    QDomElement root = m_description.createElement("root");
-
-    QDomNode elt = m_description.importNode(node, true);
-    root.appendChild(elt);
-
-    m_description.appendChild(root);
+    m_description = node;
 
     emit descriptionChanged();
 }
@@ -191,7 +184,7 @@ QUrl UpnpObject::url() const
 
 void UpnpObject::setUrl(QUrl url)
 {
-    m_url = url.adjusted(QUrl::RemoveFilename);
+    m_url = url;
 }
 
 

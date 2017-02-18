@@ -23,6 +23,16 @@ ColumnLayout {
             onButtonClicked: setRootDeviceDetails(rootIndex, rootIconUrl)
         }
 
+        Image {
+            anchors { verticalCenter: parent.verticalCenter }
+            width: parent.height*0.9
+            height: width
+            sourceSize.width: width
+            sourceSize.height: width
+            fillMode: Image.PreserveAspectFit
+            source: rootIconUrl
+        }
+
         Text {
             width: contentWidth
             anchors.verticalCenter: parent.verticalCenter

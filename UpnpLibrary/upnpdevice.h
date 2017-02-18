@@ -1,12 +1,9 @@
 #ifndef UPNPDEVICE_H
 #define UPNPDEVICE_H
 
-#include <QObject>
-#include <QDateTime>
-#include <QDebug>
 #include "upnpobject.h"
-#include "Models/listmodel.h"
 #include "upnpservice.h"
+#include "Models/listmodel.h"
 
 class UpnpDevice : public UpnpObject
 {
@@ -25,14 +22,13 @@ public:
     };
 
     explicit UpnpDevice(QObject *parent = 0);
-    explicit UpnpDevice(QHostAddress host, QDomNode info, QObject *parent = 0);
+    explicit UpnpDevice(QHostAddress host, QString uuid, QObject *parent = 0);
 
     virtual QString id() const Q_DECL_OVERRIDE;
 
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
 
-    QString getInfo(const QString &param) const;
-
+    QString uuid() const;
     QString deviceType() const;
     QString friendlyName() const;
 
@@ -42,9 +38,7 @@ public:
     void readServices();
     void readDevices();
 
-    QString getUuid() const;
-
-    UpnpDevice *getDeviceFromUuid(const QString &uuid);
+    UpnpDevice *getDeviceFromUuid(const QString &p_uuid);
     UpnpDevice *getDeviceFromType(const QString &type);
     UpnpService *getServiceFromType(const QString &type);
 
@@ -62,11 +56,10 @@ signals:
 public slots:
 
 private slots:
-    void availableSlotChanged();
+    void itemAvailableChanged();
 
 private:
-    QDomNode m_info;
-    QHostAddress m_host;
+    QString m_uuid;
     ListModel *m_services;
     ListModel *m_devices;
 };

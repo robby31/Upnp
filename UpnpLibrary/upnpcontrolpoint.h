@@ -43,6 +43,8 @@ private:
     UpnpDevice *getDeviceFromType(const QString &type);
     UpnpService *getServiceFromType(const QString &type);
 
+    UpnpObject *getUpnpObjectFromNt(const QString &nt);
+
     void _sendAlive(const QString &notification_type);
     void _sendByeBye(const QString &notification_type);
     void _sendDiscover(const QString &search_target);
