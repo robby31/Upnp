@@ -100,10 +100,12 @@ void UpnpRootDevice::requestDescription(QString location)
     if (reply == 0)
     {
         qCritical() << "Unable to get description" << this << location;
+        setStatus(Error);
     }
     else
     {
         connect(reply, SIGNAL(finished()), this, SLOT(descriptionReceived()));
+        setStatus(Loading);
     }
 }
 
@@ -134,6 +136,7 @@ void UpnpRootDevice::descriptionReceived()
         if (root.isNull())
         {
             qCritical() << "root not found in description";
+            setStatus(Error);
         }
         else
         {
@@ -154,16 +157,21 @@ void UpnpRootDevice::descriptionReceived()
                     if (udn.startsWith("uuid:"))
                     {
                         if (udn.right(udn.size()-5) != uuid())
+                        {
                             qCritical() << "invalid uuid in description" << uuid() << "!=" << udn.right(udn.size()-5);
+                            setStatus(Error);
+                        }
                     }
                     else
                     {
                         qCritical() << "invalid uuid in description" << udn;
+                        setStatus(Error);
                     }
                 }
                 else
                 {
                     qCritical() << "invalid uuid in description (no UDN found)";
+                    setStatus(Error);
                 }
 
                 // read icon
@@ -201,17 +209,21 @@ void UpnpRootDevice::descriptionReceived()
                         emit itemChanged(roles);
                     }
                 }
+
+                if (status() == Loading)
+                    setStatus(Ready);
             }
             else
             {
                 qCritical() << "device not found in description";
-
+                setStatus(Error);
             }
         }
     }
     else
     {
         qCritical() << reply->errorString();
+        setStatus(Error);
     }
 
     reply->deleteLater();
@@ -222,5 +234,7 @@ void UpnpRootDevice::itemAvailableChanged()
     QVector<int> roles;
     roles << AvailableRole;
     emit itemChanged(roles);
+
+    emit upnpObjectAvailabilityChanged(this);
 }
 

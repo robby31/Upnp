@@ -38,15 +38,15 @@ public:
     void readServices();
     void readDevices();
 
-    UpnpDevice *getDeviceFromUuid(const QString &p_uuid);
-    UpnpDevice *getDeviceFromType(const QString &type);
-    UpnpService *getServiceFromType(const QString &type);
+    UpnpObject *getUpnpObjectFromUSN(const QString &usn);
 
 private:
     void initRoles();
 
     void addService(const QDomNode &descr);
     void addDevice(const QDomNode &descr);
+
+    UpnpService *getServiceFromType(const QString &type);
 
 signals:
     void deviceTypeChanged();

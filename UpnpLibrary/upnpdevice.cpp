@@ -158,6 +158,7 @@ void UpnpDevice::addDevice(const QDomNode &descr)
                 device->setDescription(descr);
                 device->readServices();
                 device->readDevices();
+                device->setStatus(Ready);
                 m_devices->appendRow(device);
             }
             else
@@ -177,35 +178,56 @@ ListModel *UpnpDevice::devicesModel() const
     return m_devices;
 }
 
-UpnpDevice *UpnpDevice::getDeviceFromUuid(const QString &p_uuid)
+UpnpObject *UpnpDevice::getUpnpObjectFromUSN(const QString &usn)
 {
-    if (uuid() == p_uuid)
-        return this;
-
-    for (int i=0;i<m_devices->rowCount();++i)
+    if (usn.startsWith("uuid:"))
     {
-        UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
+        QString tmp = usn.right(usn.size()-5);
 
-        UpnpDevice *foundDevice = device->getDeviceFromUuid(p_uuid);
-        if (foundDevice != 0)
-            return foundDevice;
+        QString uuid;
+        QString nt;
+        if (tmp.contains("::"))
+        {
+            QStringList l_elt = tmp.split("::");
+            uuid = l_elt.at(0);
+            if (l_elt.size() == 2)
+                nt = l_elt.at(1);
+            else
+                qCritical() << "invalid USN format" << usn;
+        }
+        else
+        {
+            uuid = tmp;
+        }
+
+        if (m_uuid == uuid)
+        {
+            if (nt.isEmpty() or nt == deviceType())
+            {
+                return this;
+            }
+            else if (nt.contains(":service:"))
+            {
+                UpnpObject *foundService = getServiceFromType(nt);
+                if (foundService)
+                    return foundService;
+            }
+        }
+        else
+        {
+            for (int i=0;i<m_devices->rowCount();++i)
+            {
+                UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
+
+                UpnpObject *foundDevice = device->getUpnpObjectFromUSN(usn);
+                if (foundDevice != 0)
+                    return foundDevice;
+            }
+        }
     }
-
-    return 0;
-}
-
-UpnpDevice *UpnpDevice::getDeviceFromType(const QString &type)
-{
-    if (deviceType() == type)
-        return this;
-
-    for (int i=0;i<m_devices->rowCount();++i)
+    else
     {
-        UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
-
-        UpnpDevice *foundDevice = device->getDeviceFromType(type);
-        if (foundDevice != 0)
-            return foundDevice;
+        qCritical() << "invalid USN format" << usn;
     }
 
     return 0;
@@ -221,15 +243,6 @@ UpnpService *UpnpDevice::getServiceFromType(const QString &type)
         {
             return service;
         }
-    }
-
-    for (int i=0;i<m_devices->rowCount();++i)
-    {
-        UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
-
-        UpnpService *foundService = device->getServiceFromType(type);
-        if (foundService != 0)
-            return foundService;
     }
 
     return 0;

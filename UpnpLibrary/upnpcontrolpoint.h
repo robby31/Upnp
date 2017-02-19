@@ -39,11 +39,8 @@ public:
 private:
     void addRootDevice(QHostAddress host, SsdpMessage message);
     UpnpRootDevice *getRootDeviceFromUuid(const QString &uuid);
-    UpnpDevice *getDeviceFromUuid(const QString &uuid);
-    UpnpDevice *getDeviceFromType(const QString &type);
-    UpnpService *getServiceFromType(const QString &type);
 
-    UpnpObject *getUpnpObjectFromNt(const QString &nt);
+    UpnpObject *getUpnpObjectFromUSN(const QString &usn);
 
     void _sendAlive(const QString &notification_type);
     void _sendByeBye(const QString &notification_type);
@@ -75,6 +72,8 @@ private slots:
     void _processPendingUnicastDatagrams();
 
     void _processSsdpMessageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
+
+    void upnpObjectAvailabilityChanged(UpnpObject *object);
 
 
 private:

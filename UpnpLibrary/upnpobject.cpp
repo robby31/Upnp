@@ -2,6 +2,7 @@
 
 UpnpObject::UpnpObject(QObject *parent) :
     ListItem(parent),
+    m_status(Null),
     m_timeout(QDateTime::currentDateTime()),
     m_available(false),
     m_host(),
@@ -14,6 +15,7 @@ UpnpObject::UpnpObject(QObject *parent) :
 
 UpnpObject::UpnpObject(TypeObject type, QHostAddress host, QObject *parent) :
     ListItem(parent),
+    m_status(Null),
     m_type(type),
     m_timeout(QDateTime::currentDateTime()),
     m_available(false),
@@ -23,6 +25,7 @@ UpnpObject::UpnpObject(TypeObject type, QHostAddress host, QObject *parent) :
     netManager(0)
 {
     connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
+    connect(this, SIGNAL(statusChanged()), this, SIGNAL(availableChanged()));
 
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(timeout()));
 }
@@ -40,6 +43,28 @@ UpnpObject::TypeObject UpnpObject::type() const
 void UpnpObject::setType(const TypeObject &type)
 {
     m_type = type;
+}
+
+UpnpObject::Status UpnpObject::status() const
+{
+    return m_status;
+}
+
+void UpnpObject::setStatus(const Status &status)
+{
+    if (status < m_status)
+    {
+        qCritical() << "cannot change status to " << status << ", status = " << m_status;
+    }
+    else if (status != m_status)
+    {
+        m_status = status;
+        emit statusChanged();
+    }
+    else
+    {
+        qDebug() << "same status, not necessary to update anything" << m_status << status;
+    }
 }
 
 QHash<int, QByteArray>  UpnpObject::roleNames() const
@@ -160,7 +185,7 @@ void UpnpObject::timeout()
 
 bool UpnpObject::available() const
 {
-    return m_available;
+    return m_available && m_status == Ready;
 }
 
 void UpnpObject::setAvailable(bool flag)

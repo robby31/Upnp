@@ -60,17 +60,19 @@ QString UpnpService::getInfo(const QString &param) const
 }
 
 void UpnpService::requestDescription()
-{
+{    
     QString p_url = urlFromRelativePath(getInfo("SCPDURL")).url();
 
     QNetworkReply *reply = get(p_url);
     if (reply == 0)
     {
         qCritical() << "Unable to get description" << this << serviceType() << p_url;
+        setStatus(Error);
     }
     else
     {
         connect(reply, SIGNAL(finished()), this, SLOT(descriptionReceived()));
+        setStatus(Loading);
     }
 }
 
@@ -87,10 +89,13 @@ void UpnpService::descriptionReceived()
         qDebug() << "description received" << this << reply->request().url();
 
         readActions();
+
+        setStatus(Ready);
     }
     else
     {
         qCritical() << reply->errorString();
+        setStatus(Error);
     }
 
     reply->deleteLater();

@@ -311,37 +311,13 @@ void UpnpControlPoint::setNetworkManager(QNetworkAccessManager *nam)
     netManager = nam;
 }
 
-UpnpObject *UpnpControlPoint::getUpnpObjectFromNt(const QString &nt)
+UpnpObject *UpnpControlPoint::getUpnpObjectFromUSN(const QString &usn)
 {
-    if (nt.startsWith("uuid:"))
+    for (int i=0;i<m_rootDevice->rowCount();++i)
     {
-        QString uuid = nt.right(nt.size()-5);
-
-        UpnpDevice *device = getDeviceFromUuid(uuid);
-        if (device != 0)
-            return device;
-        else
-            qCritical() << "device/uuid not found" << uuid;
-    }
-    else if (nt.contains(":device:"))
-    {
-        UpnpDevice *device = getDeviceFromType(nt);
-        if (device != 0)
-            return device;
-        else
-            qCritical() << "device not found" << nt;
-    }
-    else if (nt.contains(":service:"))
-    {
-        UpnpService *service = getServiceFromType(nt);
-        if (service != 0)
-            return service;
-        else
-            qCritical() << "service not found" << nt;
-    }
-    else
-    {
-        qCritical() << "unable to find upnp object" << nt;
+        UpnpObject *object = qobject_cast<UpnpRootDevice*>(m_rootDevice->at(i))->getUpnpObjectFromUSN(usn);
+        if (object != 0)
+            return object;
     }
 
     return 0;
@@ -364,7 +340,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
             }
             else
             {
-                UpnpObject *object = getUpnpObjectFromNt(nt);
+                UpnpObject *object = getUpnpObjectFromUSN(message.getHeader("USN"));
                 if (object != 0)
                     object->update(message);
                 else
@@ -384,7 +360,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
             }
             else
             {
-                UpnpObject *object = getUpnpObjectFromNt(nt);
+                UpnpObject *object = getUpnpObjectFromUSN(message.getHeader("USN"));
                 if (object != 0)
                     object->setAvailable(false);
                 else
@@ -423,6 +399,7 @@ void UpnpControlPoint::addRootDevice(QHostAddress host, SsdpMessage message)
         if (device == 0)
         {
             device = new UpnpRootDevice(QHostAddress(host.toIPv4Address()), uuid, m_rootDevice);
+            connect(device, SIGNAL(upnpObjectAvailabilityChanged(UpnpObject*)), this, SLOT(upnpObjectAvailabilityChanged(UpnpObject*)));
             device->setNetworkManager(netManager);
             device->update(message);
             device->requestDescription(message.getHeader("LOCATION"));
@@ -450,38 +427,32 @@ UpnpRootDevice *UpnpControlPoint::getRootDeviceFromUuid(const QString &uuid)
     return 0;
 }
 
-UpnpDevice *UpnpControlPoint::getDeviceFromUuid(const QString &uuid)
+void UpnpControlPoint::upnpObjectAvailabilityChanged(UpnpObject *object)
 {
-    for (int i=0;i<m_rootDevice->rowCount();++i)
+    if (object)
     {
-        UpnpDevice *device = qobject_cast<UpnpRootDevice*>(m_rootDevice->at(i))->getDeviceFromUuid(uuid);
-        if (device != 0)
-            return device;
+        if (object->type() == UpnpObject::RootDevice)
+        {
+            UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(object);
+            if (root)
+            {
+                if (root->available())
+                    qWarning() << QDateTime::currentDateTime() << "RootDevice ON-LINE:" << root->uuid() << root->status() << root->friendlyName();
+                else
+                    qWarning() << QDateTime::currentDateTime() << "RootDevice OFF-LINE:" << root->uuid() << root->status() << root->friendlyName();
+            }
+            else
+            {
+                qCritical() << QDateTime::currentDateTime() << "invalid Root Device" << object;
+            }
+        }
+        else
+        {
+            qWarning() << QDateTime::currentDateTime() << "availability changed" << object->available() << object;
+        }
     }
-
-    return 0;
-}
-
-UpnpDevice *UpnpControlPoint::getDeviceFromType(const QString &type)
-{
-    for (int i=0;i<m_rootDevice->rowCount();++i)
+    else
     {
-        UpnpDevice *device = qobject_cast<UpnpRootDevice*>(m_rootDevice->at(i))->getDeviceFromType(type);
-        if (device != 0)
-            return device;
+        qCritical() << "ERROR on upnpObjectAvailability" << object;
     }
-
-    return 0;
-}
-
-UpnpService *UpnpControlPoint::getServiceFromType(const QString &type)
-{
-    for (int i=0;i<m_rootDevice->rowCount();++i)
-    {
-        UpnpService *service = qobject_cast<UpnpRootDevice*>(m_rootDevice->at(i))->getServiceFromType(type);
-        if (service != 0)
-            return service;
-    }
-
-    return 0;
 }

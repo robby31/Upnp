@@ -37,6 +37,7 @@ private:
 
 signals:
     void rootDescriptionChanged();
+    void upnpObjectAvailabilityChanged(UpnpObject *object);
 
 public slots:
 

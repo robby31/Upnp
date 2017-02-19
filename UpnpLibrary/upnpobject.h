@@ -15,11 +15,13 @@ class UpnpObject : public ListItem
 {
     Q_OBJECT
 
+    Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(QString description READ strDescription  NOTIFY descriptionChanged)
     Q_PROPERTY(bool available READ available WRITE setAvailable NOTIFY availableChanged)
 
 public:
     enum TypeObject { RootDevice, Device, Service };
+    enum Status { Null, Loading, Ready, Error };
 
     explicit UpnpObject(QObject *parent = 0);
     explicit UpnpObject(TypeObject type, QHostAddress host, QObject *parent = 0);
@@ -31,6 +33,9 @@ public:
     virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
     void setRoles(QHash<int, QByteArray> roles);
+
+    Status status() const;
+    void setStatus(const Status &status);
 
     bool available() const;
     void setAvailable(bool flag);
@@ -58,6 +63,7 @@ public:
     QNetworkReply *get(const QString &location);
 
 signals:
+    void statusChanged();
     void descriptionChanged();
     void availableChanged();
 
@@ -67,6 +73,7 @@ private slots:
     void timeout();
 
 private:
+    Status m_status;
     QHash<int, QByteArray> m_roles;
     TypeObject m_type;
     QDateTime m_timeout;
