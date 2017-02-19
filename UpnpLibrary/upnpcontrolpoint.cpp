@@ -57,6 +57,11 @@ void UpnpControlPoint::_start()
     _sendDiscover("upnp:rootdevice");
 }
 
+void UpnpControlPoint::start()
+{
+    emit startSignal();
+}
+
 void UpnpControlPoint::close()
 {
     qDebug() << "Root devices" << m_rootDevice->rowCount();
@@ -69,6 +74,31 @@ void UpnpControlPoint::close()
 
     udpSocketUnicast.close();
     udpSocketMulticast.close();
+}
+
+QString UpnpControlPoint::serverName() const
+{
+    return m_servername;
+}
+
+ListModel *UpnpControlPoint::rootDevices() const
+{
+    return m_rootDevice;
+}
+
+void UpnpControlPoint::setHost(const QString &host)
+{
+    m_host = host;
+}
+
+void UpnpControlPoint::setServerUrl(const QString &url)
+{
+    m_serverurl = url;
+}
+
+void UpnpControlPoint::setUuid(const QString &uuid)
+{
+    m_uuid = uuid;
 }
 
 // Function called when a request is received

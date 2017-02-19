@@ -23,18 +23,18 @@ public:
     explicit UpnpControlPoint(QObject *parent = 0);
     virtual ~UpnpControlPoint();
 
-    void start() { emit startSignal(); }
+    void start();
     void close();
 
-    void setUuid(const QString &uuid)       { m_uuid = uuid;        }
-    void setServerUrl(const QString &url)   { m_serverurl = url;    }
-    void setHost(const QString &host)       { m_host = host;        }
+    void setUuid(const QString &uuid);
+    void setServerUrl(const QString &url);
+    void setHost(const QString &host);
 
     void setNetworkManager(QNetworkAccessManager *nam);
 
-    QString serverName() const { return m_servername; }
+    QString serverName() const;
 
-    ListModel *rootDevices() const { return m_rootDevice; }
+    ListModel *rootDevices() const;
 
 private:
     void addRootDevice(QHostAddress host, SsdpMessage message);
