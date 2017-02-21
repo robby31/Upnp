@@ -17,7 +17,9 @@ public:
         PortRole,
         DateRole,
         TypeRole,
-        MessageRole
+        MessageRole,
+        NtRole,
+        NtsRole
     };
 
     explicit MessageItem(QObject* parent = 0);

@@ -15,6 +15,7 @@ class UpnpObject : public ListItem
 {
     Q_OBJECT
 
+    Q_PROPERTY(UpnpObject *upnpParent READ upnpParent WRITE setUpnpParent NOTIFY upnpParentChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(QString description READ strDescription  NOTIFY descriptionChanged)
     Q_PROPERTY(bool available READ available WRITE setAvailable NOTIFY availableChanged)
@@ -24,7 +25,7 @@ public:
     enum Status { Null, Loading, Ready, Error };
 
     explicit UpnpObject(QObject *parent = 0);
-    explicit UpnpObject(TypeObject type, QHostAddress host, QObject *parent = 0);
+    explicit UpnpObject(TypeObject type, QObject *parent = 0);
 
     TypeObject type() const;
     void setType(const TypeObject &type);
@@ -33,6 +34,11 @@ public:
     virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
     void setRoles(QHash<int, QByteArray> roles);
+
+    UpnpObject *upnpParent() const;
+    void setUpnpParent(UpnpObject *parent);
+
+    virtual QNetworkAccessManager *networkManager() const;
 
     Status status() const;
     void setStatus(const Status &status);
@@ -44,15 +50,14 @@ public:
 
     void update(const SsdpMessage &message);
 
-    QNetworkAccessManager *getNetworkManager() const;
-    void setNetworkManager(QNetworkAccessManager *nam);
+    virtual QHostAddress host() const;
 
-    QHostAddress host() const;
+    virtual QString serverName() const;
 
     QUrl url() const;
     void setUrl(QUrl url);
 
-    QUrl urlFromRelativePath(QString path);
+    QUrl urlFromRelativePath(QString path) const;
 
     QDomNode description() const;
     QString strDescription() const;
@@ -61,8 +66,10 @@ public:
     QString valueFromDescription(const QString &param) const;
 
     QNetworkReply *get(const QString &location);
+    QNetworkReply *post(QNetworkRequest request, QByteArray data);
 
 signals:
+    void upnpParentChanged();
     void statusChanged();
     void descriptionChanged();
     void availableChanged();
@@ -73,17 +80,15 @@ private slots:
     void timeout();
 
 private:
+    UpnpObject *m_upnpParent;
     Status m_status;
     QHash<int, QByteArray> m_roles;
     TypeObject m_type;
     QDateTime m_timeout;
     QTimer m_timer;
     bool m_available;
-    QHostAddress m_host;
     QUrl m_url;
     QDomNode m_description;
-
-    QNetworkAccessManager *netManager;
 };
 
 #endif // UPNPOBJECT_H

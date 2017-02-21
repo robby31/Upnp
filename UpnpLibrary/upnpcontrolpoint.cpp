@@ -21,23 +21,23 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
     counterAlive(0),
     m_bootid(0),
     m_configid(0),
-    m_rootDevice(0)
+    m_remoteRootDevice(0)
 {
-    m_rootDevice = new ListModel(new UpnpRootDevice, this);
+    m_remoteRootDevice = new ListModel(new UpnpRootDevice, this);
 
-    connect(&udpSocketMulticast, SIGNAL(readyRead()), this, SLOT(_processPendingMulticastDatagrams()));
+    connect(&udpSocketMulticast, &QUdpSocket::readyRead, this, &UpnpControlPoint::_processPendingMulticastDatagrams);
     udpSocketMulticast.setSocketOption(QAbstractSocket::MulticastTtlOption, 2);
     udpSocketMulticast.bind(QHostAddress::AnyIPv4, UPNP_PORT, QAbstractSocket::ShareAddress);
     if (!udpSocketMulticast.joinMulticastGroup(IPV4_UPNP_HOST))
         qCritical() << "Unable to join multicast UDP.";
 
-    connect(&udpSocketUnicast, SIGNAL(readyRead()), this, SLOT(_processPendingUnicastDatagrams()));
+    connect(&udpSocketUnicast, &QUdpSocket::readyRead, this, &UpnpControlPoint::_processPendingUnicastDatagrams);
     udpSocketUnicast.setSocketOption(QAbstractSocket::MulticastTtlOption, 2);
 
     connect(&timerAlive, SIGNAL(timeout()), this, SLOT(_sendAlive()));
-    connect(this, SIGNAL(startSignal()), this, SLOT(_start()));
+    connect(this, &UpnpControlPoint::startSignal, this, &UpnpControlPoint::_start);
 
-    connect(this, SIGNAL(messageReceived(QHostAddress,int,SsdpMessage)), this, SLOT(_processSsdpMessageReceived(QHostAddress,int,SsdpMessage)));
+    connect(this, &UpnpControlPoint::messageReceived, this, &UpnpControlPoint::_processSsdpMessageReceived);
 }
 
 UpnpControlPoint::~UpnpControlPoint()
@@ -64,7 +64,7 @@ void UpnpControlPoint::start()
 
 void UpnpControlPoint::close()
 {
-    qDebug() << "Root devices" << m_rootDevice->rowCount();
+    qDebug() << "Root devices" << m_remoteRootDevice->rowCount();
 
     if (timerAlive.isActive())
     {
@@ -81,9 +81,9 @@ QString UpnpControlPoint::serverName() const
     return m_servername;
 }
 
-ListModel *UpnpControlPoint::rootDevices() const
+ListModel *UpnpControlPoint::remoteRootDevices() const
 {
-    return m_rootDevice;
+    return m_remoteRootDevice;
 }
 
 void UpnpControlPoint::setHost(const QString &host)
@@ -313,9 +313,9 @@ void UpnpControlPoint::setNetworkManager(QNetworkAccessManager *nam)
 
 UpnpObject *UpnpControlPoint::getUpnpObjectFromUSN(const QString &usn)
 {
-    for (int i=0;i<m_rootDevice->rowCount();++i)
+    for (int i=0;i<m_remoteRootDevice->rowCount();++i)
     {
-        UpnpObject *object = qobject_cast<UpnpRootDevice*>(m_rootDevice->at(i))->getUpnpObjectFromUSN(usn);
+        UpnpObject *object = qobject_cast<UpnpRootDevice*>(m_remoteRootDevice->at(i))->getUpnpObjectFromUSN(usn);
         if (object != 0)
             return object;
     }
@@ -332,7 +332,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
         QString nts = message.getHeader("NTS");
         QString nt = message.getHeader("NT");
 
-        if (nts == "ssdp:alive")
+        if (nts == ALIVE)
         {
             if (nt == "upnp:rootdevice")
             {
@@ -340,14 +340,26 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
             }
             else
             {
-                UpnpObject *object = getUpnpObjectFromUSN(message.getHeader("USN"));
-                if (object != 0)
-                    object->update(message);
+                QString uuid = message.getUuidFromUsn();
+                UpnpObject *device = getUpnpObjectFromUSN(QString("uuid:%1").arg(uuid));
+                if (device)
+                {
+                    if (device->status() == UpnpObject::Ready)
+                    {
+                        UpnpObject *object = getUpnpObjectFromUSN(message.getHeader("USN"));
+                        if (object != 0)
+                            object->update(message);
+                        else
+                            qCritical() << "unable to find" << host << nt;
+                    }
+                }
                 else
-                    qCritical() << "unable to find" << host << nt;
+                {
+                    qCritical() << "unable to find device" << host << uuid;
+                }
             }
         }
-        else if (nts == "ssdp:byebye")
+        else if (nts == BYEBYE)
         {
             if (nt == "upnp:rootdevice")
             {
@@ -398,12 +410,12 @@ void UpnpControlPoint::addRootDevice(QHostAddress host, SsdpMessage message)
 
         if (device == 0)
         {
-            device = new UpnpRootDevice(QHostAddress(host.toIPv4Address()), uuid, m_rootDevice);
+            device = new UpnpRootDevice(netManager, QHostAddress(host.toIPv4Address()), uuid, m_remoteRootDevice);
             connect(device, SIGNAL(upnpObjectAvailabilityChanged(UpnpObject*)), this, SLOT(upnpObjectAvailabilityChanged(UpnpObject*)));
-            device->setNetworkManager(netManager);
+            device->setServerName(serverName());
             device->update(message);
             device->requestDescription(message.getHeader("LOCATION"));
-            m_rootDevice->appendRow(device);
+            m_remoteRootDevice->appendRow(device);
         }
         else
         {
@@ -420,7 +432,7 @@ UpnpRootDevice *UpnpControlPoint::getRootDeviceFromUuid(const QString &uuid)
 {
     if (!uuid.isEmpty())
     {
-        UpnpRootDevice *device = qobject_cast<UpnpRootDevice*>(m_rootDevice->find(uuid));
+        UpnpRootDevice *device = qobject_cast<UpnpRootDevice*>(m_remoteRootDevice->find(uuid));
         return device;
     }
 
@@ -436,10 +448,13 @@ void UpnpControlPoint::upnpObjectAvailabilityChanged(UpnpObject *object)
             UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(object);
             if (root)
             {
-                if (root->available())
-                    qWarning() << QDateTime::currentDateTime() << "RootDevice ON-LINE:" << root->uuid() << root->status() << root->friendlyName();
-                else
-                    qWarning() << QDateTime::currentDateTime() << "RootDevice OFF-LINE:" << root->uuid() << root->status() << root->friendlyName();
+                if (root->status() == UpnpObject::Ready)
+                {
+                    if (root->available())
+                        qWarning() << QDateTime::currentDateTime().toString() << "RootDevice ON-LINE:" << root->uuid() << root->status() << root->friendlyName();
+                    else
+                        qWarning() << QDateTime::currentDateTime().toString() << "RootDevice OFF-LINE:" << root->uuid() << root->status() << root->friendlyName();
+                }
             }
             else
             {

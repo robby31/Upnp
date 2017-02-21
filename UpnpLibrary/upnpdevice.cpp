@@ -9,8 +9,8 @@ UpnpDevice::UpnpDevice(QObject *parent) :
     initRoles();
 }
 
-UpnpDevice::UpnpDevice(QHostAddress host, QString uuid, QObject *parent) :
-    UpnpObject(Device, host, parent),
+UpnpDevice::UpnpDevice(QString uuid, QObject *parent) :
+    UpnpObject(Device, parent),
     m_uuid(uuid),
     m_services(0),
     m_devices(0)
@@ -120,8 +120,8 @@ void UpnpDevice::addService(const QDomNode &descr)
 
         if (service == 0)
         {
-            UpnpService *service = new UpnpService(host(), descr, m_services);
-            service->setNetworkManager(getNetworkManager());
+            UpnpService *service = new UpnpService(descr, m_services);
+            service->setUpnpParent(this);
             service->setUrl(url());
             service->requestDescription();
             m_services->appendRow(service);
@@ -152,8 +152,8 @@ void UpnpDevice::addDevice(const QDomNode &descr)
 
             if (device == 0)
             {
-                UpnpDevice *device = new UpnpDevice(host(), strUuid, m_devices);
-                device->setNetworkManager(getNetworkManager());
+                UpnpDevice *device = new UpnpDevice(strUuid, m_devices);
+                device->setUpnpParent(this);
                 device->setUrl(url());
                 device->setDescription(descr);
                 device->readServices();

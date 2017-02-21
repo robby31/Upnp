@@ -7,8 +7,8 @@ UpnpService::UpnpService(QObject *parent) :
     initRoles();
 }
 
-UpnpService::UpnpService(QHostAddress host, QDomNode info, QObject *parent) :
-    UpnpObject(Service, host, parent),
+UpnpService::UpnpService(QDomNode info, QObject *parent) :
+    UpnpObject(Service, parent),
     m_info(info)
 {
     initRoles();
@@ -53,6 +53,21 @@ QString UpnpService::serviceId() const
     return getInfo("serviceId");
 }
 
+QUrl UpnpService::scpdUrl() const
+{
+    return QUrl(urlFromRelativePath(getInfo("SCPDURL")).url());
+}
+
+QUrl UpnpService::controlUrl() const
+{
+    return QUrl(urlFromRelativePath(getInfo("controlURL")).url());
+}
+
+QUrl UpnpService::eventUrl() const
+{
+    return QUrl(urlFromRelativePath(getInfo("eventURL")).url());
+}
+
 QString UpnpService::getInfo(const QString &param) const
 {
     QDomElement elt = m_info.firstChildElement(param);
@@ -61,17 +76,16 @@ QString UpnpService::getInfo(const QString &param) const
 
 void UpnpService::requestDescription()
 {    
-    QString p_url = urlFromRelativePath(getInfo("SCPDURL")).url();
-
-    QNetworkReply *reply = get(p_url);
+    QNetworkReply *reply = get(scpdUrl().url());
     if (reply == 0)
     {
-        qCritical() << "Unable to get description" << this << serviceType() << p_url;
+        qCritical() << "Unable to get description" << this << serviceType() << scpdUrl();
         setStatus(Error);
     }
     else
     {
         connect(reply, SIGNAL(finished()), this, SLOT(descriptionReceived()));
+        connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
         setStatus(Loading);
     }
 }
@@ -174,6 +188,13 @@ void UpnpService::runAction(const int &index)
                 }
 
                 qWarning() << name << in << out;
+
+                if (in.isEmpty())
+                {
+                    QNetworkReply *reply = sendAction(name);
+                    connect(reply, SIGNAL(finished()), this, SLOT(actionFinished()));
+                    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
+                }
             }
         }
         else
@@ -192,4 +213,57 @@ void UpnpService::itemAvailableChanged()
     QVector<int> roles;
     roles << AvailableRole;
     emit itemChanged(roles);
+}
+
+QNetworkReply *UpnpService::sendAction(const QString &action)
+{
+
+    QNetworkRequest request;
+
+    request.setUrl(controlUrl());
+    request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
+    request.setRawHeader(QByteArray("CONTENT-TYPE"), "text/xml; charset=\"utf-8\"");
+    request.setRawHeader(QByteArray("USER-AGENT"), serverName().toUtf8());
+    request.setRawHeader(QByteArray("SOAPACTION"), QString("%1#%2").arg(serviceType()).arg(action).toUtf8());
+
+    QDomDocument xml;
+    xml.appendChild(xml.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"utf-8\""));
+
+    QDomElement envelope = xml.createElementNS("http://schemas.xmlsoap.org/soap/envelope/", "s:Envelope");
+    envelope.setAttribute("s:encodingStyle", "http://schemas.xmlsoap.org/soap/encoding/");
+    xml.appendChild(envelope);
+
+    QDomElement body = xml.createElement("s:Body");
+    envelope.appendChild(body);
+
+    QDomElement xmlAction = xml.createElementNS(serviceType(), "u:"+action);
+    body.appendChild(xmlAction);
+
+    return post(request, xml.toByteArray());
+}
+
+void UpnpService::actionFinished()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+
+    if (reply->error() == QNetworkReply::NoError)
+    {
+        qWarning() << "action done" << this << reply->request().rawHeader("SOAPACTION");
+        qWarning() << reply->readAll();
+    }
+    else
+    {
+        qCritical() << reply->errorString();
+    }
+
+    reply->deleteLater();
+}
+
+void UpnpService::networkError(QNetworkReply::NetworkError error)
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+
+    qCritical() << "Network Error" << error << reply->request().url();
+
+    reply->deleteLater();
 }

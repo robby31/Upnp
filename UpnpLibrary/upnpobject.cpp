@@ -2,27 +2,25 @@
 
 UpnpObject::UpnpObject(QObject *parent) :
     ListItem(parent),
+    m_upnpParent(0),
     m_status(Null),
     m_timeout(QDateTime::currentDateTime()),
     m_available(false),
-    m_host(),
     m_url(),
-    m_description(),
-    netManager(0)
+    m_description()
 {
 
 }
 
-UpnpObject::UpnpObject(TypeObject type, QHostAddress host, QObject *parent) :
+UpnpObject::UpnpObject(TypeObject type, QObject *parent) :
     ListItem(parent),
+    m_upnpParent(0),
     m_status(Null),
     m_type(type),
     m_timeout(QDateTime::currentDateTime()),
     m_available(false),
-    m_host(host),
     m_url(),
-    m_description(),
-    netManager(0)
+    m_description()
 {
     connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
     connect(this, SIGNAL(statusChanged()), this, SIGNAL(availableChanged()));
@@ -33,6 +31,25 @@ UpnpObject::UpnpObject(TypeObject type, QHostAddress host, QObject *parent) :
 void UpnpObject::setRoles(QHash<int, QByteArray> roles)
 {
     m_roles = roles;
+}
+
+UpnpObject *UpnpObject::upnpParent() const
+{
+    return m_upnpParent;
+}
+
+void UpnpObject::setUpnpParent(UpnpObject *parent)
+{
+    m_upnpParent = parent;
+    emit upnpParentChanged();
+}
+
+QNetworkAccessManager *UpnpObject::networkManager() const
+{
+    if (m_upnpParent)
+        return m_upnpParent->networkManager();
+    else
+        return 0;
 }
 
 UpnpObject::TypeObject UpnpObject::type() const
@@ -105,21 +122,10 @@ void UpnpObject::update(const SsdpMessage &message)
 
 }
 
-QNetworkAccessManager *UpnpObject::getNetworkManager() const
-{
-    return netManager;
-}
-
-void UpnpObject::setNetworkManager(QNetworkAccessManager *nam)
-{
-    if (thread() != nam->thread())
-        qWarning() << "NetworkManager and UpnpObject are in different thread.";
-
-    netManager = nam;
-}
-
 QNetworkReply *UpnpObject::get(const QString &location)
 {
+    QNetworkAccessManager *netManager = networkManager();
+
     if (netManager == 0)
     {
         qCritical() << "NetManager not initialized.";
@@ -128,14 +134,14 @@ QNetworkReply *UpnpObject::get(const QString &location)
     {
         if (location.isEmpty())
         {
-            QString msg = QString("Unable to request description for host %1").arg(host().toString());
+            QString msg = QString("Unable to get for host %1").arg(host().toString());
             qCritical() << msg;
         }
         else
         {
             QNetworkRequest request;
             request.setUrl(location);
-            request.setRawHeader(QByteArray("HOST"), host().toString().toUtf8());
+            request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
 
             return netManager->get(request);
         }
@@ -144,9 +150,36 @@ QNetworkReply *UpnpObject::get(const QString &location)
     return 0;
 }
 
+QNetworkReply *UpnpObject::post(QNetworkRequest request, QByteArray data)
+{
+    QNetworkAccessManager *netManager = networkManager();
+
+    if (netManager == 0)
+    {
+        qCritical() << "NetManager not initialized.";
+    }
+    else
+    {
+        return netManager->post(request, data);
+    }
+
+    return 0;
+}
+
 QHostAddress UpnpObject::host() const
 {
-    return m_host;
+    if (m_upnpParent)
+        return m_upnpParent->host();
+    else
+        return QHostAddress();
+}
+
+QString UpnpObject::serverName() const
+{
+    if (m_upnpParent)
+        return m_upnpParent->serverName();
+    else
+        return QString();
 }
 
 QDomNode UpnpObject::description() const
@@ -213,7 +246,7 @@ void UpnpObject::setUrl(QUrl url)
 }
 
 
-QUrl UpnpObject::urlFromRelativePath(QString path)
+QUrl UpnpObject::urlFromRelativePath(QString path) const
 {
     return m_url.resolved(path);
 }

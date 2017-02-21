@@ -17,7 +17,7 @@ class UpnpControlPoint : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QString serverName READ serverName NOTIFY serverNameChanged)
-    Q_PROPERTY(ListModel *rootDevices READ rootDevices NOTIFY rootDevicesChanged)
+    Q_PROPERTY(ListModel *remoteRootDevices READ remoteRootDevices NOTIFY remoteRootDevicesChanged)
 
 public:
     explicit UpnpControlPoint(QObject *parent = 0);
@@ -34,7 +34,7 @@ public:
 
     QString serverName() const;
 
-    ListModel *rootDevices() const;
+    ListModel *remoteRootDevices() const;
 
 private:
     void addRootDevice(QHostAddress host, SsdpMessage message);
@@ -54,7 +54,7 @@ signals:
     void startSignal();
 
     void serverNameChanged();
-    void rootDevicesChanged();
+    void remoteRootDevicesChanged();
 
     void messageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
     void deviceAlive(const QHostAddress &host, const int &port, const SsdpMessage &info);
@@ -94,7 +94,7 @@ private:
     int m_bootid;
     int m_configid;
 
-    ListModel *m_rootDevice;
+    ListModel *m_remoteRootDevice;
 
     // The Constant ALIVE.
     static const QString ALIVE;

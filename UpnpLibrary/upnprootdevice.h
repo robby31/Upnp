@@ -22,11 +22,19 @@ class UpnpRootDevice : public UpnpDevice
 
 public:
     explicit UpnpRootDevice(QObject *parent = 0);
-    explicit UpnpRootDevice(QHostAddress host, QString uuid, QObject *parent = 0);
+    explicit UpnpRootDevice(QNetworkAccessManager *nam, QHostAddress host, QString uuid, QObject *parent = 0);
 
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
 
     QString version() const;
+
+    virtual QNetworkAccessManager *networkManager() const Q_DECL_OVERRIDE;
+    void setNetworkManager(QNetworkAccessManager *nam);
+
+    virtual QHostAddress host() const Q_DECL_OVERRIDE;
+
+    virtual QString serverName() const Q_DECL_OVERRIDE;
+    void setServerName(const QString &name);
 
     void requestDescription(QString location);
     QString rootDescription() const;
@@ -46,6 +54,9 @@ private slots:
     void descriptionReceived();
 
 private:
+    QNetworkAccessManager *netManager;
+    QHostAddress m_host;
+    QString m_servername;
     QDomDocument m_rootDescription;
     QString m_iconUrl;
 };

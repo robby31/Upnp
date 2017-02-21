@@ -22,7 +22,7 @@ public:
     };
 
     explicit UpnpDevice(QObject *parent = 0);
-    explicit UpnpDevice(QHostAddress host, QString uuid, QObject *parent = 0);
+    explicit UpnpDevice(QString uuid, QObject *parent = 0);
 
     virtual QString id() const Q_DECL_OVERRIDE;
 

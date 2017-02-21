@@ -17,11 +17,11 @@ Page {
     }
 
     function setRootDeviceListView() {
-        loader.setSource("RootDeviceListView.qml", { model: upnpControlPoint.rootDevices })
+        loader.setSource("RootDeviceListView.qml", { model: upnpControlPoint.remoteRootDevices })
     }
 
     function setRootDeviceDetails(index, iconurl) {
-        loader.setSource("RootDeviceDetails.qml", { device: upnpControlPoint.rootDevices.at(index), rootIndex: index, iconurl: iconurl})
+        loader.setSource("RootDeviceDetails.qml", { device: upnpControlPoint.remoteRootDevices.at(index), rootIndex: index, iconurl: iconurl})
     }
 
     function setServiceDetails(service, rootIndex, rootIconUrl) {

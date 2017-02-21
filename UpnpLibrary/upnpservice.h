@@ -17,7 +17,7 @@ class UpnpService : public UpnpObject
 
 public:
     explicit UpnpService(QObject *parent = 0);
-    explicit UpnpService(QHostAddress host, QDomNode info, QObject *parent = 0);
+    explicit UpnpService(QDomNode info, QObject *parent = 0);
 
     virtual QString id() const Q_DECL_OVERRIDE;
 
@@ -27,6 +27,10 @@ public:
 
     QString serviceType() const;
     QString serviceId() const;
+
+    QUrl scpdUrl() const;
+    QUrl controlUrl() const;
+    QUrl eventUrl() const;
 
     void requestDescription();
 
@@ -38,6 +42,8 @@ private:
     void initRoles();
     void readActions();
 
+    QNetworkReply *sendAction(const QString &action);
+
 signals:
     void serviceTypeChanged();
     void actionsModelChanged();
@@ -46,7 +52,9 @@ public slots:
 
 private slots:
     void itemAvailableChanged();
+    void networkError(QNetworkReply::NetworkError error);
     void descriptionReceived();
+    void actionFinished();
 
 private:
     QDomNode m_info;

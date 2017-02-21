@@ -13,6 +13,8 @@ MessageItem::MessageItem(QObject *parent):
     m_roles[DateRole] = "date";
     m_roles[TypeRole] = "type";
     m_roles[MessageRole] = "message";
+    m_roles[NtRole] = "nt";
+    m_roles[NtsRole] = "nts";
 }
 
 QVariant MessageItem::data(int role) const
@@ -28,6 +30,10 @@ QVariant MessageItem::data(int role) const
         return m_message.startLine();
     case MessageRole:
         return m_message.toUtf8();
+    case NtRole:
+        return m_message.getHeader("NT");
+    case NtsRole:
+        return m_message.getHeader("NTS");
     default:
         return QVariant::Invalid;
     }

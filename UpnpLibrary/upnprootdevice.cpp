@@ -2,6 +2,9 @@
 
 UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     UpnpDevice(parent),
+    netManager(0),
+    m_host(),
+    m_servername(),
     m_rootDescription(),
     m_iconUrl()
 {
@@ -10,12 +13,16 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     initRoles();   
 }
 
-UpnpRootDevice::UpnpRootDevice(QHostAddress host, QString uuid, QObject *parent) :
-    UpnpDevice(host, uuid, parent),
+UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QHostAddress host, QString uuid, QObject *parent) :
+    UpnpDevice(uuid, parent),
+    netManager(0),
+    m_host(host),
+    m_servername(),
     m_rootDescription(),
     m_iconUrl()
 {
     setType(RootDevice);
+    setNetworkManager(nam);
 
     initRoles();
 
@@ -61,6 +68,34 @@ QVariant UpnpRootDevice::data(int role) const
     }
 
     return QVariant::Invalid;
+}
+
+QNetworkAccessManager *UpnpRootDevice::networkManager() const
+{
+    return netManager;
+}
+
+QHostAddress UpnpRootDevice::host() const
+{
+    return m_host;
+}
+
+void UpnpRootDevice::setNetworkManager(QNetworkAccessManager *nam)
+{
+    if (thread() != nam->thread())
+        qWarning() << "NetworkManager and UpnpObject are in different thread.";
+
+    netManager = nam;
+}
+
+QString UpnpRootDevice::serverName() const
+{
+    return m_servername;
+}
+
+void UpnpRootDevice::setServerName(const QString &name)
+{
+    m_servername = name;
 }
 
 QString UpnpRootDevice::version() const
