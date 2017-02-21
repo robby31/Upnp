@@ -54,8 +54,15 @@ Item {
 
         Label {
             anchors { verticalCenter: parent.verticalCenter }
-            text: port
-            width: 50
+            text: nts
+            width: 200
+            elide: Text.ElideRight
+        }
+
+        Label {
+            anchors { verticalCenter: parent.verticalCenter }
+            text: nt
+            width: 400
             elide: Text.ElideRight
         }
     }
