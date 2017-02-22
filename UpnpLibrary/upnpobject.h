@@ -25,7 +25,7 @@ public:
     enum Status { Null, Loading, Ready, Error };
 
     explicit UpnpObject(QObject *parent = 0);
-    explicit UpnpObject(TypeObject type, QObject *parent = 0);
+    explicit UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent = 0);
 
     TypeObject type() const;
     void setType(const TypeObject &type);
@@ -36,7 +36,6 @@ public:
     void setRoles(QHash<int, QByteArray> roles);
 
     UpnpObject *upnpParent() const;
-    void setUpnpParent(UpnpObject *parent);
 
     virtual QNetworkAccessManager *networkManager() const;
 
@@ -54,8 +53,7 @@ public:
 
     virtual QString serverName() const;
 
-    QUrl url() const;
-    void setUrl(QUrl url);
+    virtual QUrl url() const;
 
     QUrl urlFromRelativePath(QString path) const;
 
@@ -65,8 +63,11 @@ public:
 
     QString valueFromDescription(const QString &param) const;
 
-    QNetworkReply *get(const QString &location);
+    QNetworkReply *get(QNetworkRequest request);
     QNetworkReply *post(QNetworkRequest request, QByteArray data);
+
+private:
+    void setUpnpParent(UpnpObject *parent);
 
 signals:
     void upnpParentChanged();
@@ -87,7 +88,6 @@ private:
     QDateTime m_timeout;
     QTimer m_timer;
     bool m_available;
-    QUrl m_url;
     QDomNode m_description;
 };
 

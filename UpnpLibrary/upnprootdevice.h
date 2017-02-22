@@ -36,7 +36,9 @@ public:
     virtual QString serverName() const Q_DECL_OVERRIDE;
     void setServerName(const QString &name);
 
-    void requestDescription(QString location);
+    virtual QUrl url() const Q_DECL_OVERRIDE;
+    void setUrl(QUrl url);
+
     QString rootDescription() const;
     void setRootDescription(QByteArray data);
 
@@ -44,6 +46,7 @@ private:
     void initRoles();
 
 signals:
+    void urlChanged();
     void rootDescriptionChanged();
     void upnpObjectAvailabilityChanged(UpnpObject *object);
 
@@ -51,12 +54,14 @@ public slots:
 
 private slots:
     void itemAvailableChanged();
+    void requestDescription();
     void descriptionReceived();
 
 private:
     QNetworkAccessManager *netManager;
     QHostAddress m_host;
     QString m_servername;
+    QUrl m_url;
     QDomDocument m_rootDescription;
     QString m_iconUrl;
 };

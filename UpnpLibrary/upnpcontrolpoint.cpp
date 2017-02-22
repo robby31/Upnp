@@ -414,7 +414,7 @@ void UpnpControlPoint::addRootDevice(QHostAddress host, SsdpMessage message)
             connect(device, SIGNAL(upnpObjectAvailabilityChanged(UpnpObject*)), this, SLOT(upnpObjectAvailabilityChanged(UpnpObject*)));
             device->setServerName(serverName());
             device->update(message);
-            device->requestDescription(message.getHeader("LOCATION"));
+            device->setUrl(message.getHeader("LOCATION"));
             m_remoteRootDevice->appendRow(device);
         }
         else

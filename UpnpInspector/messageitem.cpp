@@ -15,6 +15,8 @@ MessageItem::MessageItem(QObject *parent):
     m_roles[MessageRole] = "message";
     m_roles[NtRole] = "nt";
     m_roles[NtsRole] = "nts";
+    m_roles[ManRole] = "man";
+    m_roles[StRole] = "st";
 }
 
 QVariant MessageItem::data(int role) const
@@ -34,6 +36,10 @@ QVariant MessageItem::data(int role) const
         return m_message.getHeader("NT");
     case NtsRole:
         return m_message.getHeader("NTS");
+    case ManRole:
+        return m_message.getHeader("MAN");
+    case StRole:
+        return m_message.getHeader("ST");
     default:
         return QVariant::Invalid;
     }

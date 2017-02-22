@@ -5,6 +5,7 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     netManager(0),
     m_host(),
     m_servername(),
+    m_url(),
     m_rootDescription(),
     m_iconUrl()
 {
@@ -14,10 +15,11 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
 }
 
 UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QHostAddress host, QString uuid, QObject *parent) :
-    UpnpDevice(uuid, parent),
+    UpnpDevice(uuid, 0, parent),
     netManager(0),
     m_host(host),
     m_servername(),
+    m_url(),
     m_rootDescription(),
     m_iconUrl()
 {
@@ -28,6 +30,7 @@ UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QHostAddress host, QS
 
     connect(this, SIGNAL(rootDescriptionChanged()), this, SIGNAL(itemChanged()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
+    connect(this, SIGNAL(urlChanged()), this, SLOT(requestDescription()));
 }
 
 void UpnpRootDevice::initRoles()
@@ -129,12 +132,14 @@ QString UpnpRootDevice::version() const
     return QString();
 }
 
-void UpnpRootDevice::requestDescription(QString location)
+void UpnpRootDevice::requestDescription()
 {
-    QNetworkReply *reply = get(location);
+    QNetworkRequest request(url());
+
+    QNetworkReply *reply = get(request);
     if (reply == 0)
     {
-        qCritical() << "Unable to get description" << this << location;
+        qCritical() << "Unable to get description" << this << url();
         setStatus(Error);
     }
     else
@@ -159,8 +164,6 @@ void UpnpRootDevice::descriptionReceived()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
 
-    setUrl(reply->request().url());
-
     if (reply->error() == QNetworkReply::NoError)
     {
         setRootDescription(reply->readAll());
@@ -178,10 +181,6 @@ void UpnpRootDevice::descriptionReceived()
             QDomElement device = root.firstChildElement("device");
             if (!device.isNull())
             {
-                setDescription(device);
-                readServices();
-                readDevices();
-
                 // check uuid
                 QDomElement udnElt = device.firstChildElement("UDN");
 
@@ -245,8 +244,7 @@ void UpnpRootDevice::descriptionReceived()
                     }
                 }
 
-                if (status() == Loading)
-                    setStatus(Ready);
+                setDescription(device);
             }
             else
             {
@@ -273,3 +271,13 @@ void UpnpRootDevice::itemAvailableChanged()
     emit upnpObjectAvailabilityChanged(this);
 }
 
+QUrl UpnpRootDevice::url() const
+{
+    return m_url;
+}
+
+void UpnpRootDevice::setUrl(QUrl url)
+{
+    m_url = url;
+    emit urlChanged();
+}

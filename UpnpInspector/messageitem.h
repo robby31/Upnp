@@ -19,7 +19,9 @@ public:
         TypeRole,
         MessageRole,
         NtRole,
-        NtsRole
+        NtsRole,
+        ManRole,
+        StRole
     };
 
     explicit MessageItem(QObject* parent = 0);

@@ -6,22 +6,22 @@ UpnpObject::UpnpObject(QObject *parent) :
     m_status(Null),
     m_timeout(QDateTime::currentDateTime()),
     m_available(false),
-    m_url(),
     m_description()
 {
 
 }
 
-UpnpObject::UpnpObject(TypeObject type, QObject *parent) :
+UpnpObject::UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent) :
     ListItem(parent),
     m_upnpParent(0),
     m_status(Null),
     m_type(type),
     m_timeout(QDateTime::currentDateTime()),
     m_available(false),
-    m_url(),
     m_description()
 {
+    setUpnpParent(upnpParent);
+
     connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
     connect(this, SIGNAL(statusChanged()), this, SIGNAL(availableChanged()));
 
@@ -40,8 +40,23 @@ UpnpObject *UpnpObject::upnpParent() const
 
 void UpnpObject::setUpnpParent(UpnpObject *parent)
 {
-    m_upnpParent = parent;
-    emit upnpParentChanged();
+    if (m_type == RootDevice && parent != 0)
+    {
+        qCritical() << "RootDevice shall not have parent";
+    }
+    else if (m_type == Device && parent && parent->type() == Service)
+    {
+        qCritical() << "Device shall not have Service as parent";
+    }
+    else if (m_type == Service && parent && parent->type() == Service)
+    {
+        qCritical() << "Service shall not have Service as parent";
+    }
+    else
+    {
+        m_upnpParent = parent;
+        emit upnpParentChanged();
+    }
 }
 
 QNetworkAccessManager *UpnpObject::networkManager() const
@@ -122,7 +137,7 @@ void UpnpObject::update(const SsdpMessage &message)
 
 }
 
-QNetworkReply *UpnpObject::get(const QString &location)
+QNetworkReply *UpnpObject::get(QNetworkRequest request)
 {
     QNetworkAccessManager *netManager = networkManager();
 
@@ -132,19 +147,9 @@ QNetworkReply *UpnpObject::get(const QString &location)
     }
     else
     {
-        if (location.isEmpty())
-        {
-            QString msg = QString("Unable to get for host %1").arg(host().toString());
-            qCritical() << msg;
-        }
-        else
-        {
-            QNetworkRequest request;
-            request.setUrl(location);
-            request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
+        request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
 
-            return netManager->get(request);
-        }
+        return netManager->get(request);
     }
 
     return 0;
@@ -160,6 +165,11 @@ QNetworkReply *UpnpObject::post(QNetworkRequest request, QByteArray data)
     }
     else
     {
+
+        request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
+
+        request.setRawHeader(QByteArray("USER-AGENT"), serverName().toUtf8());
+
         return netManager->post(request, data);
     }
 
@@ -237,16 +247,13 @@ QDateTime UpnpObject::timeoutDateTime() const
 
 QUrl UpnpObject::url() const
 {
-    return m_url;
+    if (m_upnpParent)
+        return m_upnpParent->url();
+    else
+        return QUrl();
 }
-
-void UpnpObject::setUrl(QUrl url)
-{
-    m_url = url;
-}
-
 
 QUrl UpnpObject::urlFromRelativePath(QString path) const
 {
-    return m_url.resolved(path);
+    return url().resolved(path);
 }

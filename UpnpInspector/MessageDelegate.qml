@@ -54,14 +54,14 @@ Item {
 
         Label {
             anchors { verticalCenter: parent.verticalCenter }
-            text: nts
+            text: type.split(' ')[0] === "NOTIFY" ? nts : man
             width: 200
             elide: Text.ElideRight
         }
 
         Label {
             anchors { verticalCenter: parent.verticalCenter }
-            text: nt
+            text: type.split(' ')[0] === "NOTIFY" ? nt : st
             width: 400
             elide: Text.ElideRight
         }

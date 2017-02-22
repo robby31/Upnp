@@ -7,13 +7,16 @@ UpnpService::UpnpService(QObject *parent) :
     initRoles();
 }
 
-UpnpService::UpnpService(QDomNode info, QObject *parent) :
-    UpnpObject(Service, parent),
+UpnpService::UpnpService(UpnpObject *upnpParent, QDomNode info, QObject *parent) :
+    UpnpObject(Service, upnpParent, parent),
     m_info(info)
 {
     initRoles();
 
+    connect(this, SIGNAL(infoChanged()), this, SLOT(requestDescription()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
+
+    emit infoChanged();
 }
 
 void UpnpService::initRoles()
@@ -76,7 +79,9 @@ QString UpnpService::getInfo(const QString &param) const
 
 void UpnpService::requestDescription()
 {    
-    QNetworkReply *reply = get(scpdUrl().url());
+    QNetworkRequest request(scpdUrl());
+
+    QNetworkReply *reply = get(request);
     if (reply == 0)
     {
         qCritical() << "Unable to get description" << this << serviceType() << scpdUrl();
@@ -221,9 +226,9 @@ QNetworkReply *UpnpService::sendAction(const QString &action)
     QNetworkRequest request;
 
     request.setUrl(controlUrl());
-    request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
+
     request.setRawHeader(QByteArray("CONTENT-TYPE"), "text/xml; charset=\"utf-8\"");
-    request.setRawHeader(QByteArray("USER-AGENT"), serverName().toUtf8());
+
     request.setRawHeader(QByteArray("SOAPACTION"), QString("%1#%2").arg(serviceType()).arg(action).toUtf8());
 
     QDomDocument xml;

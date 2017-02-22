@@ -9,8 +9,8 @@ UpnpDevice::UpnpDevice(QObject *parent) :
     initRoles();
 }
 
-UpnpDevice::UpnpDevice(QString uuid, QObject *parent) :
-    UpnpObject(Device, parent),
+UpnpDevice::UpnpDevice(QString uuid, UpnpObject *upnpParent, QObject *parent) :
+    UpnpObject(Device, upnpParent, parent),
     m_uuid(uuid),
     m_services(0),
     m_devices(0)
@@ -21,6 +21,8 @@ UpnpDevice::UpnpDevice(QString uuid, QObject *parent) :
     m_devices = new ListModel(new UpnpDevice, this);
 
     connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(deviceTypeChanged()));
+    connect(this, SIGNAL(descriptionChanged()), this, SLOT(readDevices()));
+    connect(this, SIGNAL(descriptionChanged()), this, SLOT(readServices()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
 }
 
@@ -78,29 +80,42 @@ void UpnpDevice::readServices()
 {
     QDomNode desc = description();
 
-    QDomElement l_services = desc.firstChildElement("serviceList");
-    if (!l_services.isNull())
+    if (!desc.isNull())
     {
-        QDomNode serviceElt = l_services.firstChild();
-        while (!serviceElt.isNull())
+        QDomElement l_services = desc.firstChildElement("serviceList");
+        if (!l_services.isNull())
         {
-            addService(serviceElt);
-            serviceElt = serviceElt.nextSibling();
+            QDomNode serviceElt = l_services.firstChild();
+            while (!serviceElt.isNull())
+            {
+                addService(serviceElt);
+                serviceElt = serviceElt.nextSibling();
+            }
         }
+
+        setStatus(Ready);
+    }
+    else
+    {
+        setStatus(Error);
     }
 }
 
 void UpnpDevice::readDevices()
 {
     QDomNode desc = description();
-    QDomElement l_devices = desc.firstChildElement("deviceList");
-    if (!l_devices.isNull())
+
+    if (!desc.isNull())
     {
-        QDomNode deviceElt = l_devices.firstChild();
-        while (!deviceElt.isNull())
+        QDomElement l_devices = desc.firstChildElement("deviceList");
+        if (!l_devices.isNull())
         {
-            addDevice(deviceElt);
-            deviceElt = deviceElt.nextSibling();
+            QDomNode deviceElt = l_devices.firstChild();
+            while (!deviceElt.isNull())
+            {
+                addDevice(deviceElt);
+                deviceElt = deviceElt.nextSibling();
+            }
         }
     }
 }
@@ -120,10 +135,7 @@ void UpnpDevice::addService(const QDomNode &descr)
 
         if (service == 0)
         {
-            UpnpService *service = new UpnpService(descr, m_services);
-            service->setUpnpParent(this);
-            service->setUrl(url());
-            service->requestDescription();
+            UpnpService *service = new UpnpService(this, descr, m_services);
             m_services->appendRow(service);
         }
         else
@@ -152,13 +164,8 @@ void UpnpDevice::addDevice(const QDomNode &descr)
 
             if (device == 0)
             {
-                UpnpDevice *device = new UpnpDevice(strUuid, m_devices);
-                device->setUpnpParent(this);
-                device->setUrl(url());
+                UpnpDevice *device = new UpnpDevice(strUuid, this, m_devices);
                 device->setDescription(descr);
-                device->readServices();
-                device->readDevices();
-                device->setStatus(Ready);
                 m_devices->appendRow(device);
             }
             else

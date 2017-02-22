@@ -22,7 +22,7 @@ public:
     };
 
     explicit UpnpDevice(QObject *parent = 0);
-    explicit UpnpDevice(QString uuid, QObject *parent = 0);
+    explicit UpnpDevice(QString uuid, UpnpObject *upnpParent, QObject *parent = 0);
 
     virtual QString id() const Q_DECL_OVERRIDE;
 
@@ -34,9 +34,6 @@ public:
 
     ListModel *devicesModel() const;
     ListModel *servicesModel() const;
-
-    void readServices();
-    void readDevices();
 
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
 
@@ -57,6 +54,8 @@ public slots:
 
 private slots:
     void itemAvailableChanged();
+    void readServices();
+    void readDevices();
 
 private:
     QString m_uuid;
