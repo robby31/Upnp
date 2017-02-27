@@ -17,6 +17,7 @@ class UpnpControlPoint : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QString serverName READ serverName NOTIFY serverNameChanged)
+    Q_PROPERTY(ListModel *localRootDevices READ localRootDevices NOTIFY localRootDevicesChanged)
     Q_PROPERTY(ListModel *remoteRootDevices READ remoteRootDevices NOTIFY remoteRootDevicesChanged)
 
 public:
@@ -26,15 +27,18 @@ public:
     void start();
     void close();
 
-    void setUuid(const QString &uuid);
-    void setServerUrl(const QString &url);
+    QString serverName() const;
+
     void setHost(const QString &host);
 
     void setNetworkManager(QNetworkAccessManager *nam);
 
-    QString serverName() const;
-
+    ListModel *localRootDevices() const;
     ListModel *remoteRootDevices() const;
+
+    void addLocalRootDevice(QString uuid, QString url);
+
+    void sendDiscover(const QString &search_target);
 
 private:
     void addRootDevice(QHostAddress host, SsdpMessage message);
@@ -42,30 +46,24 @@ private:
 
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
 
-    void _sendAlive(const QString &notification_type);
-    void _sendByeBye(const QString &notification_type);
-    void _sendDiscover(const QString &search_target);
-
-    void _sendDiscoverAnswer(const QHostAddress &host, const int &port, const QString &st);
-
-    QNetworkReply *_sendAction(const QHostAddress &host, const int &port, const QString &url, const QString &service, const QString &action);
-
 signals:
     void startSignal();
 
     void serverNameChanged();
+    void localRootDevicesChanged();
     void remoteRootDevicesChanged();
 
     void messageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
-    void deviceAlive(const QHostAddress &host, const int &port, const SsdpMessage &info);
-    void deviceByeBye(const QHostAddress &host, const int &port, const SsdpMessage &info);
-    void newMediaRenderer(const QHostAddress &host, const int &port, const SsdpMessage &info);
 
 private slots:
     void _start();
 
-    void _sendAlive();
-    void _sendByeBye();
+    void _sendMulticastSsdpMessage(SsdpMessage message);
+    void _sendAliveMessage(const QString &uuid, const QString &nt);
+    void _sendByeByeMessage(const QString &uuid, const QString &nt);
+
+    void _searchForST(const QString &st);
+    void _sendSearchResponse(const QString &st, const QString &usn);
 
     // Function called when a request is received
     void _processPendingMulticastDatagrams();
@@ -79,25 +77,22 @@ private slots:
 private:
     QNetworkAccessManager *netManager;
 
-    QString m_uuid;
     QString m_servername;
-    QString m_serverurl;
     QString m_host;
 
     QUdpSocket udpSocketMulticast;
     QUdpSocket udpSocketUnicast;
 
-    // Timer to broadcast UPnP ALIVE messages
-    QTimer timerAlive;
-    int counterAlive;
-
     int m_bootid;
     int m_configid;
 
     ListModel *m_remoteRootDevice;
+    ListModel *m_localRootDevice;
 
-    // The Constant ALIVE.
+    static const QString UPNP_VERSION;
     static const QString ALIVE;
+    static const QString BYEBYE;
+    static const QString DISCOVER;
 
     /*
      * IPv4 Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
@@ -110,9 +105,6 @@ private:
      * MUST be 1900.
      */
     static const int UPNP_PORT;
-
-    // The Constant BYEBYE.
-    static const QString BYEBYE;
 };
 
 #endif // UPNPCONTROLPOINT_H

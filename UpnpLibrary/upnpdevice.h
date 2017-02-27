@@ -37,6 +37,8 @@ public:
 
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
 
+    virtual void searchForST(const QString &st);
+
 private:
     void initRoles();
 
@@ -51,6 +53,8 @@ signals:
     void devicesModelChanged();
 
 public slots:
+    virtual void sendAlive();
+    virtual void sendByeBye();
 
 private slots:
     void itemAvailableChanged();

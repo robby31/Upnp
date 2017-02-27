@@ -1,40 +1,41 @@
 #include "upnpcontrolpoint.h"
 
+const QString UpnpControlPoint::UPNP_VERSION = "1.1";
+
 const QString UpnpControlPoint::ALIVE = "ssdp:alive";
+
+const QString UpnpControlPoint::BYEBYE = "ssdp:byebye";
+
+const QString UpnpControlPoint::DISCOVER = "\"ssdp:discover\"";
 
 const QHostAddress UpnpControlPoint::IPV4_UPNP_HOST = QHostAddress("239.255.255.250");
 
 const int UpnpControlPoint::UPNP_PORT = 1900;
 
-const QString UpnpControlPoint::BYEBYE = "ssdp:byebye";
-
 UpnpControlPoint::UpnpControlPoint(QObject *parent):
     QObject(parent),
     netManager(0),
-    m_uuid(),
-    m_servername(QString("%1/%2 UPnP/1.1 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion())),
-    m_serverurl(),
+    m_servername(QString("%1/%2 UPnP/%3 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(UPNP_VERSION)),
     m_host(),
     udpSocketMulticast(this),
     udpSocketUnicast(this),
-    timerAlive(this),
-    counterAlive(0),
     m_bootid(0),
     m_configid(0),
-    m_remoteRootDevice(0)
+    m_remoteRootDevice(0),
+    m_localRootDevice(0)
 {
     m_remoteRootDevice = new ListModel(new UpnpRootDevice, this);
+    m_localRootDevice = new ListModel(new UpnpRootDevice, this);
 
     connect(&udpSocketMulticast, &QUdpSocket::readyRead, this, &UpnpControlPoint::_processPendingMulticastDatagrams);
-    udpSocketMulticast.setSocketOption(QAbstractSocket::MulticastTtlOption, 2);
+    udpSocketMulticast.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
     udpSocketMulticast.bind(QHostAddress::AnyIPv4, UPNP_PORT, QAbstractSocket::ShareAddress);
     if (!udpSocketMulticast.joinMulticastGroup(IPV4_UPNP_HOST))
         qCritical() << "Unable to join multicast UDP.";
 
     connect(&udpSocketUnicast, &QUdpSocket::readyRead, this, &UpnpControlPoint::_processPendingUnicastDatagrams);
-    udpSocketUnicast.setSocketOption(QAbstractSocket::MulticastTtlOption, 2);
+    udpSocketUnicast.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
 
-    connect(&timerAlive, SIGNAL(timeout()), this, SLOT(_sendAlive()));
     connect(this, &UpnpControlPoint::startSignal, this, &UpnpControlPoint::_start);
 
     connect(this, &UpnpControlPoint::messageReceived, this, &UpnpControlPoint::_processSsdpMessageReceived);
@@ -42,19 +43,15 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
 
 UpnpControlPoint::~UpnpControlPoint()
 {
-    qDebug() << "Close UPNPHelper.";
+    qDebug() << "Close UPNPControlPoint.";
     close();
 }
 
 void UpnpControlPoint::_start()
 {
-    qDebug() << "Starting UPNPHelper";
+    qDebug() << "Starting UPNPControlPoint";
 
-    // Start timer to broadcast UPnP ALIVE messages every 0.5 seconds 3 times
-    timerAlive.start(500);
-
-    qDebug() << "discover rootdevice";
-    _sendDiscover("upnp:rootdevice");
+    sendDiscover(UpnpRootDevice::UPNP_ROOTDEVICE);
 }
 
 void UpnpControlPoint::start()
@@ -66,10 +63,10 @@ void UpnpControlPoint::close()
 {
     qDebug() << "Root devices" << m_remoteRootDevice->rowCount();
 
-    if (timerAlive.isActive())
+    for (int i=0;i<m_localRootDevice->rowCount();i++)
     {
-        timerAlive.stop();
-        _sendByeBye();
+        UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(m_localRootDevice->at(i));
+        root->sendByeBye();
     }
 
     udpSocketUnicast.close();
@@ -79,6 +76,11 @@ void UpnpControlPoint::close()
 QString UpnpControlPoint::serverName() const
 {
     return m_servername;
+}
+
+ListModel *UpnpControlPoint::localRootDevices() const
+{
+    return m_localRootDevice;
 }
 
 ListModel *UpnpControlPoint::remoteRootDevices() const
@@ -91,17 +93,6 @@ void UpnpControlPoint::setHost(const QString &host)
     m_host = host;
 }
 
-void UpnpControlPoint::setServerUrl(const QString &url)
-{
-    m_serverurl = url;
-}
-
-void UpnpControlPoint::setUuid(const QString &uuid)
-{
-    m_uuid = uuid;
-}
-
-// Function called when a request is received
 void UpnpControlPoint::_processPendingUnicastDatagrams()
 {
     while (udpSocketUnicast.hasPendingDatagrams())
@@ -138,169 +129,97 @@ void UpnpControlPoint::_processPendingMulticastDatagrams()
     }
 }
 
-void UpnpControlPoint::_sendDiscoverAnswer(const QHostAddress &host, const int &port, const QString &st)
+void UpnpControlPoint::_sendMulticastSsdpMessage(SsdpMessage message)
 {
-    if (m_serverurl.isEmpty())
+    if (udpSocketMulticast.writeDatagram(message.toUtf8(), IPV4_UPNP_HOST, UPNP_PORT) == -1)
+        qCritical() << "UPNPControlPoint: Unable to send message.";
+}
+
+void UpnpControlPoint::_sendAliveMessage(const QString &uuid, const QString &nt)
+{
+    UpnpObject *object = qobject_cast<UpnpObject*>(sender());
+
+    if (object->type() != UpnpObject::RootDevice)
     {
-        qCritical() << "Unable to send discovery message, server url is empty.";
+        qCritical() << "ALIVE message shall be sent from RootDevice" << object->type() << object;
     }
     else
     {
-        QDateTime sdf;
+        UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(object);
 
-        SsdpMessage message(HTTP);
-        message.addHeader("CACHE-CONTROL", "max-age=1800");
-        message.addHeader("DATE", sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss")+ "GMT");
-        message.addHeader("EXT", "");
-        message.addHeader("LOCATION", QString("%1/description/fetch").arg(m_serverurl));
-        message.addHeader("SERVER", m_servername);
-        message.addHeader("ST", st);
-
-        if (st == QString("uuid:%1").arg(m_uuid))
-            message.addHeader("USN", QString("uuid:%1").arg(m_uuid));
+        QString usn;
+        if (nt.isEmpty())
+            usn = QString("uuid:%1").arg(uuid);
         else
-            message.addHeader("USN", QString("uuid:%1::%2").arg(m_uuid).arg(st));
+            usn = QString("uuid:%1::%2").arg(uuid).arg(nt);
 
-        message.addHeader("BOOTID.UPNP.ORG", QString("%1").arg(m_bootid));
-        message.addHeader("CONFIGID.UPNP.ORG", QString("%1").arg(m_configid));
+        SsdpMessage message(NOTIFY);
+        message.addHeader("HOST", QString("%1:%2").arg(IPV4_UPNP_HOST.toString()).arg(UPNP_PORT));
+        message.addHeader("CACHE-CONTROL", "max-age=1800");
+        message.addHeader("LOCATION", root->url().toString());
+        if (nt.isEmpty())
+            message.addHeader("NT", usn);
+        else
+            message.addHeader("NT", nt);
+        message.addHeader("NTS", ALIVE);
+        message.addHeader("SERVER", m_servername);
+        message.addHeader("USN", usn);
 
-        if (udpSocketUnicast.writeDatagram(message.toUtf8(), host, port) == -1)
-            qCritical() << "UPNPHELPER: Unable to send message.";
+//        message.addHeader("BOOTID.UPNP.ORG", QString("%1").arg(m_bootid));
+//        message.addHeader("CONFIGID.UPNP.ORG", QString("%1").arg(m_configid));
+
+        _sendMulticastSsdpMessage(message);
     }
 }
 
-void UpnpControlPoint::_sendAlive(const QString &notification_type)
+void UpnpControlPoint::_sendByeByeMessage(const QString &uuid, const QString &nt)
 {
-    if (m_serverurl.isEmpty())
+    UpnpObject *object = qobject_cast<UpnpObject*>(sender());
+
+    if (object->type() != UpnpObject::RootDevice)
     {
-        qCritical() << "Unable to send discovery message, server url is empty.";
+        qCritical() << "BYEBYE message shall be sent from RootDevice" << object->type() << object;
     }
     else
     {
+        QString usn;
+        if (nt.isEmpty())
+            usn = QString("uuid:%1").arg(uuid);
+        else
+            usn = QString("uuid:%1::%2").arg(uuid).arg(nt);
+
         SsdpMessage message(NOTIFY);
 
         message.addHeader("HOST", QString("%1:%2").arg(IPV4_UPNP_HOST.toString()).arg(UPNP_PORT));
-        message.addHeader("CACHE-CONTROL", "max-age=1800");
-        message.addHeader("LOCATION", m_serverurl+"/description/fetch");
-        message.addHeader("NT", notification_type);
-        message.addHeader("NTS", ALIVE);
-        message.addHeader("SERVER", m_servername);
-
-        if (notification_type == QString("uuid:%1").arg(m_uuid))
-            message.addHeader("USN", QString("uuid:%1").arg(m_uuid));
+        if (nt.isEmpty())
+            message.addHeader("NT", usn);
         else
-            message.addHeader("USN", QString("uuid:%1::%2").arg(m_uuid).arg(notification_type));
+            message.addHeader("NT", nt);
+        message.addHeader("NTS", BYEBYE);
+        message.addHeader("USN", usn);
 
-        message.addHeader("BOOTID.UPNP.ORG", QString("%1").arg(m_bootid));
-        message.addHeader("CONFIGID.UPNP.ORG", QString("%1").arg(m_configid));
+//        message.addHeader("BOOTID.UPNP.ORG", QString("%1").arg(m_bootid));
+//        message.addHeader("CONFIGID.UPNP.ORG", QString("%1").arg(m_configid));
 
-        if (udpSocketMulticast.writeDatagram(message.toUtf8(), IPV4_UPNP_HOST, UPNP_PORT) == -1)
-            qCritical() << "UPNPHELPER: Unable to send message.";
+        _sendMulticastSsdpMessage(message);
     }
 }
 
-void UpnpControlPoint::_sendAlive()
+
+void UpnpControlPoint::sendDiscover(const QString &search_target)
 {
-    qDebug() << "Sending Alive...";
+    qDebug() << "discover" << search_target;
 
-//    _sendAlive("upnp:rootdevice");
-//    _sendAlive(QString("uuid:%1").arg(m_uuid));
-//    _sendAlive("urn:schemas-upnp-org:device:MediaServer:1");
-
-//    _sendAlive("urn:schemas-upnp-org:service:ContentDirectory:1");
-//    _sendAlive("urn:schemas-upnp-org:service:ConnectionManager:1");
-
-    if (counterAlive>1)
-    {
-        // after 3 Alive sent, sending every 10 minutes
-        timerAlive.start(600000);
-
-        // stop counting
-        counterAlive = -1;
-    }
-    else if (counterAlive>=0)
-    {
-        // increment if counter > 0
-        ++counterAlive;
-    }
-}
-
-void UpnpControlPoint::_sendByeBye(const QString &notification_type)
-{
-    SsdpMessage message(NOTIFY);
-
-    message.addHeader("HOST", QString("%1:%2").arg(IPV4_UPNP_HOST.toString()).arg(UPNP_PORT));
-    message.addHeader("NT", notification_type);
-    message.addHeader("NTS", BYEBYE);
-
-    if (notification_type == QString("uuid:%1").arg(m_uuid))
-        message.addHeader("USN", QString("uuid:%1").arg(m_uuid));
-    else
-        message.addHeader("USN", QString("uuid:%1::%2").arg(m_uuid).arg(notification_type));
-
-    message.addHeader("BOOTID.UPNP.ORG", QString("%1").arg(m_bootid));
-    message.addHeader("CONFIGID.UPNP.ORG", QString("%1").arg(m_configid));
-
-    if (udpSocketMulticast.writeDatagram(message.toUtf8(), IPV4_UPNP_HOST, UPNP_PORT) == -1)
-        qCritical() << "UPNPHELPER: Unable to send message.";
-}
-
-void UpnpControlPoint::_sendByeBye()
-{
-    qDebug() << "Sending BYEBYE...";
-
-//    _sendByeBye("upnp:rootdevice");
-//    _sendByeBye("urn:schemas-upnp-org:device:MediaServer:1");
-//    _sendByeBye("urn:schemas-upnp-org:service:ContentDirectory:1");
-//    _sendByeBye("urn:schemas-upnp-org:service:ConnectionManager:1");
-}
-
-void UpnpControlPoint::_sendDiscover(const QString &search_target)
-{
     SsdpMessage message(SEARCH);
 
     message.addHeader("HOST", QString("%1:%2").arg(IPV4_UPNP_HOST.toString()).arg(UPNP_PORT));
-    message.addHeader("MAN", "\"ssdp:discover\"");
+    message.addHeader("MAN", DISCOVER);
     message.addHeader("MX", "1");
     message.addHeader("ST", search_target);
     message.addHeader("USER-AGENT", m_servername);
 
     if (udpSocketUnicast.writeDatagram(message.toUtf8(), IPV4_UPNP_HOST, UPNP_PORT) == -1)
-        qCritical() << "UPNPHELPER: Unable to send message.";
-}
-
-QNetworkReply *UpnpControlPoint::_sendAction(const QHostAddress &host, const int &port, const QString &url, const QString &service, const QString &action)
-{
-
-    if (netManager)
-    {
-        QNetworkRequest request;
-
-        request.setUrl(QUrl(QString("http://%1:%2%3").arg(host.toString()).arg(port).arg(url)));
-        request.setRawHeader(QByteArray("HOST"), m_host.toUtf8());
-        request.setRawHeader(QByteArray("CONTENT-TYPE"), "text/xml; charset=\"utf-8\"");
-        request.setRawHeader(QByteArray("USER-AGENT"), m_servername.toUtf8());
-        request.setRawHeader(QByteArray("SOAPACTION"), QString("%1#%2").arg(service).arg(action).toUtf8());
-
-        QDomDocument xml;
-        xml.appendChild(xml.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"utf-8\""));
-
-        QDomElement envelope = xml.createElementNS("http://schemas.xmlsoap.org/soap/envelope/", "s:Envelope");
-        envelope.setAttribute("s:encodingStyle", "http://schemas.xmlsoap.org/soap/encoding/");
-        xml.appendChild(envelope);
-
-        QDomElement body = xml.createElement("s:Body");
-        envelope.appendChild(body);
-
-        QDomElement xmlAction = xml.createElementNS(service, "u:"+action);
-        body.appendChild(xmlAction);
-
-        return netManager->post(request, xml.toByteArray());
-    }
-    else
-    {
-        return 0;
-    }
+        qCritical() << "UPNPControlPoint: Unable to send discovery message.";
 }
 
 void UpnpControlPoint::setNetworkManager(QNetworkAccessManager *nam)
@@ -334,7 +253,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
 
         if (nts == ALIVE)
         {
-            if (nt == "upnp:rootdevice")
+            if (nt == UpnpRootDevice::UPNP_ROOTDEVICE)
             {
                 addRootDevice(host, message);
             }
@@ -361,7 +280,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
         }
         else if (nts == BYEBYE)
         {
-            if (nt == "upnp:rootdevice")
+            if (nt == UpnpRootDevice::UPNP_ROOTDEVICE)
             {
                 UpnpRootDevice *device = getRootDeviceFromUuid(message.getUuidFromUsn());
 
@@ -388,7 +307,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
     {
         QString st = message.getHeader("ST");
 
-        if (st == "upnp:rootdevice")
+        if (st == UpnpRootDevice::UPNP_ROOTDEVICE)
         {
             addRootDevice(host, message);
         }
@@ -396,6 +315,32 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
         {
             qCritical() << "unknown st" << st;
         }
+    }
+    else if (message.format() == SEARCH)
+    {
+        QString man = message.getHeader("MAN");
+
+        if (man == DISCOVER)
+        {
+            QString st = message.getHeader("ST");
+            if (!st.isEmpty())
+            {
+                _searchForST(st);
+            }
+            else
+            {
+                qCritical() << "invalid ST value";
+            }
+
+        }
+        else
+        {
+            qCritical() << "invalid MAN value" << man;
+        }
+    }
+    else
+    {
+        qCritical() << "invalid message" << message.toStringList();
     }
 }
 
@@ -469,5 +414,57 @@ void UpnpControlPoint::upnpObjectAvailabilityChanged(UpnpObject *object)
     else
     {
         qCritical() << "ERROR on upnpObjectAvailability" << object;
+    }
+}
+
+void UpnpControlPoint::addLocalRootDevice(QString uuid, QString url)
+{
+    UpnpRootDevice *device = new UpnpRootDevice(netManager, QHostAddress(m_host), uuid, m_localRootDevice);
+    connect(device, SIGNAL(aliveMessage(QString,QString)), this, SLOT(_sendAliveMessage(QString,QString)));
+    connect(device, SIGNAL(byebyeMessage(QString,QString)), this, SLOT(_sendByeByeMessage(QString,QString)));
+    connect(device, SIGNAL(searchResponse(QString,QString)), this, SLOT(_sendSearchResponse(QString,QString)));
+    device->setServerName(serverName());
+    device->setAdvertise(true);
+    device->setUrl(url);
+
+    m_localRootDevice->appendRow(device);
+}
+
+void UpnpControlPoint::_searchForST(const QString &st)
+{
+    for (int i=0;i<m_localRootDevice->rowCount();++i)
+    {
+        UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(m_localRootDevice->at(i));
+        root->searchForST(st);
+    }
+}
+
+void UpnpControlPoint::_sendSearchResponse(const QString &st, const QString &usn)
+{
+    UpnpObject *object = qobject_cast<UpnpObject*>(sender());
+
+    if (object->type() != UpnpObject::RootDevice)
+    {
+        qCritical() << "SEARCH response message shall be sent from RootDevice" << object->type() << object;
+    }
+    else
+    {
+        UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(object);
+
+        QDateTime sdf;
+
+        SsdpMessage message(HTTP);
+        message.addHeader("CACHE-CONTROL", "max-age=1800");
+        message.addHeader("DATE", sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+        message.addHeader("EXT", "");
+        message.addHeader("LOCATION", root->url().toString());
+        message.addHeader("SERVER", m_servername);
+        message.addHeader("ST", st);
+        message.addHeader("USN", usn);
+
+//        message.addHeader("BOOTID.UPNP.ORG", QString("%1").arg(m_bootid));
+//        message.addHeader("CONFIGID.UPNP.ORG", QString("%1").arg(m_configid));
+
+        _sendMulticastSsdpMessage(message);
     }
 }

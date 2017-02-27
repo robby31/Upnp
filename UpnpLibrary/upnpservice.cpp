@@ -269,6 +269,23 @@ void UpnpService::networkError(QNetworkReply::NetworkError error)
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
 
     qCritical() << "Network Error" << error << reply->request().url();
+    qCritical() << reply->readAll();
 
     reply->deleteLater();
+}
+
+void UpnpService::sendAlive(const QString &uuid)
+{
+    emit aliveMessage(uuid, serviceType());
+}
+
+void UpnpService::sendByeBye(const QString &uuid)
+{
+    emit byebyeMessage(uuid, serviceType());
+}
+
+void UpnpService::searchForST(const QString &st, const QString &uuid)
+{
+    if (st == "ssdp:all" or st == serviceType())
+        emit searchResponse(st, QString("uuid:%1::%2").arg(uuid).arg(st));
 }

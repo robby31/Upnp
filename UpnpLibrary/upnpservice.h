@@ -32,6 +32,8 @@ public:
     QUrl controlUrl() const;
     QUrl eventUrl() const;
 
+    virtual void searchForST(const QString &st, const QString &uuid);
+
     QStringList actionsModel() const;
 
     Q_INVOKABLE void runAction(const int &index);
@@ -48,6 +50,8 @@ signals:
     void actionsModelChanged();
 
 public slots:
+    void sendAlive(const QString &uuid);
+    void sendByeBye(const QString &uuid);
 
 private slots:
     void requestDescription();

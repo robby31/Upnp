@@ -75,6 +75,11 @@ signals:
     void descriptionChanged();
     void availableChanged();
 
+    void aliveMessage(const QString &uuid, const QString &nt);
+    void byebyeMessage(const QString &uuid, const QString &nt);
+
+    void searchResponse(const QString &st, const QString &usn);
+
 public slots:
 
 private slots:

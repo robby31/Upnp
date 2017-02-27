@@ -2,6 +2,7 @@
 #define UPNPROOTDEVICE_H
 
 #include "upnpdevice.h"
+#include "upnptimer.h"
 
 class UpnpRootDevice : public UpnpDevice
 {
@@ -42,6 +43,11 @@ public:
     QString rootDescription() const;
     void setRootDescription(QByteArray data);
 
+    void setAdvertise(const bool &flag);
+    void startAdvertising();
+
+    virtual void searchForST(const QString &st) Q_DECL_OVERRIDE;
+
 private:
     void initRoles();
 
@@ -51,11 +57,19 @@ signals:
     void upnpObjectAvailabilityChanged(UpnpObject *object);
 
 public slots:
+    virtual void sendAlive() Q_DECL_OVERRIDE;
+    virtual void sendByeBye() Q_DECL_OVERRIDE;
 
 private slots:
     void itemAvailableChanged();
+    void statusChangedSlot();
+
+
     void requestDescription();
     void descriptionReceived();
+
+public:
+    static const QString UPNP_ROOTDEVICE;
 
 private:
     QNetworkAccessManager *netManager;
@@ -64,6 +78,9 @@ private:
     QUrl m_url;
     QDomDocument m_rootDescription;
     QString m_iconUrl;
+
+    bool m_advertise;
+    UpnpTimer m_advertisingTimer;
 };
 
 #endif // UPNPROOTDEVICE_H

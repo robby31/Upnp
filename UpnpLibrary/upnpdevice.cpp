@@ -136,6 +136,9 @@ void UpnpDevice::addService(const QDomNode &descr)
         if (service == 0)
         {
             UpnpService *service = new UpnpService(this, descr, m_services);
+            connect(service, SIGNAL(aliveMessage(QString,QString)), this, SIGNAL(aliveMessage(QString,QString)));
+            connect(service, SIGNAL(byebyeMessage(QString,QString)), this, SIGNAL(byebyeMessage(QString,QString)));
+            connect(service, SIGNAL(searchResponse(QString,QString)), this, SIGNAL(searchResponse(QString,QString)));
             m_services->appendRow(service);
         }
         else
@@ -165,6 +168,9 @@ void UpnpDevice::addDevice(const QDomNode &descr)
             if (device == 0)
             {
                 UpnpDevice *device = new UpnpDevice(strUuid, this, m_devices);
+                connect(device, SIGNAL(aliveMessage(QString,QString)), this, SIGNAL(aliveMessage(QString,QString)));
+                connect(device, SIGNAL(byebyeMessage(QString,QString)), this, SIGNAL(byebyeMessage(QString,QString)));
+                connect(device, SIGNAL(searchResponse(QString,QString)), this, SIGNAL(searchResponse(QString,QString)));
                 device->setDescription(descr);
                 m_devices->appendRow(device);
             }
@@ -260,4 +266,62 @@ void UpnpDevice::itemAvailableChanged()
     QVector<int> roles;
     roles << AvailableRole;
     emit itemChanged(roles);
+}
+
+void UpnpDevice::sendAlive()
+{
+    emit aliveMessage(uuid(), "");
+    emit aliveMessage(uuid(), deviceType());
+
+    for (int i=0;i<m_services->rowCount();++i)
+    {
+        UpnpService *service = qobject_cast<UpnpService*>(m_services->at(i));
+        service->sendAlive(uuid());
+    }
+
+    for (int i=0;i<m_devices->rowCount();++i)
+    {
+        UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
+        device->sendAlive();
+    }
+}
+
+
+void UpnpDevice::sendByeBye()
+{
+    emit byebyeMessage(uuid(), "");
+    emit byebyeMessage(uuid(), deviceType());
+
+    for (int i=0;i<m_services->rowCount();++i)
+    {
+        UpnpService *service = qobject_cast<UpnpService*>(m_services->at(i));
+        service->sendByeBye(uuid());
+    }
+
+    for (int i=0;i<m_devices->rowCount();++i)
+    {
+        UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
+        device->sendByeBye();
+    }
+}
+
+void UpnpDevice::searchForST(const QString &st)
+{
+    if (st == "ssdp:all" or st == QString("uuid:%1").arg(uuid()))
+        emit searchResponse(st, QString("uuid:%1").arg(uuid()));
+
+    if (st == "ssdp:all" or st == deviceType())
+        emit searchResponse(st, QString("uuid:%1::%2").arg(uuid()).arg(deviceType()));
+
+    for (int i=0;i<m_services->rowCount();++i)
+    {
+        UpnpService *service = qobject_cast<UpnpService*>(m_services->at(i));
+        service->searchForST(st, uuid());
+    }
+
+    for (int i=0;i<m_devices->rowCount();++i)
+    {
+        UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
+        device->searchForST(st);
+    }
 }

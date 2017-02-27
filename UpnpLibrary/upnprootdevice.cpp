@@ -1,5 +1,7 @@
 #include "upnprootdevice.h"
 
+const QString UpnpRootDevice::UPNP_ROOTDEVICE = "upnp:rootdevice";
+
 UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     UpnpDevice(parent),
     netManager(0),
@@ -7,7 +9,9 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     m_servername(),
     m_url(),
     m_rootDescription(),
-    m_iconUrl()
+    m_iconUrl(),
+    m_advertise(false),
+    m_advertisingTimer(this)
 {
     setType(RootDevice);
 
@@ -21,7 +25,9 @@ UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QHostAddress host, QS
     m_servername(),
     m_url(),
     m_rootDescription(),
-    m_iconUrl()
+    m_iconUrl(),
+    m_advertise(false),
+    m_advertisingTimer(3, 600000, this)
 {
     setType(RootDevice);
     setNetworkManager(nam);
@@ -31,6 +37,9 @@ UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QHostAddress host, QS
     connect(this, SIGNAL(rootDescriptionChanged()), this, SIGNAL(itemChanged()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
     connect(this, SIGNAL(urlChanged()), this, SLOT(requestDescription()));
+
+    connect(this, SIGNAL(statusChanged()), this, SLOT(statusChangedSlot()));
+    connect(&m_advertisingTimer, SIGNAL(timeout()), this, SLOT(sendAlive()));
 }
 
 void UpnpRootDevice::initRoles()
@@ -280,4 +289,43 @@ void UpnpRootDevice::setUrl(QUrl url)
 {
     m_url = url;
     emit urlChanged();
+}
+
+void UpnpRootDevice::statusChangedSlot()
+{
+    if (status() == Ready)
+    {
+        if (m_advertise)
+            startAdvertising();
+    }
+}
+
+void UpnpRootDevice::setAdvertise(const bool &flag)
+{
+    m_advertise = flag;
+}
+
+void UpnpRootDevice::startAdvertising()
+{
+    m_advertisingTimer.start(500);
+}
+
+void UpnpRootDevice::sendAlive()
+{
+    emit aliveMessage(uuid(), UPNP_ROOTDEVICE);
+
+    UpnpDevice::sendAlive();
+}
+
+void UpnpRootDevice::sendByeBye()
+{
+    emit byebyeMessage(uuid(), UPNP_ROOTDEVICE);
+
+    UpnpDevice::sendByeBye();
+}
+
+void UpnpRootDevice::searchForST(const QString &st)
+{
+    if (st == "ssdp:all" or st == UPNP_ROOTDEVICE)
+        emit searchResponse(st, QString("uuid:%1::%2").arg(uuid()).arg(UPNP_ROOTDEVICE));
 }
