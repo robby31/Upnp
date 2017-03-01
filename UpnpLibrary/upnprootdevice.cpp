@@ -276,8 +276,6 @@ void UpnpRootDevice::itemAvailableChanged()
     QVector<int> roles;
     roles << AvailableRole;
     emit itemChanged(roles);
-
-    emit upnpObjectAvailabilityChanged(this);
 }
 
 QUrl UpnpRootDevice::url() const

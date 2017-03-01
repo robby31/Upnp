@@ -24,7 +24,6 @@ public:
     explicit UpnpControlPoint(QObject *parent = 0);
     virtual ~UpnpControlPoint();
 
-    void start();
     void close();
 
     QString serverName() const;
@@ -47,8 +46,6 @@ private:
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
 
 signals:
-    void startSignal();
-
     void serverNameChanged();
     void localRootDevicesChanged();
     void remoteRootDevicesChanged();
@@ -56,8 +53,6 @@ signals:
     void messageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
 
 private slots:
-    void _start();
-
     void _sendMulticastSsdpMessage(SsdpMessage message);
     void _sendAliveMessage(const QString &uuid, const QString &nt);
     void _sendByeByeMessage(const QString &uuid, const QString &nt);
@@ -70,8 +65,6 @@ private slots:
     void _processPendingUnicastDatagrams();
 
     void _processSsdpMessageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
-
-    void upnpObjectAvailabilityChanged(UpnpObject *object);
 
 
 private:

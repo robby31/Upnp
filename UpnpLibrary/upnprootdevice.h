@@ -54,7 +54,6 @@ private:
 signals:
     void urlChanged();
     void rootDescriptionChanged();
-    void upnpObjectAvailabilityChanged(UpnpObject *object);
 
 public slots:
     virtual void sendAlive() Q_DECL_OVERRIDE;

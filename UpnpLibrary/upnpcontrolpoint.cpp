@@ -27,36 +27,25 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
     m_remoteRootDevice = new ListModel(new UpnpRootDevice, this);
     m_localRootDevice = new ListModel(new UpnpRootDevice, this);
 
+    connect(this, &UpnpControlPoint::messageReceived, this, &UpnpControlPoint::_processSsdpMessageReceived);
+
     connect(&udpSocketMulticast, &QUdpSocket::readyRead, this, &UpnpControlPoint::_processPendingMulticastDatagrams);
+    connect(&udpSocketUnicast, &QUdpSocket::readyRead, this, &UpnpControlPoint::_processPendingUnicastDatagrams);
+
     udpSocketMulticast.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
-    udpSocketMulticast.bind(QHostAddress::AnyIPv4, UPNP_PORT, QAbstractSocket::ShareAddress);
+    if (!udpSocketMulticast.bind(QHostAddress::AnyIPv4, UPNP_PORT, QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint))
+        qCritical() << "Unable to bound multicast address.";
+
     if (!udpSocketMulticast.joinMulticastGroup(IPV4_UPNP_HOST))
         qCritical() << "Unable to join multicast UDP.";
 
-    connect(&udpSocketUnicast, &QUdpSocket::readyRead, this, &UpnpControlPoint::_processPendingUnicastDatagrams);
     udpSocketUnicast.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
-
-    connect(this, &UpnpControlPoint::startSignal, this, &UpnpControlPoint::_start);
-
-    connect(this, &UpnpControlPoint::messageReceived, this, &UpnpControlPoint::_processSsdpMessageReceived);
 }
 
 UpnpControlPoint::~UpnpControlPoint()
 {
     qDebug() << "Close UPNPControlPoint.";
     close();
-}
-
-void UpnpControlPoint::_start()
-{
-    qDebug() << "Starting UPNPControlPoint";
-
-    sendDiscover(UpnpRootDevice::UPNP_ROOTDEVICE);
-}
-
-void UpnpControlPoint::start()
-{
-    emit startSignal();
 }
 
 void UpnpControlPoint::close()
@@ -356,7 +345,6 @@ void UpnpControlPoint::addRootDevice(QHostAddress host, SsdpMessage message)
         if (device == 0)
         {
             device = new UpnpRootDevice(netManager, QHostAddress(host.toIPv4Address()), uuid, m_remoteRootDevice);
-            connect(device, SIGNAL(upnpObjectAvailabilityChanged(UpnpObject*)), this, SLOT(upnpObjectAvailabilityChanged(UpnpObject*)));
             device->setServerName(serverName());
             device->update(message);
             device->setUrl(message.getHeader("LOCATION"));
@@ -382,39 +370,6 @@ UpnpRootDevice *UpnpControlPoint::getRootDeviceFromUuid(const QString &uuid)
     }
 
     return 0;
-}
-
-void UpnpControlPoint::upnpObjectAvailabilityChanged(UpnpObject *object)
-{
-    if (object)
-    {
-        if (object->type() == UpnpObject::RootDevice)
-        {
-            UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(object);
-            if (root)
-            {
-                if (root->status() == UpnpObject::Ready)
-                {
-                    if (root->available())
-                        qWarning() << QDateTime::currentDateTime().toString() << "RootDevice ON-LINE:" << root->uuid() << root->status() << root->friendlyName();
-                    else
-                        qWarning() << QDateTime::currentDateTime().toString() << "RootDevice OFF-LINE:" << root->uuid() << root->status() << root->friendlyName();
-                }
-            }
-            else
-            {
-                qCritical() << QDateTime::currentDateTime() << "invalid Root Device" << object;
-            }
-        }
-        else
-        {
-            qWarning() << QDateTime::currentDateTime() << "availability changed" << object->available() << object;
-        }
-    }
-    else
-    {
-        qCritical() << "ERROR on upnpObjectAvailability" << object;
-    }
 }
 
 void UpnpControlPoint::addLocalRootDevice(QString uuid, QString url)
