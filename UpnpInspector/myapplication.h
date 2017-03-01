@@ -5,6 +5,8 @@
 #include "upnpcontrolpoint.h"
 #include "Models/listmodel.h"
 #include "messageitem.h"
+#include "upnptimer.h"
+#include "upnprootdevice.h"
 
 class MyApplication : public Application
 {
@@ -25,11 +27,13 @@ signals:
 
 private slots:
     void messageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
+    void advertiseSlot();
 
 private:
     QNetworkAccessManager netManager;
     UpnpControlPoint *m_upnp;
     ListModel *m_messageModel;
+    UpnpTimer m_timerDiscover;
 };
 
 #endif // MYAPPLICATION_H
