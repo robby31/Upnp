@@ -345,6 +345,8 @@ void UpnpControlPoint::addRootDevice(QHostAddress host, SsdpMessage message)
         if (device == 0)
         {
             device = new UpnpRootDevice(netManager, QHostAddress(host.toIPv4Address()), uuid, m_remoteRootDevice);
+            connect(device, SIGNAL(availableChanged()), this, SLOT(_rootDeviceAvailableChanged()));
+            connect(device, SIGNAL(statusChanged()), this, SLOT(_rootDeviceStatusChanged()));
             device->setServerName(serverName());
             device->update(message);
             device->setUrl(message.getHeader("LOCATION"));
@@ -385,6 +387,15 @@ void UpnpControlPoint::addLocalRootDevice(QString uuid, QString url)
     m_localRootDevice->appendRow(device);
 }
 
+void UpnpControlPoint::advertiseLocalRootDevice()
+{
+    for (int i=0;i<m_localRootDevice->rowCount();++i)
+    {
+        UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(m_localRootDevice->at(i));
+        root->sendAlive();
+    }
+}
+
 void UpnpControlPoint::_searchForST(const QString &st)
 {
     for (int i=0;i<m_localRootDevice->rowCount();++i)
@@ -422,4 +433,27 @@ void UpnpControlPoint::_sendSearchResponse(const QString &st, const QString &usn
 
         _sendMulticastSsdpMessage(message);
     }
+}
+
+void UpnpControlPoint::_rootDeviceAvailableChanged()
+{
+    UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(sender());
+
+    if (root->available() == false)
+    {
+        QModelIndex index = m_remoteRootDevice->indexFromItem(root);
+        if (index.isValid())
+            m_remoteRootDevice->removeRow(index.row());
+    }
+
+}
+
+void UpnpControlPoint::_rootDeviceStatusChanged()
+{
+    UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(sender());
+
+    if (root->status() == UpnpObject::Ready)
+        emit newRootDevice(root);
+
+    advertiseLocalRootDevice();
 }

@@ -36,6 +36,7 @@ public:
     ListModel *remoteRootDevices() const;
 
     void addLocalRootDevice(QString uuid, QString url);
+    void advertiseLocalRootDevice();
 
     void sendDiscover(const QString &search_target);
 
@@ -52,6 +53,8 @@ signals:
 
     void messageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
 
+    void newRootDevice(UpnpRootDevice *device);
+
 private slots:
     void _sendMulticastSsdpMessage(SsdpMessage message);
     void _sendAliveMessage(const QString &uuid, const QString &nt);
@@ -65,6 +68,9 @@ private slots:
     void _processPendingUnicastDatagrams();
 
     void _processSsdpMessageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
+
+    void _rootDeviceStatusChanged();
+    void _rootDeviceAvailableChanged();
 
 
 private:
