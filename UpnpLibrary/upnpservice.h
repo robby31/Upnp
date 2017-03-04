@@ -2,6 +2,7 @@
 #define UPNPSERVICE_H
 
 #include "upnpobject.h"
+#include "upnperror.h"
 
 class UpnpService : public UpnpObject
 {

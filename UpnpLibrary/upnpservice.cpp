@@ -229,10 +229,10 @@ QNetworkReply *UpnpService::sendAction(const QString &action)
 
     request.setRawHeader(QByteArray("CONTENT-TYPE"), "text/xml; charset=\"utf-8\"");
 
-    request.setRawHeader(QByteArray("SOAPACTION"), QString("%1#%2").arg(serviceType()).arg(action).toUtf8());
+    request.setRawHeader(QByteArray("SOAPACTION"), QString("\"%1#%2\"").arg(serviceType()).arg(action).toUtf8());
 
     QDomDocument xml;
-    xml.appendChild(xml.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"utf-8\""));
+    xml.appendChild(xml.createProcessingInstruction("xml", "version=\"1.0\""));
 
     QDomElement envelope = xml.createElementNS("http://schemas.xmlsoap.org/soap/envelope/", "s:Envelope");
     envelope.setAttribute("s:encodingStyle", "http://schemas.xmlsoap.org/soap/encoding/");
@@ -243,6 +243,9 @@ QNetworkReply *UpnpService::sendAction(const QString &action)
 
     QDomElement xmlAction = xml.createElementNS(serviceType(), "u:"+action);
     body.appendChild(xmlAction);
+
+//    QDomElement arg = xml.createElement("argumentName");
+//    xmlAction.appendChild(arg);
 
     return post(request, xml.toByteArray());
 }
@@ -268,8 +271,9 @@ void UpnpService::networkError(QNetworkReply::NetworkError error)
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
 
-    qCritical() << "Network Error" << error << reply->request().url();
-    qCritical() << reply->readAll();
+    UpnpError upnpError(error, reply->readAll());
+
+    qCritical() << "Network Error" << upnpError.netError() << reply->request().url() << upnpError.code() << upnpError.description();
 
     reply->deleteLater();
 }
