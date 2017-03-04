@@ -10,6 +10,8 @@ class UpnpRootDevice : public UpnpDevice
 
     Q_PROPERTY(QString rootDescription READ rootDescription  NOTIFY rootDescriptionChanged)
 
+public:
+
     enum Roles {
         HostRole = Qt::UserRole+1,
         UuidRole,
@@ -21,7 +23,6 @@ class UpnpRootDevice : public UpnpDevice
         VersionRole
     };
 
-public:
     explicit UpnpRootDevice(QObject *parent = 0);
     explicit UpnpRootDevice(QNetworkAccessManager *nam, QHostAddress host, QString uuid, QObject *parent = 0);
 
@@ -33,6 +34,8 @@ public:
     void setNetworkManager(QNetworkAccessManager *nam);
 
     virtual QHostAddress host() const Q_DECL_OVERRIDE;
+
+    QString iconUrl() const;
 
     virtual QString serverName() const Q_DECL_OVERRIDE;
     void setServerName(const QString &name);

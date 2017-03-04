@@ -92,6 +92,11 @@ QHostAddress UpnpRootDevice::host() const
     return m_host;
 }
 
+QString UpnpRootDevice::iconUrl() const
+{
+    return m_iconUrl;
+}
+
 void UpnpRootDevice::setNetworkManager(QNetworkAccessManager *nam)
 {
     if (thread() != nam->thread())
