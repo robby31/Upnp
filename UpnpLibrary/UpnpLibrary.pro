@@ -41,7 +41,8 @@ SOURCES += upnplibrary.cpp \
     upnpservice.cpp \
     upnpdevice.cpp \
     upnpobject.cpp \
-    upnptimer.cpp
+    upnptimer.cpp \
+    upnperror.cpp
 
 HEADERS += upnplibrary.h \
     upnpcontrolpoint.h \
@@ -50,7 +51,8 @@ HEADERS += upnplibrary.h \
     upnpservice.h \
     upnpdevice.h \
     upnpobject.h \
-    upnptimer.h
+    upnptimer.h \
+    upnperror.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
