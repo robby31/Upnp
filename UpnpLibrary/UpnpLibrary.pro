@@ -42,7 +42,12 @@ SOURCES += upnplibrary.cpp \
     upnpdevice.cpp \
     upnpobject.cpp \
     upnptimer.cpp \
-    upnperror.cpp
+    upnperror.cpp \
+    Http/httpserver.cpp \
+    Http/httprequest.cpp \
+    soapaction.cpp \
+    soapactionresponse.cpp \
+    didllite.cpp
 
 HEADERS += upnplibrary.h \
     upnpcontrolpoint.h \
@@ -52,7 +57,12 @@ HEADERS += upnplibrary.h \
     upnpdevice.h \
     upnpobject.h \
     upnptimer.h \
-    upnperror.h
+    upnperror.h \
+    Http/httpserver.h \
+    Http/httprequest.h \
+    soapaction.h \
+    soapactionresponse.h \
+    didllite.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
