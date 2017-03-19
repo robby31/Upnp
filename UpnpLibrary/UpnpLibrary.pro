@@ -69,4 +69,59 @@ unix {
 }
 
 DISTFILES += \
-    UpnpLibrary.prf
+    UpnpLibrary.prf \
+    doc/AVTransport/UPnP-av-AVTransport-v1-Service-20020625.pdf \
+    doc/AVTransport/UPnP-av-AVTransport-v1-Service-AnnexA-20101006.pdf \
+    doc/AVTransport/UPnP-av-AVTransport-v2-Service-20080930.pdf \
+    doc/AVTransport/UPnP-av-AVTransport-v2-Service-AnnexA-20101006 2.pdf \
+    doc/AVTransport/UPnP-av-AVTransport-v2-Service-AnnexA-20101006.pdf \
+    doc/AVTransport/UPnP-av-AVTransport-v3-Service-20130331.pdf \
+    doc/ConnectionManager/UPnP-av-ConnectionManager-v1-Service-20020625.pdf \
+    doc/ConnectionManager/UPnP-av-ConnectionManager-v1-Service-AnnexA-20101006.pdf \
+    doc/ConnectionManager/UPnP-av-ConnectionManager-v2-Service-20060531.pdf \
+    doc/ConnectionManager/UPnP-av-ConnectionManager-v2-Service-AnnexA-20101006.pdf \
+    doc/ConnectionManager/UPnP-av-ConnectionManager-v3-Service-20130331.pdf \
+    doc/ContentDirectory/UPnP-av-ContentDirectory-v1-Service-20020625.pdf \
+    doc/ContentDirectory/UPnP-av-ContentDirectory-v1-Service-AnnexA-20101006.pdf \
+    doc/ContentDirectory/UPnP-av-ContentDirectory-v2-Service-20060531.pdf \
+    doc/ContentDirectory/UPnP-av-ContentDirectory-v2-Service-AnnexA-20101006.pdf \
+    doc/ContentDirectory/UPnP-av-ContentDirectory-v3-Service-20080930.pdf \
+    doc/ContentDirectory/UPnP-av-ContentDirectory-v3-Service-AnnexA-20101006.pdf \
+    doc/ContentDirectory/UPnP-av-ContentDirectory-v4-Service-20150319.pdf \
+    doc/DeviceArchitecture/UPnP-arch-DeviceArchitecture-v1.0-20081015.pdf \
+    doc/DeviceArchitecture/UPnP-arch-DeviceArchitecture-v1.1-20081015.pdf \
+    doc/DeviceArchitecture/UPnP-arch-DeviceArchitecture-v1.1-AnnexA-20110315.pdf \
+    doc/DeviceArchitecture/UPnP-arch-DeviceArchitecture-v2.0-20150220.pdf \
+    doc/MediaRenderer/UPnP-av-MediaRenderer-v1-Device-20020625.pdf \
+    doc/MediaRenderer/UPnP-av-MediaRenderer-v2-Device-20080930.pdf \
+    doc/MediaRenderer/UPnP-av-MediaRenderer-v3-Device-20130331.pdf \
+    doc/MediaServer/UPnP-av-MediaServer-v1-Device-20020625.pdf \
+    doc/MediaServer/UPnP-av-MediaServer-v2-Device-20060531.pdf \
+    doc/MediaServer/UPnP-av-MediaServer-v3-Device-20080930.pdf \
+    doc/MediaServer/UPnP-av-MediaServer-v4-Device-20130331.pdf \
+    doc/RenderingControl/UPnP-av-RenderingControl-v1-Service-20020625.pdf \
+    doc/RenderingControl/UPnP-av-RenderingControl-v1-Service-AnnexA-20101006.pdf \
+    doc/RenderingControl/UPnP-av-RenderingControl-v2-Service-20060531.pdf \
+    doc/RenderingControl/UPnP-av-RenderingControl-v2-Service-AnnexA-20101006.pdf \
+    doc/RenderingControl/UPnP-av-RenderingControl-v3-Service-20130331.pdf \
+    doc/AVTransport/AVTransport1.SyntaxTests.xml \
+    doc/AVTransport/AVTransport2.SyntaxTests.xml \
+    doc/ConnectionManager/ConnectionManager1.SyntaxTests.xml \
+    doc/ConnectionManager/ConnectionManager1.xml \
+    doc/ConnectionManager/ConnectionManager2.SyntaxTests.xml \
+    doc/ConnectionManager/ConnectionManager2.xml \
+    doc/ContentDirectory/ContentDirectory1.SyntaxTests.xml \
+    doc/ContentDirectory/ContentDirectory1.xml \
+    doc/ContentDirectory/ContentDirectory2.SyntaxTests.xml \
+    doc/ContentDirectory/ContentDirectory2.xml \
+    doc/ContentDirectory/ContentDirectory3.SyntaxTests.xml \
+    doc/ContentDirectory/ContentDirectory3.xml \
+    doc/MediaRenderer/MediaRenderer1.xml \
+    doc/MediaRenderer/MediaRenderer2.xml \
+    doc/MediaServer/MediaServer1.xml \
+    doc/MediaServer/MediaServer2.xml \
+    doc/MediaServer/MediaServer3.xml \
+    doc/RenderingControl/RenderingControl1.SyntaxTests.xml \
+    doc/RenderingControl/RenderingControl1.xml \
+    doc/RenderingControl/RenderingControl2.SyntaxTests.xml \
+    doc/RenderingControl/RenderingControl2.xml
