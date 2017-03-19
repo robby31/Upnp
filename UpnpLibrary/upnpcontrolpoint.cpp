@@ -16,7 +16,7 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
     QObject(parent),
     netManager(0),
     m_servername(QString("%1/%2 UPnP/%3 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(UPNP_VERSION)),
-    m_host(),
+    m_hostAddress(),
     udpSocketMulticast(this),
     udpSocketUnicast(this),
     m_bootid(0),
@@ -40,12 +40,33 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
         qCritical() << "Unable to join multicast UDP.";
 
     udpSocketUnicast.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
+
+    initializeHostAdress();
 }
 
 UpnpControlPoint::~UpnpControlPoint()
 {
     qDebug() << "Close UPNPControlPoint.";
     close();
+}
+
+void UpnpControlPoint::initializeHostAdress()
+{
+    QNetworkConfigurationManager mgr;
+    foreach(QNetworkConfiguration ap, mgr.allConfigurations(QNetworkConfiguration::Active))
+    {
+        QNetworkSession session(ap);
+        qDebug() << "SESSION" << session.interface().humanReadableName();
+
+        foreach (QNetworkAddressEntry entry, session.interface().addressEntries())
+        {
+            if (entry.ip().protocol() == QAbstractSocket::IPv4Protocol)
+                m_hostAddress = entry.ip();
+        }
+    }
+
+    if (m_hostAddress.isNull())
+        qCritical() << "invalid address" << m_hostAddress;
 }
 
 void UpnpControlPoint::close()
@@ -67,6 +88,11 @@ QString UpnpControlPoint::serverName() const
     return m_servername;
 }
 
+QHostAddress UpnpControlPoint::host() const
+{
+    return m_hostAddress;
+}
+
 ListModel *UpnpControlPoint::localRootDevices() const
 {
     return m_localRootDevice;
@@ -75,11 +101,6 @@ ListModel *UpnpControlPoint::localRootDevices() const
 ListModel *UpnpControlPoint::remoteRootDevices() const
 {
     return m_remoteRootDevice;
-}
-
-void UpnpControlPoint::setHost(const QString &host)
-{
-    m_host = host;
 }
 
 void UpnpControlPoint::_processPendingUnicastDatagrams()
@@ -244,7 +265,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
         {
             if (nt == UpnpRootDevice::UPNP_ROOTDEVICE)
             {
-                addRootDevice(host, message);
+                addRootDevice(message);
             }
             else
             {
@@ -298,7 +319,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
 
         if (st == UpnpRootDevice::UPNP_ROOTDEVICE)
         {
-            addRootDevice(host, message);
+            addRootDevice(message);
         }
         else
         {
@@ -333,7 +354,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
     }
 }
 
-void UpnpControlPoint::addRootDevice(QHostAddress host, SsdpMessage message)
+void UpnpControlPoint::addRootDevice(SsdpMessage message)
 {
     // read uuid
     QString uuid = message.getUuidFromUsn();
@@ -344,7 +365,7 @@ void UpnpControlPoint::addRootDevice(QHostAddress host, SsdpMessage message)
 
         if (device == 0)
         {
-            device = new UpnpRootDevice(netManager, QHostAddress(host.toIPv4Address()), uuid, m_remoteRootDevice);
+            device = new UpnpRootDevice(netManager, uuid, m_remoteRootDevice);
             connect(device, SIGNAL(availableChanged()), this, SLOT(_rootDeviceAvailableChanged()));
             connect(device, SIGNAL(statusChanged()), this, SLOT(_rootDeviceStatusChanged()));
             device->setServerName(serverName());
@@ -374,17 +395,21 @@ UpnpRootDevice *UpnpControlPoint::getRootDeviceFromUuid(const QString &uuid)
     return 0;
 }
 
-void UpnpControlPoint::addLocalRootDevice(QString uuid, QString url)
+UpnpRootDevice *UpnpControlPoint::addLocalRootDevice(int port, QString uuid, QString url)
 {
-    UpnpRootDevice *device = new UpnpRootDevice(netManager, QHostAddress(m_host), uuid, m_localRootDevice);
+    UpnpRootDevice *device = new UpnpRootDevice(netManager, uuid, m_localRootDevice);
     connect(device, SIGNAL(aliveMessage(QString,QString)), this, SLOT(_sendAliveMessage(QString,QString)));
     connect(device, SIGNAL(byebyeMessage(QString,QString)), this, SLOT(_sendByeByeMessage(QString,QString)));
     connect(device, SIGNAL(searchResponse(QString,QString)), this, SLOT(_sendSearchResponse(QString,QString)));
     device->setServerName(serverName());
     device->setAdvertise(true);
-    device->setUrl(url);
+
+    QUrl tmp(QString("http://%1:%2").arg(m_hostAddress.toString()).arg(port));
+    device->setUrl(tmp.resolved(url));
 
     m_localRootDevice->appendRow(device);
+
+    return device;
 }
 
 void UpnpControlPoint::advertiseLocalRootDevice()

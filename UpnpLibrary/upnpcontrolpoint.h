@@ -1,6 +1,8 @@
 #ifndef UPNPCONTROLPOINT_H
 #define UPNPCONTROLPOINT_H
 
+#include <QNetworkConfigurationManager>
+#include <QNetworkSession>
 #include <QHostAddress>
 #include <QTimer>
 #include <QUdpSocket>
@@ -27,21 +29,22 @@ public:
     void close();
 
     QString serverName() const;
-
-    void setHost(const QString &host);
+    QHostAddress host() const;
 
     void setNetworkManager(QNetworkAccessManager *nam);
 
     ListModel *localRootDevices() const;
     ListModel *remoteRootDevices() const;
 
-    void addLocalRootDevice(QString uuid, QString url);
+    UpnpRootDevice *addLocalRootDevice(int port, QString uuid, QString url);
     void advertiseLocalRootDevice();
 
     void sendDiscover(const QString &search_target);
 
 private:
-    void addRootDevice(QHostAddress host, SsdpMessage message);
+    void initializeHostAdress();
+
+    void addRootDevice(SsdpMessage message);
     UpnpRootDevice *getRootDeviceFromUuid(const QString &uuid);
 
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
@@ -77,7 +80,7 @@ private:
     QNetworkAccessManager *netManager;
 
     QString m_servername;
-    QString m_host;
+    QHostAddress m_hostAddress;
 
     QUdpSocket udpSocketMulticast;
     QUdpSocket udpSocketUnicast;
