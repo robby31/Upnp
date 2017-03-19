@@ -44,13 +44,21 @@ QVariant UpnpDevice::data(int role) const
 {
     switch (role) {
     case HostRole:
+    {
         return host().toString();
+    }
     case DeviceTypeRole:
+    {
         return deviceType();
+    }
     case AvailableRole:
+    {
         return available();
+    }
     default:
+    {
         return QVariant::Invalid;
+    }
     }
 
     return QVariant::Invalid;
