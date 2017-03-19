@@ -36,11 +36,17 @@ QVariant UpnpService::data(int role) const
 {
     switch (role) {
     case ServiceTypeRole:
+    {
         return serviceType();
+    }
     case AvailableRole:
+    {
         return available();
+    }
     default:
+    {
         return QVariant::Invalid;
+    }
     }
 
     return QVariant::Invalid;
@@ -196,7 +202,9 @@ void UpnpService::runAction(const int &index)
 
                 if (in.isEmpty())
                 {
-                    QNetworkReply *reply = sendAction(name);
+                    SoapAction action(serviceType(), name);
+
+                    QNetworkReply *reply = sendAction(action);
                     connect(reply, SIGNAL(finished()), this, SLOT(actionFinished()));
                     connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
                 }
@@ -220,7 +228,7 @@ void UpnpService::itemAvailableChanged()
     emit itemChanged(roles);
 }
 
-QNetworkReply *UpnpService::sendAction(const QString &action)
+QNetworkReply *UpnpService::sendAction(const SoapAction &action)
 {
 
     QNetworkRequest request;
@@ -229,25 +237,9 @@ QNetworkReply *UpnpService::sendAction(const QString &action)
 
     request.setRawHeader(QByteArray("CONTENT-TYPE"), "text/xml; charset=\"utf-8\"");
 
-    request.setRawHeader(QByteArray("SOAPACTION"), QString("\"%1#%2\"").arg(serviceType()).arg(action).toUtf8());
+    request.setRawHeader(QByteArray("SOAPACTION"), action.soapaction());
 
-    QDomDocument xml;
-    xml.appendChild(xml.createProcessingInstruction("xml", "version=\"1.0\""));
-
-    QDomElement envelope = xml.createElementNS("http://schemas.xmlsoap.org/soap/envelope/", "s:Envelope");
-    envelope.setAttribute("s:encodingStyle", "http://schemas.xmlsoap.org/soap/encoding/");
-    xml.appendChild(envelope);
-
-    QDomElement body = xml.createElement("s:Body");
-    envelope.appendChild(body);
-
-    QDomElement xmlAction = xml.createElementNS(serviceType(), "u:"+action);
-    body.appendChild(xmlAction);
-
-//    QDomElement arg = xml.createElement("argumentName");
-//    xmlAction.appendChild(arg);
-
-    return post(request, xml.toByteArray());
+    return post(request, action.toByteArray());
 }
 
 void UpnpService::actionFinished()

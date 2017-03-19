@@ -3,6 +3,7 @@
 
 #include "upnpobject.h"
 #include "upnperror.h"
+#include "soapaction.h"
 
 class UpnpService : public UpnpObject
 {
@@ -43,7 +44,7 @@ private:
     void initRoles();
     void readActions();
 
-    QNetworkReply *sendAction(const QString &action);
+    QNetworkReply *sendAction(const SoapAction &action);
 
 signals:
     void infoChanged();
