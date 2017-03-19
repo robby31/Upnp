@@ -1,17 +1,18 @@
 #ifndef DIDLLITE_H
 #define DIDLLITE_H
 
-#include <QObject>
+#include <QDomDocument>
 
-class DidlLite : public QObject
+class DidlLite : public QDomDocument
 {
-    Q_OBJECT
+
 public:
-    explicit DidlLite(QObject *parent = 0);
+    explicit DidlLite();
 
-signals:
+    QDomNode addElement(QDomNode node);
 
-public slots:
+private:
+    QDomElement m_didl;
 };
 
 #endif // DIDLLITE_H
