@@ -3,6 +3,7 @@
 
 #include "upnpdevice.h"
 #include "upnptimer.h"
+#include "Http/httpserver.h"
 
 class UpnpRootDevice : public UpnpDevice
 {
@@ -24,7 +25,7 @@ public:
     };
 
     explicit UpnpRootDevice(QObject *parent = 0);
-    explicit UpnpRootDevice(QNetworkAccessManager *nam, QHostAddress host, QString uuid, QObject *parent = 0);
+    explicit UpnpRootDevice(QNetworkAccessManager *nam, QString uuid, QObject *parent = 0);
 
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
 
@@ -34,6 +35,7 @@ public:
     void setNetworkManager(QNetworkAccessManager *nam);
 
     virtual QHostAddress host() const Q_DECL_OVERRIDE;
+    int port() const;
 
     QString iconUrl() const;
 
@@ -48,6 +50,7 @@ public:
 
     void setAdvertise(const bool &flag);
     void startAdvertising();
+    void startServer();
 
     virtual void searchForST(const QString &st) Q_DECL_OVERRIDE;
 
@@ -57,6 +60,9 @@ private:
 signals:
     void urlChanged();
     void rootDescriptionChanged();
+    void newRequest(HttpRequest *request);
+    void requestCompleted(HttpRequest *request);
+    void serverStarted();
 
 public slots:
     virtual void sendAlive() Q_DECL_OVERRIDE;
@@ -75,7 +81,6 @@ public:
 
 private:
     QNetworkAccessManager *netManager;
-    QHostAddress m_host;
     QString m_servername;
     QUrl m_url;
     QDomDocument m_rootDescription;
@@ -83,6 +88,7 @@ private:
 
     bool m_advertise;
     UpnpTimer m_advertisingTimer;
+    HttpServer *server;
 };
 
 #endif // UPNPROOTDEVICE_H

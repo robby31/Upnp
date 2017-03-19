@@ -5,29 +5,29 @@ const QString UpnpRootDevice::UPNP_ROOTDEVICE = "upnp:rootdevice";
 UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     UpnpDevice(parent),
     netManager(0),
-    m_host(),
     m_servername(),
     m_url(),
     m_rootDescription(),
     m_iconUrl(),
     m_advertise(false),
-    m_advertisingTimer(this)
+    m_advertisingTimer(this),
+    server(0)
 {
     setType(RootDevice);
 
     initRoles();   
 }
 
-UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QHostAddress host, QString uuid, QObject *parent) :
+UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QString uuid, QObject *parent) :
     UpnpDevice(uuid, 0, parent),
     netManager(0),
-    m_host(host),
     m_servername(),
     m_url(),
     m_rootDescription(),
     m_iconUrl(),
     m_advertise(false),
-    m_advertisingTimer(3, 600000, this)
+    m_advertisingTimer(3, 600000, this),
+    server(0)
 {
     setType(RootDevice);
     setNetworkManager(nam);
@@ -60,23 +60,41 @@ QVariant UpnpRootDevice::data(int role) const
 {
     switch (role) {
     case HostRole:
+    {
         return host().toString();
+    }
     case UuidRole:
+    {
         return uuid();
+    }
     case FriendlyNameRole:
+    {
         return friendlyName();
+    }
     case IconUrlRole:
+    {
         return m_iconUrl;
+    }
     case AvailableRole:
+    {
         return available();
+    }
     case DeviceTypeRole:
+    {
         return deviceType();
+    }
     case PresentationUrlRole:
+    {
         return valueFromDescription("presentationURL");
+    }
     case VersionRole:
+    {
         return version();
+    }
     default:
+    {
         return QVariant::Invalid;
+    }
     }
 
     return QVariant::Invalid;
@@ -87,14 +105,19 @@ QNetworkAccessManager *UpnpRootDevice::networkManager() const
     return netManager;
 }
 
-QHostAddress UpnpRootDevice::host() const
-{
-    return m_host;
-}
-
 QString UpnpRootDevice::iconUrl() const
 {
     return m_iconUrl;
+}
+
+QHostAddress UpnpRootDevice::host() const
+{
+    return QHostAddress(m_url.host());
+}
+
+int UpnpRootDevice::port() const
+{
+    return m_url.port();
 }
 
 void UpnpRootDevice::setNetworkManager(QNetworkAccessManager *nam)
@@ -148,6 +171,8 @@ QString UpnpRootDevice::version() const
 
 void UpnpRootDevice::requestDescription()
 {
+    qDebug() << "request description" << this;
+
     QNetworkRequest request(url());
 
     QNetworkReply *reply = get(request);
@@ -290,27 +315,63 @@ QUrl UpnpRootDevice::url() const
 
 void UpnpRootDevice::setUrl(QUrl url)
 {
-    m_url = url;
-    emit urlChanged();
+    if (url.isValid())
+    {
+        m_url = url;
+        emit urlChanged();
+    }
+    else
+    {
+        qCritical() << "invalid URL" << url;
+    }
 }
 
 void UpnpRootDevice::statusChangedSlot()
 {
-    if (status() == Ready)
-    {
-        if (m_advertise)
-            startAdvertising();
-    }
+    if (status() == Ready && m_advertise)
+        startAdvertising();
 }
 
 void UpnpRootDevice::setAdvertise(const bool &flag)
 {
     m_advertise = flag;
+
+    if (status() == Ready && m_advertise)
+        startAdvertising();
 }
 
 void UpnpRootDevice::startAdvertising()
 {
     m_advertisingTimer.start(500);
+}
+
+void UpnpRootDevice::startServer()
+{
+    if (!server)
+    {
+        server = new HttpServer(this);
+        server->setDeviceUuid(uuid());
+        connect(server, SIGNAL(newRequest(HttpRequest*)), this, SIGNAL(newRequest(HttpRequest*)));
+        connect(server, SIGNAL(requestCompleted(HttpRequest*)), this, SIGNAL(requestCompleted(HttpRequest*)));
+    }
+
+    if (!server->isListening())
+    {
+        if (!url().isValid())
+        {
+            qCritical() << "unable to start HTTP server, url is not valid" << url();
+        }
+        else if (!server->listen(host(), port()))
+        {
+            qCritical() << "unable to start HTTP server" << this << host() << port();
+        }
+        else
+        {
+            qDebug() << "HTTP server started" << host() << port();
+            emit serverStarted();
+        }
+
+    }
 }
 
 void UpnpRootDevice::sendAlive()
