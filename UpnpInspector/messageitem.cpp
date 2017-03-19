@@ -23,25 +23,45 @@ QVariant MessageItem::data(int role) const
 {
     switch (role) {
     case HostRole:
+    {
         return m_host.toString();
+    }
     case PortRole:
+    {
         return m_port;
+    }
     case DateRole:
+    {
         return m_date.toString("hh:mm:ss.zzz");
+    }
     case TypeRole:
+    {
         return m_message.startLine();
+    }
     case MessageRole:
+    {
         return m_message.toUtf8();
+    }
     case NtRole:
+    {
         return m_message.getHeader("NT");
+    }
     case NtsRole:
+    {
         return m_message.getHeader("NTS");
+    }
     case ManRole:
+    {
         return m_message.getHeader("MAN");
+    }
     case StRole:
+    {
         return m_message.getHeader("ST");
+    }
     default:
+    {
         return QVariant::Invalid;
+    }
     }
 
     return QVariant::Invalid;
