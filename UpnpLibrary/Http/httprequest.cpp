@@ -4,7 +4,7 @@ HttpRequest::HttpRequest(QObject *parent):
     ListItem(parent),
     m_date(QDateTime::currentDateTime()),
     m_peerAddress(),
-    m_client(0),
+    m_client(Q_NULLPTR),
     m_request(),
     m_operation(QNetworkAccessManager::UnknownOperation),
     m_version(),
@@ -14,7 +14,11 @@ HttpRequest::HttpRequest(QObject *parent):
     m_networkStatus("init"),
     m_finished(false),
     m_streamWithErrors(false),
-    m_streamingCompleted(false)
+    m_streamingCompleted(false),
+    m_maxBufferSize(-1),
+    networkBytesSent(-1),
+    lastNetBytesSent(-1),
+    netStatusTimerEvent(0)
 {
     initializeRoles();
 }
@@ -33,7 +37,11 @@ HttpRequest::HttpRequest(QTcpSocket *client, QObject *parent):
     m_networkStatus("init"),
     m_finished(false),
     m_streamWithErrors(false),
-    m_streamingCompleted(false)
+    m_streamingCompleted(false),
+    m_maxBufferSize(-1),
+    networkBytesSent(-1),
+    lastNetBytesSent(-1),
+    netStatusTimerEvent(0)
 {    
     initializeRoles();
 
@@ -69,45 +77,54 @@ void HttpRequest::initializeRoles()
     m_roles[closeDateRole] = "closeDate";
     m_roles[answerRole] = "answer";
     m_roles[networkStatusRole] = "network_status";
+    m_roles[streamingStatusRole] = "streaming_status";
     m_roles[transcodeLogRole] = "transcode_log";
 }
 
 void HttpRequest::incomingData()
 {
-    // read header
-    while (!m_headerCompleted && m_client->canReadLine())
+    if (m_client)
     {
-        QString data = m_client->readLine().trimmed();
-
-        if (m_operation == QNetworkAccessManager::UnknownOperation)
-            readOperation(data);
-        else if (data.isEmpty())
-            headerReadFinished();
-        else
-            readHeader(data);
-    }
-
-    if (m_headerCompleted && m_client->bytesAvailable() > 0)
-    {
-        // read data
-        int contentLength = m_request.header(QNetworkRequest::ContentLengthHeader).toInt();
-
-        if (contentLength != 0)
+        // read header
+        while (!m_headerCompleted && m_client->canReadLine())
         {
-            if (m_data.size() < contentLength)
-            {
-                m_data.append(m_client->read(contentLength - m_data.size()));
-            }
-            else
-            {
-                QByteArray data = m_client->readAll();
-                setError(QString("invalid data received (size exceeded), size received : %1, length expected : %2, bytes received : %3.").arg(m_data.size()).arg(contentLength).arg(data.size()));
-                qCritical() << data;
-            }
+            QString data = m_client->readLine().trimmed();
 
-            if (m_data.size() == contentLength)
-                requestCompleted();
+            if (m_operation == QNetworkAccessManager::UnknownOperation)
+                readOperation(data);
+            else if (data.isEmpty())
+                headerReadFinished();
+            else
+                readHeader(data);
         }
+
+        if (m_headerCompleted && m_client->bytesAvailable() > 0)
+        {
+            // read data
+            int contentLength = m_request.header(QNetworkRequest::ContentLengthHeader).toInt();
+
+            if (contentLength != 0)
+            {
+                if (m_data.size() < contentLength)
+                {
+                    m_data.append(m_client->read(contentLength - m_data.size()));
+                }
+                else
+                {
+                    QByteArray data = m_client->readAll();
+                    setError(QString("invalid data received (size exceeded), size received : %1, length expected : %2, bytes received : %3.").arg(m_data.size()).arg(contentLength).arg(data.size()));
+                    qCritical() << data;
+                }
+
+                if (m_data.size() == contentLength)
+                    requestCompleted();
+            }
+        }
+    }
+    else
+    {
+        setError("unable to read data, client destroyed");
+        close();
     }
 }
 
@@ -125,16 +142,16 @@ void HttpRequest::readOperation(const QString &data)
             setData(match.captured(2), urlRole);
             m_version = match.captured(3);
 
-            qDebug() << m_client->socketDescriptor() << "Read operation" << data << match.capturedTexts();
+            qDebug() << socketDescriptor() << "Read operation" << data << match.capturedTexts();
         }
         else
         {
-            setError(QString("%2, invalid operation : %1.").arg(data).arg(m_client->socketDescriptor()));
+            setError(QString("%2, invalid operation : %1.").arg(data).arg(socketDescriptor()));
         }
     }
     else
     {
-        setError(QString("%2, operation %1 already read : %2.").arg(operationString()).arg(data).arg(m_client->socketDescriptor()));
+        setError(QString("%2, operation %1 already read : %2.").arg(operationString()).arg(data).arg(socketDescriptor()));
     }
 }
 
@@ -150,11 +167,11 @@ void HttpRequest::readHeader(const QString &data)
         QString value = match.captured(2);
         m_request.setRawHeader(param.toUtf8(), value.toUtf8());
 
-        qDebug() << m_client->socketDescriptor() << "Read header" << match.capturedTexts() << param << value;
+        qDebug() << socketDescriptor() << "Read header" << match.capturedTexts() << param << value;
     }
     else
     {
-        setError(QString("%2, invalid header data : %1.").arg(data).arg(m_client->socketDescriptor()));
+        setError(QString("%2, invalid header data : %1.").arg(data).arg(socketDescriptor()));
     }
 }
 
@@ -162,7 +179,7 @@ void HttpRequest::headerReadFinished()
 {
     if (m_headerCompleted)
     {
-        setError(QString("%1, header already finished").arg(m_client->socketDescriptor()));
+        setError(QString("%1, header already finished").arg(socketDescriptor()));
     }
     else
     {
@@ -289,10 +306,7 @@ QVariant HttpRequest::data(int role) const
 
     case hostRole:
     {
-        if (m_client)
-            return QString("%1 (%2)").arg(m_request.url().host()).arg(m_client->socketDescriptor());
-        else
-            return QString("%1 (-)").arg(m_request.url().host());
+        return QString("%1 (%2)").arg(m_request.url().host()).arg(socketDescriptor());
     }
 
     case peerAddressRole:
@@ -320,16 +334,17 @@ QVariant HttpRequest::data(int role) const
         return m_networkStatus;
     }
 
+    case streamingStatusRole:
+    {
+        return m_streamingStatus;
+    }
+
     case durationRole:
     {
-        if (m_closeDate.isValid())
-        {
+        if (isClosed())
             return QTime(0, 0).addMSecs(m_date.msecsTo(m_closeDate)).toString("hh:mm:ss.zzz");
-        }
         else
-        {
             return QString();
-        }
     }
 
     case headerRole:
@@ -386,6 +401,20 @@ bool HttpRequest::setData(const QVariant &value, const int &role)
         if (value.toString() != m_networkStatus)
         {
             m_networkStatus = value.toString();
+            emit itemChanged(roles);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    case streamingStatusRole:
+    {
+        if (value.toString() != m_streamingStatus)
+        {
+            m_streamingStatus = value.toString();
             emit itemChanged(roles);
             return true;
         }
@@ -487,11 +516,11 @@ bool HttpRequest::setData(const QVariant &value, const int &role)
 
 void HttpRequest::clientDestroyed()
 {
-    m_client = 0;
+    m_client = Q_NULLPTR;
     setData("destroyed", networkStatusRole);
     logMessage("client destroyed.");
 
-    if (!m_closeDate.isValid())
+    if (!isClosed())
         close();
 }
 
@@ -508,19 +537,22 @@ void HttpRequest::clientError(QAbstractSocket::SocketError error)
 
     if (m_client)
         qWarning() << this << "ERROR" << error << m_client->readAll();
+
+    if (error == QAbstractSocket::RemoteHostClosedError)
+        m_client->deleteLater();
 }
 
 void HttpRequest::socketStateChanged(QAbstractSocket::SocketState state)
 {
-    logMessage(QString("network state changed : %1.").arg(state));
-
     if (state == QAbstractSocket::ClosingState)
     {
         setData("closing", networkStatusRole);
+        logMessage(QString("network state changed : Closing."));
     }
     else if (state == QAbstractSocket::UnconnectedState)
     {
         setData("disconnected", networkStatusRole);
+        logMessage(QString("network state changed : Disconnected."));
 
         if (m_client && m_client->bytesAvailable() > 0)
         {
@@ -530,15 +562,27 @@ void HttpRequest::socketStateChanged(QAbstractSocket::SocketState state)
     }
     else
     {
+        logMessage(QString("network state changed : %1.").arg(state));
         qCritical() << "unknown socket state value" << state;
     }
 }
 
+bool HttpRequest::isClosed() const
+{
+    return m_closeDate.isValid();
+}
+
 void HttpRequest::close()
 {
-    if (!m_closeDate.isValid())
+    if (!isClosed())
     {
         logMessage("close request.");
+
+        if (netStatusTimerEvent != 0)
+        {
+            killTimer(netStatusTimerEvent);
+            netStatusTimerEvent = 0;
+        }
 
         if (m_client)
         {
@@ -548,6 +592,8 @@ void HttpRequest::close()
 
         if (!m_requestedResource.isEmpty())
         {
+            setData(QString(), streamingStatusRole);
+
             if (m_streamingCompleted && !m_streamWithErrors)
             {
                 setData("Streaming finished.", statusRole);
@@ -576,37 +622,59 @@ void HttpRequest::close()
     }
 }
 
-bool HttpRequest::sendHeader(const QStringList &header)
+bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
 {
     if (m_client && m_status == "request ready")
     {
-        m_replyHeader << QString("%1 200 OK").arg(m_version);
-        m_replyHeader << header;
-        m_replyHeader << "";
-        m_replyHeader << "";
-
-
-        if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
+        if (!m_client->isValid() or !m_client->isWritable() or !m_client->isOpen())
         {
-            setError(QString("unable to send header data to client"));
+            setError(QString("unable to send data, client not ready"));
             close();
             return false;
         }
         else
         {
-            if (operation() == QNetworkAccessManager::GetOperation)
+            if (status == HTTP_200_OK)
             {
-                setData("header sent", statusRole);
+                m_replyHeader << QString("%1 200 OK").arg(m_version);
+            }
+            else if (HTTP_500_KO)
+            {
+                m_replyHeader << QString("%1 500 Internal Server Error").arg(m_version);
             }
             else
             {
-                setData("OK", statusRole);
+                setError(QString("unable to send data, invalid http status"));
                 close();
+                return false;
             }
 
-            logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
-            emit headerSent();
-            return true;
+            m_replyHeader << header;
+            m_replyHeader << "";
+            m_replyHeader << "";
+
+            if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
+            {
+                setError(QString("unable to send header data to client"));
+                close();
+                return false;
+            }
+            else
+            {
+                if (operation() == QNetworkAccessManager::HeadOperation)
+                {
+                    setData("OK", statusRole);
+                    close();
+                }
+                else
+                {
+                    setData("header sent", statusRole);
+                }
+
+                logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
+                emit headerSent();
+                return true;
+            }
         }
     }
     else
@@ -617,25 +685,40 @@ bool HttpRequest::sendHeader(const QStringList &header)
     }
 }
 
-void HttpRequest::sendPartialData(const QByteArray &data)
+bool HttpRequest::sendPartialData(const QByteArray &data)
 {
-    if (operation() == QNetworkAccessManager::GetOperation && m_client && m_status == "header sent")
+    if (operation() != QNetworkAccessManager::HeadOperation && m_client && m_status == "header sent")
     {
-        qint64 bytesWritten = m_client->write(data);
-        if (bytesWritten == -1)
+        if (!m_client->isValid() or !m_client->isWritable() or !m_client->isOpen())
         {
-            qDebug() << "unable to send data to client" << m_client->errorString();
-            setError(QString("unable to send data to client"));
+            logMessage(QString("unable to send data, client not ready"));
+            if (!isClosed())
+                close();
+            return false;
         }
         else
         {
-            qDebug() << "sendPartialData, data sent" << bytesWritten << m_client->bytesToWrite();
+            qint64 bytesWritten = m_client->write(data);
+            if (bytesWritten == -1)
+            {
+                logMessage(QString("unable to send data to client : %1").arg(m_client->errorString()));
+                if (!isClosed())
+                    close();
+                return false;
+            }
+            else
+            {
+                qDebug() << "sendPartialData, data sent" << bytesWritten << m_client->bytesToWrite();
+                return true;
+            }
         }
     }
     else
     {
-        setError(QString("cannot send reply, operation(%1) or client (%2) or status (%3) are invalid.").arg(operationString()).arg((qintptr)m_client).arg(m_status));
-        close();
+        logMessage(QString("cannot send reply, operation(%1) or client (%2) or status (%3) are invalid.").arg(operationString()).arg((qintptr)m_client).arg(m_status));
+        if (!isClosed())
+            close();
+        return false;
     }
 }
 
@@ -643,14 +726,11 @@ void HttpRequest::replyData(const QByteArray &data, const QString &contentType)
 {
     if (m_client && m_status == "request ready")
     {
-        m_replyHeader << QString("%1 200 OK").arg(m_version);
-        m_replyHeader << QString("Content-Type: %1").arg(contentType);
-        m_replyHeader << QString("Content-Length: %1").arg(data.size());
+        QStringList header;
+        header << QString("Content-Type: %1").arg(contentType);
+        header << QString("Content-Length: %1").arg(data.size());
 
-        m_replyHeader << QString("");
-        m_replyHeader << QString("");
-
-        if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
+        if (!sendHeader(header))
         {
             setError(QString("unable to send header data to client"));
         }
@@ -658,7 +738,7 @@ void HttpRequest::replyData(const QByteArray &data, const QString &contentType)
         {
             m_replyData = data;
 
-            if (m_client->write(m_replyData) == -1)
+            if (!sendPartialData(m_replyData))
             {
                 setError(QString("unable to send data to client"));
             }
@@ -681,7 +761,7 @@ void HttpRequest::replyData(const QByteArray &data, const QString &contentType)
     }
     else
     {
-        setError(QString("cannot send reply, client (%1) or status (%2) are invalid.").arg(m_client->metaObject()->className()).arg(m_status));
+        setError(QString("cannot send reply, client (%1) or status (%2) are invalid.").arg((qintptr)m_client).arg(m_status));
     }
 
     close();
@@ -699,19 +779,15 @@ void HttpRequest::replyFile(const QString &pathname)
             QFile inputStream(pathname);
             if (inputStream.open(QFile::ReadOnly))
             {
-                m_replyHeader << QString("%1 200 OK").arg(m_version);
-
+                QStringList header;
                 if (mime.inherits("text/xml"))
-                    m_replyHeader << QString("Content-Type: text/xml; charset=\"utf-8\"");
+                    header << QString("Content-Type: text/xml; charset=\"utf-8\"");
                 else
-                    m_replyHeader << QString("Content-Type: %1").arg(mime.name());
+                    header << QString("Content-Type: %1").arg(mime.name());
 
-                m_replyHeader << QString("Content-Length: %1").arg(inputStream.size());
+                header << QString("Content-Length: %1").arg(inputStream.size());
 
-                m_replyHeader << QString("");
-                m_replyHeader << QString("");
-
-                if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
+                if (!sendHeader(header))
                 {
                     setError(QString("unable to send header data to client"));
                 }
@@ -719,7 +795,7 @@ void HttpRequest::replyFile(const QString &pathname)
                 {
                     m_replyData = inputStream.readAll();
 
-                    if (m_client->write(m_replyData) == -1)
+                    if (!sendPartialData(m_replyData))
                     {
                         setError(QString("unable to send data to client"));
                     }
@@ -754,7 +830,7 @@ void HttpRequest::replyFile(const QString &pathname)
     }
     else
     {
-        setError(QString("cannot send reply, client (%1) or status (%2) are invalid.").arg(m_client->metaObject()->className()).arg(m_status));
+        setError(QString("cannot send reply, client (%1) or status (%2) are invalid.").arg((qintptr)m_client).arg(m_status));
     }
 
     close();
@@ -768,22 +844,19 @@ void HttpRequest::replyError(const UpnpError &error)
 
         QDateTime sdf;
 
-        m_replyHeader << QString("%1 500 Internal Server Error").arg(m_version);
-        m_replyHeader << QString("Content-Type: text/xml; charset=\"utf-8\"");
-        m_replyHeader << QString("Content-Length: %1").arg(data.size());
-        m_replyHeader << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
-        m_replyHeader << QString("EXT:");
+        QStringList header;
+        header << QString("Content-Type: text/xml; charset=\"utf-8\"");
+        header << QString("Content-Length: %1").arg(data.size());
+        header << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+        header << QString("EXT:");
         if (!serverName().isEmpty())
-            m_replyHeader << QString("SERVER: %1").arg(serverName());
+            header << QString("SERVER: %1").arg(serverName());
 
-        m_replyHeader << QString("");
-        m_replyHeader << QString("");
-
-        if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
+        if (!sendHeader(header, HTTP_500_KO))
         {
             setError(QString("unable to send header data to client"));
         }
-        else if (m_client->write(data) == -1)
+        else if (!sendPartialData(data))
         {
             setError(QString("unable to send data to client"));
         }
@@ -800,7 +873,7 @@ void HttpRequest::replyError(const UpnpError &error)
     }
     else
     {
-        setError(QString("cannot send reply, client (%1) or status (%2) or reply header (%3) are invalid.").arg(m_client->metaObject()->className()).arg(m_status).arg(m_replyHeader.isEmpty()));
+        setError(QString("cannot send reply, client (%1) or status (%2) or reply header (%3) are invalid.").arg((qintptr)m_client).arg(m_status).arg(m_replyHeader.isEmpty()));
     }
 
     close();
@@ -814,22 +887,19 @@ void HttpRequest::replyAction(const SoapActionResponse &response)
 
         QDateTime sdf;
 
-        m_replyHeader << QString("%1 200 OK").arg(m_version);
-        m_replyHeader << QString("Content-Type: text/xml; charset=\"utf-8\"");
-        m_replyHeader << QString("Content-Length: %1").arg(data.size());
-        m_replyHeader << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
-        m_replyHeader << QString("EXT:");
+        QStringList header;
+        header << QString("Content-Type: text/xml; charset=\"utf-8\"");
+        header << QString("Content-Length: %1").arg(data.size());
+        header << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+        header << QString("EXT:");
         if (!serverName().isEmpty())
-            m_replyHeader << QString("SERVER: %1").arg(serverName());
+            header << QString("SERVER: %1").arg(serverName());
 
-        m_replyHeader << QString("");
-        m_replyHeader << QString("");
-
-        if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
+        if (!sendHeader(header))
         {
             setError("unable to send header data to client");
         }
-        else if (m_client->write(data) == -1)
+        else if (!sendPartialData(data))
         {
             setError("unable to send data to client");
         }
@@ -845,7 +915,7 @@ void HttpRequest::replyAction(const SoapActionResponse &response)
     }
     else
     {
-        setError(QString("cannot send reply, client (%1) or status (%2) or reply header (%3) are invalid.").arg(m_client->metaObject()->className()).arg(m_status).arg(m_replyHeader.isEmpty()));
+        setError(QString("cannot send reply, client (%1) or status (%2) or reply header (%3) are invalid.").arg((qintptr)m_client).arg(m_status).arg(m_replyHeader.isEmpty()));
     }
 
     close();
@@ -853,7 +923,7 @@ void HttpRequest::replyAction(const SoapActionResponse &response)
 
 void HttpRequest::requestCompleted()
 {
-    qDebug() << m_client->socketDescriptor() << "COMPLETED" << operationString() << url() << m_data.size();
+    qDebug() << socketDescriptor() << "COMPLETED" << operationString() << url() << m_data.size();
     logMessage("Request fully received.");
 
     int contentLength = m_request.header(QNetworkRequest::ContentLengthHeader).toInt();
@@ -910,12 +980,21 @@ void HttpRequest::logMessage(const QString &message)
 
 void HttpRequest::bytesWritten(const qint64 &size)
 {
-    qint64 bytesToWrite = m_client->bytesToWrite();
+    networkBytesSent += size;
 
-    qDebug() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite).arg(size);
-//    logMessage(QString("data written to client (%1 bytes).").arg(size));
+    if (m_client)
+    {
+        qint64 bytesToWrite = m_client->bytesToWrite();
 
-    emit bytesSent(size, bytesToWrite);
+        qDebug() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite).arg(size);
+        //    logMessage(QString("data written to client (%1 bytes).").arg(size));
+
+        emit bytesSent(size, bytesToWrite);
+    }
+    else
+    {
+        qCritical() << "HttpRequest::bytesWritten invalid client";
+    }
 }
 
 QString HttpRequest::deviceUuid() const
@@ -948,10 +1027,10 @@ void HttpRequest::setRequestedResource(const QString &name)
 void HttpRequest::streamingCompleted()
 {
     m_streamingCompleted = true;
-    logMessage("streaming finished.");
-    qDebug() << "streaming finished" << m_requestedResource;
+    logMessage("streaming reached end.");
+    qDebug() << "streaming reached end" << m_requestedResource;
 
-    if (!m_closeDate.isValid())
+    if (!isClosed())
         close();
 }
 
@@ -959,4 +1038,98 @@ void HttpRequest::streamingStatus(const QString &status)
 {
     logMessage(QString("streaming status changed: %1").arg(status));
     qDebug() << "streaming status changed" << status;
+
+    if (status != m_streamingStatus)
+        setData(status, streamingStatusRole);
+}
+
+void HttpRequest::streamOpened()
+{
+    if (!m_requestedResource.isEmpty() && netStatusTimerEvent == 0)
+    {
+        netStatusTimerEvent = startTimer(1000);
+        if (netStatusTimerEvent == 0)
+            qCritical() << "unable to start timer";
+
+        if (!clockSending.isValid())
+            clockSending.start();   // start clock to measure time taken for streaming
+    }
+    else
+    {
+        if (m_requestedResource.isEmpty())
+            qCritical() << "stream opened but no resource name defined";
+        if (netStatusTimerEvent != 0)
+            qCritical() << "timer already started";
+    }
+}
+
+void HttpRequest::timerEvent(QTimerEvent *event)
+{
+    Q_UNUSED(event)
+
+    if (m_streamingCompleted)
+    {
+        if (netStatusTimerEvent != 0)
+        {
+            killTimer(netStatusTimerEvent);
+            netStatusTimerEvent = 0;
+        }
+    }
+    else if (!m_requestedResource.isEmpty())
+    {
+        if (clockSending.isValid())
+            emit servingSignal(m_requestedResource, clockSending.elapsedFromBeginning());
+        else
+            emit servingSignal(m_requestedResource, 0);
+
+        if (clockSending.isValid())
+        {
+            qint64 bytesToWrite = 0;
+            if (m_client)
+                bytesToWrite = m_client->bytesToWrite();
+
+            // display the network buffer and network speed
+            int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
+
+            if (m_maxBufferSize != 0)
+            {
+                int bufferTime = 0;
+                if (networkSpeed != 0)
+                    bufferTime = m_maxBufferSize/(networkSpeed*1024);
+
+                QString netStatus = QString("Time: %5 Buffer: %1% (%4 KB - %3 seconds), Speed: %2 KB/s").arg(int(100.0*double(bytesToWrite)/double(m_maxBufferSize))).arg(networkSpeed).arg(bufferTime).arg(m_maxBufferSize/1024).arg(QTime(0, 0).addMSecs(clockSending.elapsedFromBeginning()).toString("hh:mm:ss"));
+                setData(netStatus, networkStatusRole);
+            }
+        }
+
+        if (lastNetBytesSent!=-1 && lastNetBytesSent==networkBytesSent)
+        {
+            // no data sent since last function call
+
+            if (!clockSending.isStatePaused())
+            {
+                clockSending.pause();
+                logMessage("PAUSE network");
+            }
+
+            emit networkPaused();
+        }
+        else if (networkBytesSent > 0 && clockSending.isStatePaused())
+        {
+            clockSending.start();
+            logMessage(QString("RESTART network, %1 bytes sent.").arg(networkBytesSent-lastNetBytesSent));
+        }
+
+        lastNetBytesSent = networkBytesSent;
+    }
+}
+
+void HttpRequest::setClockSending(const qint64 &msec)
+{
+    clockSending.addMSec(msec);
+}
+
+void HttpRequest::setMaxBufferSize(const qint64 &size)
+{
+    m_maxBufferSize = size;
 }
