@@ -8,7 +8,8 @@ HttpServer::HttpServer(QObject *parent):
 
 HttpServer::~HttpServer()
 {
-    qDebug() << "DESTROY HttpServer" << m_request.size() << "requests pending.";
+    if (m_request.size() != 0)
+        qCritical() << "DESTROY HttpServer" << m_request.size() << "requests pending.";
 }
 
 void HttpServer::newConnectionSlot()
@@ -39,10 +40,10 @@ void HttpServer::incomingData()
         }
         else
         {
-            qDebug() << "new request" << clientConnection->socketDescriptor();
+            qDebug() << "new request" << socket;
             request = new HttpRequest(clientConnection, this);
             request->setDeviceUuid(deviceUuid());
-            m_request[clientConnection->socketDescriptor()] = request;
+            m_request[socket] = request;
             emit newRequest(request);
 
             request->incomingData();
