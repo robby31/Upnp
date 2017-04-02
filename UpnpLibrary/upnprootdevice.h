@@ -63,6 +63,7 @@ signals:
     void newRequest(HttpRequest *request);
     void requestCompleted(HttpRequest *request);
     void serverStarted();
+    void serverError(const QString &message);
 
 public slots:
     virtual void sendAlive() Q_DECL_OVERRIDE;

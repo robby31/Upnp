@@ -315,21 +315,28 @@ void UpnpDevice::sendByeBye()
 
 void UpnpDevice::searchForST(const QString &st)
 {
-    if (st == "ssdp:all" or st == QString("uuid:%1").arg(uuid()))
-        emit searchResponse(st, QString("uuid:%1").arg(uuid()));
-
-    if (st == "ssdp:all" or st == deviceType())
-        emit searchResponse(st, QString("uuid:%1::%2").arg(uuid()).arg(deviceType()));
-
-    for (int i=0;i<m_services->rowCount();++i)
+    if (description().isNull())
     {
-        UpnpService *service = qobject_cast<UpnpService*>(m_services->at(i));
-        service->searchForST(st, uuid());
+        qWarning() << "cannot answer to discover request, device is not ready" << this << st;
     }
-
-    for (int i=0;i<m_devices->rowCount();++i)
+    else
     {
-        UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
-        device->searchForST(st);
+        if (st == "ssdp:all" or st == QString("uuid:%1").arg(uuid()))
+            emit searchResponse(QString("uuid:%1").arg(uuid()), QString("uuid:%1").arg(uuid()));
+
+        if (st == "ssdp:all" or st == deviceType())
+            emit searchResponse(deviceType(), QString("uuid:%1::%2").arg(uuid()).arg(deviceType()));
+
+        for (int i=0;i<m_services->rowCount();++i)
+        {
+            UpnpService *service = qobject_cast<UpnpService*>(m_services->at(i));
+            service->searchForST(st, uuid());
+        }
+
+        for (int i=0;i<m_devices->rowCount();++i)
+        {
+            UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
+            device->searchForST(st);
+        }
     }
 }

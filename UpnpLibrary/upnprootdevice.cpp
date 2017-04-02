@@ -360,17 +360,28 @@ void UpnpRootDevice::startServer()
         if (!url().isValid())
         {
             qCritical() << "unable to start HTTP server, url is not valid" << url();
+            emit serverError(QString("unable to start HTTP server, url %1 is not valid").arg(url().toString()));
+        }
+        else if (host().isNull())
+        {
+            qCritical() << "unable to start HTTP server, host address is null.";
+            emit serverError(QString("unable to start HTTP server : host address is null"));
+        }
+        else if (port() <= 0)
+        {
+            qCritical() << "unable to start HTTP server, port is invalid" << port();
+            emit serverError(QString("unable to start HTTP server : port %1 is invalid.").arg(port()));
         }
         else if (!server->listen(host(), port()))
         {
             qCritical() << "unable to start HTTP server" << this << host() << port();
+            emit serverError(QString("unable to start HTTP server : %1 %2").arg(host().toString()).arg(port()));
         }
         else
         {
             qDebug() << "HTTP server started" << host() << port();
             emit serverStarted();
         }
-
     }
 }
 
@@ -391,5 +402,13 @@ void UpnpRootDevice::sendByeBye()
 void UpnpRootDevice::searchForST(const QString &st)
 {
     if (st == "ssdp:all" or st == UPNP_ROOTDEVICE)
-        emit searchResponse(st, QString("uuid:%1::%2").arg(uuid()).arg(UPNP_ROOTDEVICE));
+        emit searchResponse(UPNP_ROOTDEVICE, QString("uuid:%1::%2").arg(uuid()).arg(UPNP_ROOTDEVICE));
+
+    if (st != UPNP_ROOTDEVICE)
+    {
+        if (description().isNull())
+            qWarning() << "cannot answer to discover request, device is not ready" << this << st;
+        else
+            UpnpDevice::searchForST(st);
+    }
 }

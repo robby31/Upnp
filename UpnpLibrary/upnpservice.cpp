@@ -282,6 +282,13 @@ void UpnpService::sendByeBye(const QString &uuid)
 
 void UpnpService::searchForST(const QString &st, const QString &uuid)
 {
-    if (st == "ssdp:all" or st == serviceType())
-        emit searchResponse(st, QString("uuid:%1::%2").arg(uuid).arg(st));
+    if (description().isNull())
+    {
+        qWarning() << "cannot answer to discover request, device is not ready" << this << st;
+    }
+    else
+    {
+        if (st == "ssdp:all" or st == serviceType())
+            emit searchResponse(serviceType(), QString("uuid:%1::%2").arg(uuid).arg(serviceType()));
+    }
 }
