@@ -1,5 +1,7 @@
 #include "httprequest.h"
 
+const int HttpRequest::STREAMING_PERIOD = 1000;
+
 HttpRequest::HttpRequest(QObject *parent):
     ListItem(parent),
     m_date(QDateTime::currentDateTime()),
@@ -10,6 +12,7 @@ HttpRequest::HttpRequest(QObject *parent):
     m_version(),
     m_headerCompleted(false),
     m_data(),
+    m_replyHeaderSent(false),
     m_status("init"),
     m_networkStatus("init"),
     m_finished(false),
@@ -33,6 +36,7 @@ HttpRequest::HttpRequest(QTcpSocket *client, QObject *parent):
     m_version(),
     m_headerCompleted(false),
     m_data(),
+    m_replyHeaderSent(false),
     m_status("init"),
     m_networkStatus("init"),
     m_finished(false),
@@ -535,9 +539,6 @@ void HttpRequest::clientError(QAbstractSocket::SocketError error)
 
     logMessage(msg);
 
-    if (m_client)
-        qWarning() << this << "ERROR" << error << m_client->readAll();
-
     if (error == QAbstractSocket::RemoteHostClosedError)
         m_client->deleteLater();
 }
@@ -554,10 +555,22 @@ void HttpRequest::socketStateChanged(QAbstractSocket::SocketState state)
         setData("disconnected", networkStatusRole);
         logMessage(QString("network state changed : Disconnected."));
 
-        if (m_client && m_client->bytesAvailable() > 0)
+        logMessage(QString("network disonnected : %1 bytes sent").arg(networkBytesSent));
+
+        if (m_client)
         {
-            qCritical() << m_client->socketDescriptor() << "client disconnect and data not read" << m_client->bytesAvailable();
-            qWarning() << m_client->readAll();
+            if (m_client->bytesAvailable() > 0)
+            {
+                logMessage(QString("client disconnected and remaining data to read (%1 bytes).").arg(m_client->bytesAvailable()));
+                qCritical() << m_client->socketDescriptor() << "client disconnected and data not read" << m_client->bytesAvailable();
+                qWarning() << m_client->readAll();
+            }
+
+            if (m_client->bytesToWrite() > 0)
+            {
+                m_streamingCompleted = false;
+                logMessage(QString("client disconnected and remaining data to send (%1 bytes).").arg(m_client->bytesToWrite()));
+            }
         }
     }
     else
@@ -574,6 +587,9 @@ bool HttpRequest::isClosed() const
 
 void HttpRequest::close()
 {
+    if (thread() != QThread::currentThread())
+        qWarning() << "HttpRequest::Close" << thread() << QThread::currentThread();
+
     if (!isClosed())
     {
         logMessage("close request.");
@@ -585,9 +601,12 @@ void HttpRequest::close()
         }
 
         if (m_client)
-        {
+        {            
             if (m_version == "HTTP/1.0" or m_request.rawHeader("Connection").trimmed().toLower() == "close")
+            {
+                logMessage("close socket.");
                 m_client->disconnectFromHost();
+            }
         }
 
         if (!m_requestedResource.isEmpty())
@@ -624,7 +643,16 @@ void HttpRequest::close()
 
 bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
 {
-    if (m_client && m_status == "request ready")
+    if (thread() != QThread::currentThread())
+        qWarning() << "HttpRequest::sendHeader" << thread() << QThread::currentThread();
+
+    if (m_replyHeaderSent)
+    {
+        setError(QString("header already sent"));
+        close();
+        return false;
+    }
+    else if (m_client && m_status == "request ready")
     {
         if (!m_client->isValid() or !m_client->isWritable() or !m_client->isOpen())
         {
@@ -653,28 +681,32 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
             m_replyHeader << "";
             m_replyHeader << "";
 
-            if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
+            if (operation() == QNetworkAccessManager::HeadOperation)
             {
-                setError(QString("unable to send header data to client"));
-                close();
-                return false;
-            }
-            else
-            {
-                if (operation() == QNetworkAccessManager::HeadOperation)
+                // no data expected so header is sent immediately
+                if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
                 {
-                    setData("OK", statusRole);
+                    setError(QString("unable to send header data to client"));
                     close();
+                    return false;
                 }
                 else
                 {
-                    setData("header sent", statusRole);
+                    logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
+                    emit headerSent();
+
+                    setData("OK", statusRole);
+                    close();
                 }
 
-                logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
-                emit headerSent();
-                return true;
+                m_replyHeaderSent = true;
             }
+            else
+            {
+                setData("header set", statusRole);
+            }
+
+            return true;
         }
     }
     else
@@ -687,7 +719,10 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
 
 bool HttpRequest::sendPartialData(const QByteArray &data)
 {
-    if (operation() != QNetworkAccessManager::HeadOperation && m_client && m_status == "header sent")
+    if (thread() != QThread::currentThread())
+        qWarning() << "HttpRequest::sendPartialData" << thread() << QThread::currentThread();
+
+    if (operation() != QNetworkAccessManager::HeadOperation && m_client && m_status == "header set")
     {
         if (!m_client->isValid() or !m_client->isWritable() or !m_client->isOpen())
         {
@@ -698,7 +733,14 @@ bool HttpRequest::sendPartialData(const QByteArray &data)
         }
         else
         {
-            qint64 bytesWritten = m_client->write(data);
+            QByteArray tmpData;
+
+            if (!m_replyHeaderSent)
+                tmpData.append(m_replyHeader.join("\r\n").toUtf8());
+
+            tmpData.append(data);
+
+            qint64 bytesWritten = m_client->write(tmpData);
             if (bytesWritten == -1)
             {
                 logMessage(QString("unable to send data to client : %1").arg(m_client->errorString()));
@@ -708,7 +750,15 @@ bool HttpRequest::sendPartialData(const QByteArray &data)
             }
             else
             {
+                if (!m_replyHeaderSent)
+                {
+                    logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
+                    m_replyHeaderSent = true;
+                    emit headerSent();
+                }
+
                 qDebug() << "sendPartialData, data sent" << bytesWritten << m_client->bytesToWrite();
+//                logMessage(QString("sendPartialData, data written : %1, pending bytes to write %2").arg(bytesWritten).arg(m_client->bytesToWrite()));
                 return true;
             }
         }
@@ -723,7 +773,7 @@ bool HttpRequest::sendPartialData(const QByteArray &data)
 }
 
 void HttpRequest::replyData(const QByteArray &data, const QString &contentType)
-{
+{    
     if (m_client && m_status == "request ready")
     {
         QStringList header;
@@ -732,7 +782,7 @@ void HttpRequest::replyData(const QByteArray &data, const QString &contentType)
 
         if (!sendHeader(header))
         {
-            setError(QString("unable to send header data to client"));
+            setError(QString("unable to send header to client"));
         }
         else if (operation() == QNetworkAccessManager::GetOperation)
         {
@@ -986,10 +1036,8 @@ void HttpRequest::bytesWritten(const qint64 &size)
     {
         qint64 bytesToWrite = m_client->bytesToWrite();
 
-        qDebug() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite).arg(size);
+        qDebug() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite).arg(networkBytesSent);
         //    logMessage(QString("data written to client (%1 bytes).").arg(size));
-
-        emit bytesSent(size, bytesToWrite);
     }
     else
     {
@@ -1029,14 +1077,13 @@ void HttpRequest::streamingCompleted()
     m_streamingCompleted = true;
     logMessage("streaming reached end.");
     qDebug() << "streaming reached end" << m_requestedResource;
-
-    if (!isClosed())
-        close();
 }
 
 void HttpRequest::streamingStatus(const QString &status)
 {
-    logMessage(QString("streaming status changed: %1").arg(status));
+    if (!status.contains("%"))
+        logMessage(QString("streaming status changed: %1").arg(status));
+
     qDebug() << "streaming status changed" << status;
 
     if (status != m_streamingStatus)
@@ -1047,12 +1094,14 @@ void HttpRequest::streamOpened()
 {
     if (!m_requestedResource.isEmpty() && netStatusTimerEvent == 0)
     {
-        netStatusTimerEvent = startTimer(1000);
+        netStatusTimerEvent = startTimer(STREAMING_PERIOD);
         if (netStatusTimerEvent == 0)
             qCritical() << "unable to start timer";
 
         if (!clockSending.isValid())
             clockSending.start();   // start clock to measure time taken for streaming
+
+        emit servingRendererSignal(m_peerAddress.toString(), m_requestedDisplayName);
     }
     else
     {
@@ -1067,60 +1116,75 @@ void HttpRequest::timerEvent(QTimerEvent *event)
 {
     Q_UNUSED(event)
 
-    if (m_streamingCompleted)
+    if (event->timerId() == netStatusTimerEvent)
     {
-        if (netStatusTimerEvent != 0)
+        if (m_streamingCompleted)
         {
-            killTimer(netStatusTimerEvent);
-            netStatusTimerEvent = 0;
+            if (netStatusTimerEvent != 0)
+            {
+                killTimer(netStatusTimerEvent);
+                netStatusTimerEvent = 0;
+            }
+        }
+        else if (!m_requestedResource.isEmpty())
+        {
+            if (m_client)
+            {
+                emit requestStreamingData(m_maxBufferSize - m_client->bytesToWrite());
+
+                if (m_streamingCompleted && m_client->bytesToWrite() == 0 && !isClosed())
+                    close();
+            }
+
+            if (clockSending.isValid())
+                emit servingSignal(m_requestedResource, clockSending.elapsedFromBeginning());
+            else
+                emit servingSignal(m_requestedResource, 0);
+
+            if (clockSending.isValid())
+            {
+                qint64 bytesToWrite = 0;
+                if (m_client)
+                    bytesToWrite = m_client->bytesToWrite();
+
+                // display the network buffer and network speed
+                int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
+
+                if (m_maxBufferSize != 0)
+                {
+                    int bufferTime = 0;
+                    if (networkSpeed != 0)
+                        bufferTime = m_maxBufferSize/(networkSpeed*1024);
+
+                    QString netStatus = QString("Time: %5 Buffer: %1% (%4 KB - %3 seconds), Speed: %2 KB/s").arg(int(100.0*double(bytesToWrite)/double(m_maxBufferSize))).arg(networkSpeed).arg(bufferTime).arg(m_maxBufferSize/1024).arg(QTime(0, 0).addMSecs(clockSending.elapsedFromBeginning()).toString("hh:mm:ss"));
+                    setData(netStatus, networkStatusRole);
+                }
+            }
+
+            if (lastNetBytesSent!=-1 && lastNetBytesSent==networkBytesSent)
+            {
+                // no data sent since last function call
+
+                if (!clockSending.isStatePaused())
+                {
+                    clockSending.pause();
+                    logMessage("PAUSE network");
+                }
+
+                emit networkPaused();
+            }
+            else if (networkBytesSent > 0 && clockSending.isStatePaused())
+            {
+                clockSending.start();
+                logMessage(QString("RESTART network, %1 bytes sent.").arg(networkBytesSent-lastNetBytesSent));
+            }
+
+            lastNetBytesSent = networkBytesSent;
         }
     }
-    else if (!m_requestedResource.isEmpty())
+    else
     {
-        if (clockSending.isValid())
-            emit servingSignal(m_requestedResource, clockSending.elapsedFromBeginning());
-        else
-            emit servingSignal(m_requestedResource, 0);
-
-        if (clockSending.isValid())
-        {
-            qint64 bytesToWrite = 0;
-            if (m_client)
-                bytesToWrite = m_client->bytesToWrite();
-
-            // display the network buffer and network speed
-            int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
-
-            if (m_maxBufferSize != 0)
-            {
-                int bufferTime = 0;
-                if (networkSpeed != 0)
-                    bufferTime = m_maxBufferSize/(networkSpeed*1024);
-
-                QString netStatus = QString("Time: %5 Buffer: %1% (%4 KB - %3 seconds), Speed: %2 KB/s").arg(int(100.0*double(bytesToWrite)/double(m_maxBufferSize))).arg(networkSpeed).arg(bufferTime).arg(m_maxBufferSize/1024).arg(QTime(0, 0).addMSecs(clockSending.elapsedFromBeginning()).toString("hh:mm:ss"));
-                setData(netStatus, networkStatusRole);
-            }
-        }
-
-        if (lastNetBytesSent!=-1 && lastNetBytesSent==networkBytesSent)
-        {
-            // no data sent since last function call
-
-            if (!clockSending.isStatePaused())
-            {
-                clockSending.pause();
-                logMessage("PAUSE network");
-            }
-
-            emit networkPaused();
-        }
-        else if (networkBytesSent > 0 && clockSending.isStatePaused())
-        {
-            clockSending.start();
-            logMessage(QString("RESTART network, %1 bytes sent.").arg(networkBytesSent-lastNetBytesSent));
-        }
-
-        lastNetBytesSent = networkBytesSent;
+        qCritical() << "invalid timer event" << event->timerId();
     }
 }
 
@@ -1132,4 +1196,14 @@ void HttpRequest::setClockSending(const qint64 &msec)
 void HttpRequest::setMaxBufferSize(const qint64 &size)
 {
     m_maxBufferSize = size;
+}
+
+QString HttpRequest::requestedDisplayName() const
+{
+    return m_requestedDisplayName;
+}
+
+void HttpRequest::setRequestedDisplayName(const QString &name)
+{
+    m_requestedDisplayName = name;
 }

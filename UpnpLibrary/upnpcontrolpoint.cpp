@@ -295,9 +295,14 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
                 UpnpRootDevice *device = getRootDeviceFromUuid(message.getUuidFromUsn());
 
                 if (device != 0)
+                {
                     device->setAvailable(false);
+                }
                 else
+                {
                     qCritical() << "root device not found" << message.getUuidFromUsn();
+                    qCritical() << message.toStringList();
+                }
             }
             else
             {
@@ -321,9 +326,10 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
         {
             addRootDevice(message);
         }
-        else
+        else if (st.isEmpty())
         {
-            qCritical() << "unknown st" << st;
+            qCritical() << "invalid st" << st;
+            qCritical() << message.toStringList();
         }
     }
     else if (message.format() == SEARCH)

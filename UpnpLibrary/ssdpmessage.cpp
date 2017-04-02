@@ -26,13 +26,13 @@ bool SsdpMessage::addHeader(const QString &param, const QString &value)
 
 QString SsdpMessage::getHeader(const QString &param) const
 {
-    QRegularExpression stValue("^"+param+":\\s*(.+)", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression stValue("^"+param+":\\s*(.+)\\s*$", QRegularExpression::CaseInsensitiveOption);
 
     for (int i=1;i<m_header.size();++i)
     {
         QRegularExpressionMatch match = stValue.match(m_header.at(i));
         if (match.hasMatch())
-            return match.captured(1);
+            return match.captured(1).trimmed();
     }
 
     return QString();

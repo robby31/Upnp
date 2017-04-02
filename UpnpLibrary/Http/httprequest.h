@@ -15,6 +15,8 @@
 #include "upnperror.h"
 #include "soapactionresponse.h"
 #include "elapsedtimer.h"
+#include <QThread>
+#include <QTimerEvent>
 
 
 class HttpRequest : public ListItem
@@ -47,9 +49,9 @@ public:
     explicit HttpRequest(QObject *parent = 0);
     explicit HttpRequest(QTcpSocket *client, QObject *parent = 0);
 
-    virtual QHash<int, QByteArray> roleNames() const;
-    virtual QVariant data(int role) const;
-    virtual bool setData(const QVariant &value, const int &role);
+    virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
+    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
+    virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
     QNetworkAccessManager::Operation operation() const;
     QString operationString() const;
@@ -66,6 +68,9 @@ public:
 
     QString requestedResource() const;
     void setRequestedResource(const QString &name);
+
+    QString requestedDisplayName() const;
+    void setRequestedDisplayName(const QString &name);
 
     QTcpSocket *tcpSocket() const;
     QHostAddress peerAddress() const;
@@ -94,7 +99,7 @@ public:
     void setMaxBufferSize(const qint64 &size);
 
 protected:
-    void timerEvent(QTimerEvent *event);
+    virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 
 private:
     void initializeRoles();
@@ -111,7 +116,9 @@ signals:
 
     void headerSent();
 
-    void bytesSent(const qint64 &size, const qint64 &bytesToWrite);
+    void requestStreamingData(qint64 maxlen);
+
+    void servingRendererSignal(QString ip, const QString &mediaName);
 
     // emit signal to provide progress on serving media
     void servingSignal(QString filename, int playedDurationInMs);
@@ -146,6 +153,8 @@ private slots:
     void streamingStatus(const QString &status);
 
 private:
+    static const int STREAMING_PERIOD;
+
     QHash<int, QByteArray> m_roles;
     QDateTime m_date;
     QDateTime m_closeDate;
@@ -158,6 +167,7 @@ private:
     QStringList m_header;
     QByteArray m_data;
 
+    bool m_replyHeaderSent;
     QStringList m_replyHeader;
     QByteArray m_replyData;
 
@@ -176,6 +186,7 @@ private:
     bool m_streamWithErrors;
     bool m_streamingCompleted;
     QString m_requestedResource;
+    QString m_requestedDisplayName;
     qint64 m_maxBufferSize;
 
     long networkBytesSent;
