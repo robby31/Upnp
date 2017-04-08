@@ -16,5 +16,6 @@
         <file>ServiceDetails.qml</file>
         <file>ServiceActionsDelegate.qml</file>
         <file>DeviceDetails.qml</file>
+        <file>ServiceStateVariablesDelegate.qml</file>
     </qresource>
 </RCC>

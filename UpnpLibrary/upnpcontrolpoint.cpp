@@ -24,6 +24,8 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
     m_remoteRootDevice(0),
     m_localRootDevice(0)
 {
+    connect(&eventServer, SIGNAL(requestCompleted(HttpRequest*)), this, SLOT(requestEventReceived(HttpRequest*)));
+
     m_remoteRootDevice = new ListModel(new UpnpRootDevice, this);
     m_localRootDevice = new ListModel(new UpnpRootDevice, this);
 
@@ -61,12 +63,23 @@ void UpnpControlPoint::initializeHostAdress()
         foreach (QNetworkAddressEntry entry, session.interface().addressEntries())
         {
             if (entry.ip().protocol() == QAbstractSocket::IPv4Protocol)
+            {
                 m_hostAddress = entry.ip();
+                m_macAddress = session.interface().hardwareAddress();
+            }
         }
     }
 
     if (m_hostAddress.isNull())
+    {
         qCritical() << "invalid address" << m_hostAddress;
+    }
+    else
+    {
+        // start event server
+        if (!eventServer.listen(m_hostAddress, UPNP_PORT))
+            qCritical() << "unable to start event server" << eventServer.errorString();
+    }
 }
 
 void UpnpControlPoint::close()
@@ -374,6 +387,7 @@ void UpnpControlPoint::addRootDevice(SsdpMessage message)
             device = new UpnpRootDevice(netManager, uuid, m_remoteRootDevice);
             connect(device, SIGNAL(availableChanged()), this, SLOT(_rootDeviceAvailableChanged()));
             connect(device, SIGNAL(statusChanged()), this, SLOT(_rootDeviceStatusChanged()));
+            connect(device, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString,QString)), this, SLOT(subscribeEventing(QNetworkRequest,QString,QString)));
             device->setServerName(serverName());
             device->update(message);
             device->setUrl(message.getHeader("LOCATION"));
@@ -487,4 +501,110 @@ void UpnpControlPoint::_rootDeviceStatusChanged()
         emit newRootDevice(root);
 
     advertiseLocalRootDevice();
+}
+
+QString UpnpControlPoint::generateUuid()
+{
+    // http://www.ietf.org/rfc/rfc4122.txt
+
+    auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+
+    QString time_low;
+    time_low.sprintf("%8.8x", (unsigned int)(timestamp & 0xFFFFFFFF));
+
+    QString time_short;
+    time_short.sprintf("%4.4x", (unsigned short)((timestamp >> 32) & 0xFFFF));
+
+    QString time_hi_and_version;
+    unsigned short tmp = (timestamp >> 48) & 0x0FFF;
+    tmp |= (1 << 12);
+    time_hi_and_version.sprintf("%4.4x", (unsigned short)(tmp));
+
+    unsigned short tmp_clock_seq = 0;
+    QString clock_seq_low;
+    clock_seq_low.sprintf("%2.2x", tmp_clock_seq & 0xFF);
+
+    unsigned short tmp2 = (tmp_clock_seq & 0x3F00) >> 8;
+    tmp2 |= 0x80;
+    QString clock_seq_hi_and_reserved;
+    clock_seq_hi_and_reserved.sprintf("%2.2x", (unsigned short)(tmp2));
+
+    QString node(m_macAddress);
+    node = node.replace(":", "").toLower();
+
+    return QString("%1-%2-%3-%4%5-%6").arg(time_low).arg(time_short).arg(time_hi_and_version).arg(clock_seq_low).arg(clock_seq_hi_and_reserved).arg(node);
+}
+
+void UpnpControlPoint::subscribeEventing(QNetworkRequest request, const QString &uuid, const QString &serviceId)
+{
+    UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(sender());
+
+    if (root)
+    {
+        request.setRawHeader("Connection", "close");
+        request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
+        request.setRawHeader("CALLBACK", QString("<http://%1:%2/event/%3>").arg(host().toString()).arg(UPNP_PORT).arg(serviceId).toUtf8());
+
+        QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
+        connect(reply, SIGNAL(finished()), this, SLOT(subscribeEventingFinished()));
+        reply->setProperty("deviceUuid", uuid);
+        reply->setProperty("serviceId", serviceId);
+    }
+    else
+    {
+        qCritical() << "invalid root" << root << sender();
+    }
+
+}
+
+void UpnpControlPoint::subscribeEventingFinished()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+
+    if (reply)
+    {
+        if (reply->error() != QNetworkReply::NoError)
+        {
+            qCritical() << "ERROR subscribe eventing" << reply->request().url().toString() << reply->error() << reply->errorString();
+        }
+        else
+        {
+            QString sid = reply->rawHeader("SID").trimmed();
+
+            if (!m_sidEvent.contains(sid))
+            {
+                m_sidEvent[sid] = QStringList();
+                m_sidEvent[sid] << reply->property("deviceUuid").toString();
+                m_sidEvent[sid] << reply->property("serviceId").toString();
+                m_sidEvent[sid] << reply->rawHeader("TIMEOUT").trimmed();
+            }
+            else
+            {
+                qCritical() << "sid already known" << sid << m_sidEvent[sid];
+            }
+        }
+
+        reply->deleteLater();
+    }
+    else
+    {
+        qCritical() << "invalid reply" << reply << sender();
+    }
+}
+
+void UpnpControlPoint::requestEventReceived(HttpRequest *request)
+{
+    if (request)
+    {
+        QString nt = request->header("NT");
+        QString nts = request->header("NTS");
+        qWarning() << "event request received" << request->operationString() << nt << nts;
+        qWarning() << request->requestData();
+
+        request->deleteLater();
+    }
+    else
+    {
+        qCritical() << "invalid event request" << request;
+    }
 }

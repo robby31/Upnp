@@ -51,6 +51,7 @@ signals:
     void deviceTypeChanged();
     void servicesModelChanged();
     void devicesModelChanged();
+    void subscribeEventingSignal(const QNetworkRequest &request, const QString &uuid, const QString &serviceId);
 
 public slots:
     virtual void sendAlive();
@@ -60,6 +61,7 @@ private slots:
     void itemAvailableChanged();
     void readServices();
     void readDevices();
+    void subscribeEventingSlot(const QNetworkRequest &request, const QString &serviceId);
 
 private:
     QString m_uuid;

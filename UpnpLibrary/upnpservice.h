@@ -11,6 +11,7 @@ class UpnpService : public UpnpObject
 
     Q_PROPERTY(QString serviceType READ serviceType NOTIFY serviceTypeChanged)
     Q_PROPERTY(QStringList actionsModel READ actionsModel NOTIFY actionsModelChanged)
+    Q_PROPERTY(QStringList stateVariablesModel READ stateVariablesModel NOTIFY stateVariablesModelChanged)
 
     enum Roles {
         ServiceTypeRole = Qt::UserRole+1,
@@ -37,12 +38,13 @@ public:
     virtual void searchForST(const QString &st, const QString &uuid);
 
     QStringList actionsModel() const;
+    QStringList stateVariablesModel() const;
 
-    Q_INVOKABLE void runAction(const int &index);
 
 private:
     void initRoles();
     void readActions();
+    void readStateVariables();
 
     QNetworkReply *sendAction(const SoapAction &action);
 
@@ -50,10 +52,14 @@ signals:
     void infoChanged();
     void serviceTypeChanged();
     void actionsModelChanged();
+    void stateVariablesModelChanged();
+    void subscribeEventingSignal(const QNetworkRequest &request, const QString &serviceId);
 
 public slots:
     void sendAlive(const QString &uuid);
     void sendByeBye(const QString &uuid);
+    void runAction(const int &index);
+    void subscribeEventing();
 
 private slots:
     void requestDescription();
@@ -65,6 +71,7 @@ private slots:
 private:
     QDomNode m_info;
     QStringList m_actionsModel;
+    QStringList m_stateVariablesModel;
 };
 
 #endif // UPNPSERVICE_H

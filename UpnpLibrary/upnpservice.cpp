@@ -114,12 +114,13 @@ void UpnpService::descriptionReceived()
         qDebug() << "description received" << this << reply->request().url();
 
         readActions();
+        readStateVariables();
 
         setStatus(Ready);
     }
     else
     {
-        qCritical() << reply->errorString();
+        qCritical() << reply->request().url() << reply->errorString();
         setStatus(Error);
     }
 
@@ -152,11 +153,48 @@ void UpnpService::readActions()
     {
         qCritical() << host() << serviceType() << "unable to find scpd element";
     }
+
+    emit actionsModelChanged();
+}
+
+void UpnpService::readStateVariables()
+{
+    m_stateVariablesModel.clear();
+
+    QDomNode root = description();
+    if (root.nodeName() == "scpd")
+    {
+        QDomElement variableList = root.firstChildElement("serviceStateTable");
+        if (!variableList.isNull())
+        {
+            QDomNodeList l_variables = variableList.elementsByTagName("stateVariable");
+            for (int i=0;i<l_variables.size();++i)
+            {
+                QDomNode variable = l_variables.at(i);
+                m_stateVariablesModel << variable.firstChildElement("name").firstChild().nodeValue();
+            }
+        }
+        else
+        {
+            qCritical() << "unable to find serviceStateTable element";
+        }
+    }
+    else
+    {
+        qCritical() << host() << serviceType() << "unable to find scpd element";
+    }
+
+    emit stateVariablesModelChanged();
 }
 
 QStringList UpnpService::actionsModel() const
 {
     return m_actionsModel;
+}
+
+QStringList UpnpService::stateVariablesModel() const
+{
+    return m_stateVariablesModel;
 }
 
 void UpnpService::runAction(const int &index)
@@ -290,5 +328,18 @@ void UpnpService::searchForST(const QString &st, const QString &uuid)
     {
         if (st == "ssdp:all" or st == serviceType())
             emit searchResponse(serviceType(), QString("uuid:%1::%2").arg(uuid).arg(serviceType()));
+    }
+}
+
+void UpnpService::subscribeEventing()
+{
+    QString streventUrl = getInfo("eventSubURL");
+    if (!streventUrl.isEmpty())
+    {
+        QNetworkRequest request(urlFromRelativePath(streventUrl));
+        request.setRawHeader("NT", "upnp:event");
+        request.setRawHeader("TIMEOUT", "Second-300");
+
+        emit subscribeEventingSignal(request, serviceId());
     }
 }

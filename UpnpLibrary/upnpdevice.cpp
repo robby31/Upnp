@@ -147,6 +147,7 @@ void UpnpDevice::addService(const QDomNode &descr)
             connect(service, SIGNAL(aliveMessage(QString,QString)), this, SIGNAL(aliveMessage(QString,QString)));
             connect(service, SIGNAL(byebyeMessage(QString,QString)), this, SIGNAL(byebyeMessage(QString,QString)));
             connect(service, SIGNAL(searchResponse(QString,QString)), this, SIGNAL(searchResponse(QString,QString)));
+            connect(service, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString)), this, SLOT(subscribeEventingSlot(QNetworkRequest,QString)));
             m_services->appendRow(service);
         }
         else
@@ -179,6 +180,7 @@ void UpnpDevice::addDevice(const QDomNode &descr)
                 connect(device, SIGNAL(aliveMessage(QString,QString)), this, SIGNAL(aliveMessage(QString,QString)));
                 connect(device, SIGNAL(byebyeMessage(QString,QString)), this, SIGNAL(byebyeMessage(QString,QString)));
                 connect(device, SIGNAL(searchResponse(QString,QString)), this, SIGNAL(searchResponse(QString,QString)));
+                connect(device, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString,QString)), this, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString,QString)));
                 device->setDescription(descr);
                 m_devices->appendRow(device);
             }
@@ -339,4 +341,9 @@ void UpnpDevice::searchForST(const QString &st)
             device->searchForST(st);
         }
     }
+}
+
+void UpnpDevice::subscribeEventingSlot(const QNetworkRequest &request, const QString &serviceId)
+{
+    emit subscribeEventingSignal(request, uuid(), serviceId);
 }

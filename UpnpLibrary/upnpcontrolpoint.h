@@ -13,6 +13,7 @@
 #include <QDomDocument>
 #include "upnprootdevice.h"
 #include "Models/listmodel.h"
+#include <chrono>
 
 class UpnpControlPoint : public QObject
 {
@@ -40,6 +41,8 @@ public:
     void advertiseLocalRootDevice();
 
     void sendDiscover(const QString &search_target);
+
+    QString generateUuid();
 
 private:
     void initializeHostAdress();
@@ -75,12 +78,19 @@ private slots:
     void _rootDeviceStatusChanged();
     void _rootDeviceAvailableChanged();
 
+    void subscribeEventing(QNetworkRequest request, const QString &uuid, const QString &serviceId);
+    void subscribeEventingFinished();
+    void requestEventReceived(HttpRequest *request);
 
 private:
     QNetworkAccessManager *netManager;
 
+    HttpServer eventServer;
+    QHash<QString, QStringList> m_sidEvent;
+
     QString m_servername;
     QHostAddress m_hostAddress;
+    QString m_macAddress;
 
     QUdpSocket udpSocketMulticast;
     QUdpSocket udpSocketUnicast;

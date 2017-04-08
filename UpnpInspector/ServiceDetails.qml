@@ -51,6 +51,9 @@ ColumnLayout {
         TabButton {
             text: qsTr("Actions")
         }
+        TabButton {
+            text: qsTr("StateVariables")
+        }
     }
 
     SwipeView {
@@ -79,6 +82,13 @@ ColumnLayout {
             function runAction(index) {
                 service.runAction(index)
             }
+        }
+
+        ListView {
+            id: stateVariablesView
+            model: service.stateVariablesModel
+
+            delegate: ServiceStateVariablesDelegate { }
         }
     }
 }
