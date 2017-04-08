@@ -162,6 +162,7 @@ private:
     QTcpSocket *m_client;
     QNetworkRequest m_request;
     QNetworkAccessManager::Operation m_operation;
+    QString m_customOperation;
     QString m_version;
     bool m_headerCompleted;
     QStringList m_header;

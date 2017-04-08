@@ -136,7 +136,7 @@ void HttpRequest::readOperation(const QString &data)
 {
     if (m_operation == QNetworkAccessManager::UnknownOperation)
     {
-        QRegularExpression pattern("^(GET|PUT|POST|HEAD|SUBSCRIBE)\\s+(\\S+)\\s+(HTTP\\S+)");
+        QRegularExpression pattern("^(GET|PUT|POST|HEAD|SUBSCRIBE|NOTIFY)\\s+(\\S+)\\s+(HTTP\\S+)");
         QRegularExpressionMatch match = pattern.match(data);
         if (match.hasMatch())
         {
@@ -224,7 +224,7 @@ QString HttpRequest::operationString() const
     }
     case QNetworkAccessManager::CustomOperation:
     {
-        return "SUBSCRIBE";
+        return m_customOperation;
     }
     default:
     {
@@ -490,9 +490,10 @@ bool HttpRequest::setData(const QVariant &value, const int &role)
             emit itemChanged(roles);
             return true;
         }
-        else if (value.toString() == "SUBSCRIBE")
+        else if (value.toString() == "SUBSCRIBE" or value.toString() == "NOTIFY")
         {
             m_operation = QNetworkAccessManager::CustomOperation;
+            m_customOperation = value.toString();
             emit itemChanged(roles);
             return true;
         }
@@ -538,9 +539,6 @@ void HttpRequest::clientError(QAbstractSocket::SocketError error)
         msg = QString("network error : %1.").arg(error);
 
     logMessage(msg);
-
-    if (error == QAbstractSocket::RemoteHostClosedError)
-        m_client->deleteLater();
 }
 
 void HttpRequest::socketStateChanged(QAbstractSocket::SocketState state)
