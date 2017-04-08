@@ -147,6 +147,7 @@ QNetworkReply *UpnpObject::get(QNetworkRequest request)
     }
     else
     {
+        request.setRawHeader("Connection", "close");
         request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
 
         return netManager->get(request);
@@ -165,6 +166,7 @@ QNetworkReply *UpnpObject::post(QNetworkRequest request, QByteArray data)
     }
     else
     {
+        request.setRawHeader("Connection", "close");
 
         request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
 
