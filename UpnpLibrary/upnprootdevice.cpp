@@ -4,14 +4,14 @@ const QString UpnpRootDevice::UPNP_ROOTDEVICE = "upnp:rootdevice";
 
 UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     UpnpDevice(parent),
-    netManager(0),
+    netManager(Q_NULLPTR),
     m_servername(),
     m_url(),
     m_rootDescription(),
     m_iconUrl(),
     m_advertise(false),
     m_advertisingTimer(this),
-    server(0)
+    server(Q_NULLPTR)
 {
     setType(RootDevice);
 
@@ -20,14 +20,14 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
 
 UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QString uuid, QObject *parent) :
     UpnpDevice(uuid, 0, parent),
-    netManager(0),
+    netManager(Q_NULLPTR),
     m_servername(),
     m_url(),
     m_rootDescription(),
     m_iconUrl(),
     m_advertise(false),
     m_advertisingTimer(3, 600000, this),
-    server(0)
+    server(Q_NULLPTR)
 {
     setType(RootDevice);
     setNetworkManager(nam);
@@ -171,14 +171,14 @@ QString UpnpRootDevice::version() const
 
 void UpnpRootDevice::requestDescription()
 {
-    qDebug() << "request description" << this;
+    qDebug() << "request description" << this << uuid() << url();
 
     QNetworkRequest request(url());
 
     QNetworkReply *reply = get(request);
     if (reply == 0)
     {
-        qCritical() << "Unable to get description" << this << url();
+        qCritical() << "Unable to get description" << this << uuid() << url();
         setStatus(Error);
     }
     else
@@ -294,7 +294,7 @@ void UpnpRootDevice::descriptionReceived()
     }
     else
     {
-        qCritical() << reply->errorString();
+        qCritical() << uuid() << reply->request().url() << reply->errorString();
         setStatus(Error);
     }
 
