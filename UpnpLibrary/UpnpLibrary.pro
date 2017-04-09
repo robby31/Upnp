@@ -48,7 +48,8 @@ SOURCES += upnplibrary.cpp \
     soapaction.cpp \
     soapactionresponse.cpp \
     didllite.cpp \
-    Http/elapsedtimer.cpp
+    Http/elapsedtimer.cpp \
+    eventresponse.cpp
 
 HEADERS += upnplibrary.h \
     upnpcontrolpoint.h \
@@ -64,7 +65,8 @@ HEADERS += upnplibrary.h \
     soapaction.h \
     soapactionresponse.h \
     didllite.h \
-    Http/elapsedtimer.h
+    Http/elapsedtimer.h \
+    eventresponse.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
