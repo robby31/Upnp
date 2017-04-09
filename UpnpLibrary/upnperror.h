@@ -11,11 +11,14 @@ class UpnpError : public QObject
     Q_OBJECT
 
 public:
-    enum ErrorTypes { INVALID_ACTION = 401, // No action by that name at this service.
+    enum ErrorTypes { BAD_REQUEST = 400,    // If the NT or NTS header is missing, the subscriber must respond with HTTP error 400 Bad Request.
+                      INVALID_ACTION,       // No action by that name at this service.
                       INVALID_ARGS,         // Could be any of the following: not enough in args, no in arg by that name,
                                             // one or more in args are of the wrong data type.
                                             // Additionally, the UPnP Certification Test Tool Shall return the following warning message if there are too many in args:
                                             // ‘Sending too many in args is not recommended and may cause unexpected results’
+
+                      PRECONDITIN_FAILED = 412, // NT, NTS, SID invalid
 
                       ACTION_FAILED = 501,  // May be returned in current state of service prevents invoking that action.
 

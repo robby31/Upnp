@@ -4,7 +4,7 @@ UpnpError::UpnpError(QNetworkReply::NetworkError netError, QByteArray data, QObj
     QObject(parent),
     m_netError(netError)
 {
-    m_data.setContent(data);
+    m_data.setContent(data, true);
 
     qWarning() << "UPNPERROR RECEIVED" << data;
 
@@ -81,13 +81,21 @@ UpnpError::UpnpError(ErrorTypes type, QObject *parent):
 
     errorCode.appendChild(m_data.createTextNode(QString("%1").arg(type)));
 
-    if (type == INVALID_ACTION)
+    if (type == BAD_REQUEST)
+    {
+        errorDescription.appendChild(m_data.createTextNode("Bad Request"));
+    }
+    else if (type == INVALID_ACTION)
     {
         errorDescription.appendChild(m_data.createTextNode("Invalid Action"));
     }
     else if (type == INVALID_ARGS)
     {
         errorDescription.appendChild(m_data.createTextNode("Invalid Args"));
+    }
+    else if (type == PRECONDITIN_FAILED)
+    {
+        errorDescription.appendChild(m_data.createTextNode("Precondition Failed"));
     }
     else if (type == ACTION_FAILED)
     {
