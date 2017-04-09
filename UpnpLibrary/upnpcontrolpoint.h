@@ -14,6 +14,7 @@
 #include "upnprootdevice.h"
 #include "Models/listmodel.h"
 #include <chrono>
+#include "eventresponse.h"
 
 class UpnpControlPoint : public QObject
 {

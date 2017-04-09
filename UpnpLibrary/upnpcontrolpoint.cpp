@@ -598,8 +598,33 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
     {
         QString nt = request->header("NT");
         QString nts = request->header("NTS");
-        qWarning() << "event request received" << request->operationString() << nt << nts;
-        qWarning() << request->requestData();
+        QString sid = request->header("SID");
+        QString seq = request->header("SEQ");
+
+        if (nt == "upnp:event")
+        {
+            if (nts == "upnp:propchange")
+            {
+                EventResponse event(request->requestData());
+                if (!event.isValid())
+                    qCritical() << "invalid eventing request received" << event.toString();
+
+                qWarning() << "event received" << request->peerAddress() << sid << seq;
+                foreach (QString name, event.variablesName())
+                {
+                    qWarning() << name << event.value(name);
+
+                }
+            }
+            else
+            {
+                qCritical() << "invalid NTS for eventing" << nts;
+            }
+        }
+        else
+        {
+            qCritical() << "invalid NT for eventing" << nt;
+        }
 
         request->deleteLater();
     }
