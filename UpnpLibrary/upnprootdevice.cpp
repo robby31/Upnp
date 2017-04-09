@@ -190,7 +190,7 @@ void UpnpRootDevice::requestDescription()
 
 void UpnpRootDevice::setRootDescription(QByteArray data)
 {
-    m_rootDescription.setContent(data);
+    m_rootDescription.setContent(data, true);
     emit rootDescriptionChanged();
 }
 

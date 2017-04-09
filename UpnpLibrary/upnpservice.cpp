@@ -15,6 +15,7 @@ UpnpService::UpnpService(UpnpObject *upnpParent, QDomNode info, QObject *parent)
 
     connect(this, SIGNAL(infoChanged()), this, SLOT(requestDescription()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
+//    connect(this, SIGNAL(descriptionChanged()), this, SLOT(subscribeEventing()));
 
     emit infoChanged();
 }
@@ -108,7 +109,7 @@ void UpnpService::descriptionReceived()
     if (reply->error() == QNetworkReply::NoError)
     {
         QDomDocument doc;
-        doc.setContent(reply->readAll());
+        doc.setContent(reply->readAll(), true);
         setDescription(doc.documentElement());
 
         qDebug() << "description received" << this << reply->request().url();
