@@ -347,3 +347,15 @@ void UpnpDevice::subscribeEventingSlot(const QNetworkRequest &request, const QSt
 {
     emit subscribeEventingSignal(request, uuid(), serviceId);
 }
+
+UpnpService *UpnpDevice::getService(const QString &serviceId)
+{
+    for (int index=0;index<m_services->rowCount();++index)
+    {
+        UpnpService *service = qobject_cast<UpnpService*>(m_services->at(index));
+        if (service && service->serviceId() == serviceId)
+            return service;
+    }
+
+    return Q_NULLPTR;
+}

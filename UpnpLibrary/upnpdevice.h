@@ -36,6 +36,7 @@ public:
     ListModel *servicesModel() const;
 
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
+    UpnpService *getService(const QString &serviceId);
 
     virtual void searchForST(const QString &st);
 
