@@ -40,13 +40,21 @@ void HttpServer::incomingData()
         }
         else
         {
-            qDebug() << "new request" << socket;
+            qDebug() << "new request" << socket << clientConnection->peerAddress().toString();
             request = new HttpRequest(clientConnection, this);
             request->setDeviceUuid(deviceUuid());
-            m_request[socket] = request;
-            emit newRequest(request);
-
             request->incomingData();
+
+            if (request->operation() != QNetworkAccessManager::UnknownOperation)
+            {
+                m_request[socket] = request;
+                emit newRequest(request);
+            }
+            else
+            {
+                // invalid operation
+                request->deleteLater();
+            }
         }
 
         if (request->isFinished())
@@ -62,7 +70,10 @@ void HttpServer::incomingData()
     }
 
     if (clientConnection->bytesAvailable() > 0)
+    {
         qCritical() << clientConnection->socketDescriptor() << "data are available :" << clientConnection->bytesAvailable() << "bytes.";
+        qDebug() << clientConnection->readAll();
+    }
 }
 
 QString HttpServer::deviceUuid() const
