@@ -27,15 +27,31 @@ Item {
     RowLayout {
         id: row
         anchors { left: parent.left; right: parent.right; margins: 10 }
-        height: actionName.height+10
+        height: Math.max(variableName.height, value.height)+10
         spacing: 10
 
         Label {
-            id: actionName
+            id: variableName
             anchors { verticalCenter: parent.verticalCenter }
-            text: modelData
-            Layout.fillWidth: true
+            text: model["name"]
+            width: 400
+            Layout.preferredWidth: width
             elide: Text.ElideRight
+            clip: true
+        }
+
+        Row {
+            layoutDirection: Qt.RightToLeft
+            Layout.fillWidth: true
+
+            Label {
+                id: value
+                anchors { verticalCenter: parent.verticalCenter }
+                width: parent.width
+                text: model["value"]
+                elide: Text.ElideRight
+                clip: true
+            }
         }
     }
 

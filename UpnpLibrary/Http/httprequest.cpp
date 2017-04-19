@@ -93,6 +93,7 @@ void HttpRequest::incomingData()
         while (!m_headerCompleted && m_client->canReadLine())
         {
             QString data = m_client->readLine().trimmed();
+            qDebug() << "incomingData" << data;
 
             if (m_operation == QNetworkAccessManager::UnknownOperation)
                 readOperation(data);
@@ -150,7 +151,7 @@ void HttpRequest::readOperation(const QString &data)
         }
         else
         {
-            setError(QString("%2, invalid operation : %1.").arg(data).arg(socketDescriptor()));
+            setError(QString("%3 %2, invalid operation : %1.").arg(data).arg(socketDescriptor()).arg(peerAddress().toString()));
         }
     }
     else
@@ -1112,8 +1113,6 @@ void HttpRequest::streamOpened()
 
 void HttpRequest::timerEvent(QTimerEvent *event)
 {
-    Q_UNUSED(event)
-
     if (event->timerId() == netStatusTimerEvent)
     {
         if (!m_requestedResource.isEmpty())
