@@ -15,6 +15,7 @@ public:
 
     QString toString() const;
 
+    QHash<QString,QString> variables() const;
     QStringList variablesName() const;
     QString value(const QString &name) const;
 

@@ -43,6 +43,11 @@ QString EventResponse::toString() const
     return m_xml.toString(-1);
 }
 
+QHash<QString,QString> EventResponse::variables() const
+{
+    return m_variables;
+}
+
 QStringList EventResponse::variablesName() const
 {
     return m_variables.keys();
