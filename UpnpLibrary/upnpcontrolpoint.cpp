@@ -730,7 +730,7 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
                             QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
                             connect(reply, SIGNAL(finished()), this, SLOT(subscribeEventingFinished()));
                             reply->setProperty("deviceUuid", deviceUuid);
-                            reply->setProperty("serviceType", serviceId);
+                            reply->setProperty("serviceId", serviceId);
                         }
                         else
                         {
