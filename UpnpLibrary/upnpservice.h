@@ -4,6 +4,8 @@
 #include "upnpobject.h"
 #include "upnperror.h"
 #include "soapaction.h"
+#include "Models/listmodel.h"
+#include "statevariableitem.h"
 
 class UpnpService : public UpnpObject
 {
@@ -11,7 +13,7 @@ class UpnpService : public UpnpObject
 
     Q_PROPERTY(QString serviceType READ serviceType NOTIFY serviceTypeChanged)
     Q_PROPERTY(QStringList actionsModel READ actionsModel NOTIFY actionsModelChanged)
-    Q_PROPERTY(QStringList stateVariablesModel READ stateVariablesModel NOTIFY stateVariablesModelChanged)
+    Q_PROPERTY(ListModel* stateVariablesModel READ stateVariablesModel NOTIFY stateVariablesModelChanged)
 
     enum Roles {
         ServiceTypeRole = Qt::UserRole+1,
@@ -38,7 +40,8 @@ public:
     virtual void searchForST(const QString &st, const QString &uuid);
 
     QStringList actionsModel() const;
-    QStringList stateVariablesModel() const;
+    ListModel *stateVariablesModel();
+    void updateStateVariables(QHash<QString,QString> data);
 
 
 private:
@@ -71,7 +74,7 @@ private slots:
 private:
     QDomNode m_info;
     QStringList m_actionsModel;
-    QStringList m_stateVariablesModel;
+    ListModel m_stateVariablesModel;
 };
 
 #endif // UPNPSERVICE_H

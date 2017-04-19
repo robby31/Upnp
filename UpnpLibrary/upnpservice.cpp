@@ -2,20 +2,22 @@
 
 UpnpService::UpnpService(QObject *parent) :
     UpnpObject(parent),
-    m_info()
+    m_info(),
+    m_stateVariablesModel(new StateVariableItem)
 {
     initRoles();
 }
 
 UpnpService::UpnpService(UpnpObject *upnpParent, QDomNode info, QObject *parent) :
     UpnpObject(Service, upnpParent, parent),
-    m_info(info)
+    m_info(info),
+    m_stateVariablesModel(new StateVariableItem)
 {
     initRoles();
 
     connect(this, SIGNAL(infoChanged()), this, SLOT(requestDescription()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
-//    connect(this, SIGNAL(descriptionChanged()), this, SLOT(subscribeEventing()));
+    connect(this, SIGNAL(descriptionChanged()), this, SLOT(subscribeEventing()));
 
     emit infoChanged();
 }
@@ -172,7 +174,11 @@ void UpnpService::readStateVariables()
             for (int i=0;i<l_variables.size();++i)
             {
                 QDomNode variable = l_variables.at(i);
-                m_stateVariablesModel << variable.firstChildElement("name").firstChild().nodeValue();
+
+                QString name = variable.firstChildElement("name").firstChild().nodeValue();
+                StateVariableItem *item = new StateVariableItem(&m_stateVariablesModel);
+                item->setData(name, StateVariableItem::NameRole);
+                m_stateVariablesModel.appendRow(item);
             }
         }
         else
@@ -193,9 +199,9 @@ QStringList UpnpService::actionsModel() const
     return m_actionsModel;
 }
 
-QStringList UpnpService::stateVariablesModel() const
+ListModel *UpnpService::stateVariablesModel()
 {
-    return m_stateVariablesModel;
+    return &m_stateVariablesModel;
 }
 
 void UpnpService::runAction(const int &index)
@@ -237,7 +243,7 @@ void UpnpService::runAction(const int &index)
                     }
                 }
 
-                qWarning() << name << in << out;
+//                qWarning() << name << in << out;
 
                 if (in.isEmpty())
                 {
@@ -323,7 +329,7 @@ void UpnpService::searchForST(const QString &st, const QString &uuid)
 {
     if (description().isNull())
     {
-        qWarning() << "cannot answer to discover request, device is not ready" << this << st;
+        qCritical() << "cannot answer to discover request, device is not ready" << this << st;
     }
     else
     {
@@ -342,5 +348,48 @@ void UpnpService::subscribeEventing()
         request.setRawHeader("TIMEOUT", "Second-300");
 
         emit subscribeEventingSignal(request, serviceId());
+    }
+}
+
+void UpnpService::updateStateVariables(QHash<QString, QString> data)
+{
+    qDebug() << "update state variables" << host() << serviceType() << data;
+
+    for (int i=0;i<m_stateVariablesModel.rowCount();++i)
+    {
+        StateVariableItem *item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
+        if (item)
+        {
+            QString name = item->data(StateVariableItem::NameRole).toString();
+            if (data.contains(name))
+            {
+                item->setData(data[name], StateVariableItem::ValueRole);
+            }
+        }
+        else
+        {
+            qCritical() << "invalid state variable, index" << i;
+        }
+    }
+
+    // check all variables have been updated
+    foreach (const QString &name, data.keys())
+    {
+        bool found = false;
+        for (int i=0;i<m_stateVariablesModel.rowCount();++i)
+        {
+            StateVariableItem *item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
+            if (item)
+            {
+                if (item->data(StateVariableItem::NameRole) == name)
+                {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if (!found)
+            qCritical() << "state variable not found" << name;
     }
 }
