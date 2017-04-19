@@ -75,6 +75,9 @@ ColumnLayout {
 
         ListView {
             id: devicesView
+
+            ScrollBar.vertical: ScrollBar { }
+
             model: item.device.devicesModel
 
             delegate: DeviceDelegate { }
@@ -86,6 +89,9 @@ ColumnLayout {
 
         ListView {
             id: servicesView
+
+            ScrollBar.vertical: ScrollBar { }
+
             model: item.device.servicesModel
 
             delegate: ServiceDelegate { }

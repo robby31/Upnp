@@ -75,6 +75,9 @@ ColumnLayout {
 
         ListView {
             id: actionsView
+
+            ScrollBar.vertical: ScrollBar { }
+
             model: service.actionsModel
 
             delegate: ServiceActionsDelegate { }
@@ -86,6 +89,9 @@ ColumnLayout {
 
         ListView {
             id: stateVariablesView
+
+            ScrollBar.vertical: ScrollBar { }
+
             model: service.stateVariablesModel
 
             delegate: ServiceStateVariablesDelegate { }
