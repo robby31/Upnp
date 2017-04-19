@@ -12,9 +12,11 @@ const QHostAddress UpnpControlPoint::IPV4_UPNP_HOST = QHostAddress("239.255.255.
 
 const int UpnpControlPoint::UPNP_PORT = 1900;
 
-UpnpControlPoint::UpnpControlPoint(QObject *parent):
+UpnpControlPoint::UpnpControlPoint(QObject *parent, qint16 eventPort):
     QObject(parent),
     netManager(0),
+    m_eventPort(eventPort),
+    m_eventCheckSubscription(-1),
     m_servername(QString("%1/%2 UPnP/%3 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(UPNP_VERSION)),
     m_hostAddress(),
     udpSocketMulticast(this),
@@ -44,6 +46,8 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
     udpSocketUnicast.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
 
     initializeHostAdress();
+
+    m_eventCheckSubscription = startTimer(10000);
 }
 
 UpnpControlPoint::~UpnpControlPoint()
@@ -77,8 +81,8 @@ void UpnpControlPoint::initializeHostAdress()
     else
     {
         // start event server
-        if (!eventServer.listen(m_hostAddress, UPNP_PORT))
-            qCritical() << "unable to start event server" << eventServer.errorString();
+        if (!eventServer.listen(m_hostAddress, m_eventPort))
+            qCritical() << "unable to start event server" << m_hostAddress.toString() << m_eventPort << eventServer.errorString();
     }
 }
 
@@ -537,24 +541,14 @@ QString UpnpControlPoint::generateUuid()
 
 void UpnpControlPoint::subscribeEventing(QNetworkRequest request, const QString &uuid, const QString &serviceId)
 {
-    UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(sender());
+    request.setRawHeader("Connection", "close");
+    request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
+    request.setRawHeader("CALLBACK", QString("<http://%1:%2/event/%3/%4>").arg(host().toString()).arg(m_eventPort).arg(uuid).arg(serviceId).toUtf8());
 
-    if (root)
-    {
-        request.setRawHeader("Connection", "close");
-        request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
-        request.setRawHeader("CALLBACK", QString("<http://%1:%2/event/%3>").arg(host().toString()).arg(UPNP_PORT).arg(serviceId).toUtf8());
-
-        QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
-        connect(reply, SIGNAL(finished()), this, SLOT(subscribeEventingFinished()));
-        reply->setProperty("deviceUuid", uuid);
-        reply->setProperty("serviceId", serviceId);
-    }
-    else
-    {
-        qCritical() << "invalid root" << root << sender();
-    }
-
+    QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
+    connect(reply, SIGNAL(finished()), this, SLOT(subscribeEventingFinished()));
+    reply->setProperty("deviceUuid", uuid);
+    reply->setProperty("serviceId", serviceId);
 }
 
 void UpnpControlPoint::subscribeEventingFinished()
@@ -566,6 +560,7 @@ void UpnpControlPoint::subscribeEventingFinished()
         if (reply->error() != QNetworkReply::NoError)
         {
             qCritical() << "ERROR subscribe eventing" << reply->request().url().toString() << reply->error() << reply->errorString();
+            qCritical() << reply->readAll();
         }
         else
         {
@@ -576,11 +571,58 @@ void UpnpControlPoint::subscribeEventingFinished()
                 m_sidEvent[sid] = QStringList();
                 m_sidEvent[sid] << reply->property("deviceUuid").toString();
                 m_sidEvent[sid] << reply->property("serviceId").toString();
-                m_sidEvent[sid] << reply->rawHeader("TIMEOUT").trimmed();
+
+                QDateTime dateTimeOut;
+                QString timeout = reply->rawHeader("TIMEOUT").trimmed();
+                QRegularExpression pattern("^Second-(\\d+)$");
+                QRegularExpressionMatch match = pattern.match(timeout);
+                if (match.hasMatch())
+                {
+                    dateTimeOut = QDateTime::currentDateTime().addSecs(match.captured(1).toInt());
+                    if (dateTimeOut.isValid())
+                        m_sidEvent[sid] << dateTimeOut.toString();
+                    else
+                        m_sidEvent[sid] << reply->rawHeader("TIMEOUT").trimmed();
+                }
+                else
+                {
+                    qCritical() << "invalid format for TIMEOUT" << timeout;
+                    m_sidEvent[sid] << reply->rawHeader("TIMEOUT").trimmed();
+                }
+
+                qDebug() << "new event subscribed" << sid << m_sidEvent[sid] << reply->request().url();
             }
             else
             {
-                qCritical() << "sid already known" << sid << m_sidEvent[sid];
+                if (m_sidEvent[sid].at(0) != reply->property("deviceUuid").toString())
+                {
+                    qCritical() << "sid already known, invalid deviceUuid" << m_sidEvent[sid].at(0) << reply->property("deviceUuid").toString();
+                }
+                else if (m_sidEvent[sid].at(1) != reply->property("serviceId").toString())
+                {
+                    qCritical() << "sid already known, invalid serviceId" << m_sidEvent[sid].at(1) << reply->property("serviceId").toString();
+                }
+                else
+                {
+                    // update subscription timeout
+                    QDateTime dateTimeOut;
+                    QString timeout = reply->rawHeader("TIMEOUT").trimmed();
+                    QRegularExpression pattern("^Second-(\\d+)$");
+                    QRegularExpressionMatch match = pattern.match(timeout);
+                    if (match.hasMatch())
+                    {
+                        dateTimeOut = QDateTime::currentDateTime().addSecs(match.captured(1).toInt());
+                        if (dateTimeOut.isValid())
+                            m_sidEvent[sid][2] = dateTimeOut.toString();
+                        else
+                            m_sidEvent[sid][2] = reply->rawHeader("TIMEOUT").trimmed();
+                    }
+                    else
+                    {
+                        qCritical() << "invalid format for TIMEOUT" << timeout;
+                        m_sidEvent[sid][2] = reply->rawHeader("TIMEOUT").trimmed();
+                    }
+                }
             }
         }
 
@@ -595,11 +637,13 @@ void UpnpControlPoint::subscribeEventingFinished()
 void UpnpControlPoint::requestEventReceived(HttpRequest *request)
 {
     if (request)
-    {
+    {        
         QString nt = request->header("NT");
         QString nts = request->header("NTS");
         QString sid = request->header("SID");
         QString seq = request->header("SEQ");
+
+        qDebug() << "event received" << request->peerAddress() << sid << seq;
 
         if (nt == "upnp:event")
         {
@@ -607,13 +651,27 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
             {
                 EventResponse event(request->requestData());
                 if (!event.isValid())
-                    qCritical() << "invalid eventing request received" << event.toString();
-
-                qWarning() << "event received" << request->peerAddress() << sid << seq;
-                foreach (QString name, event.variablesName())
                 {
-                    qWarning() << name << event.value(name);
+                    qCritical() << "invalid eventing request received" << event.toString();
+                }
+                else
+                {
+                    if (m_sidEvent.contains(sid) && m_sidEvent[sid].size() == 3)
+                    {
+                        QString deviceUuid = m_sidEvent[sid].at(0);
+                        QString serviceId = m_sidEvent[sid].at(1);
+//                        QString timeout = m_sidEvent[sid].at(2);
 
+                        UpnpService *service = getService(deviceUuid, serviceId);
+                        if (service)
+                            service->updateStateVariables(event.variables());
+                        else
+                            qCritical() << "unable to find service" << serviceId << deviceUuid << request->peerAddress() << sid << seq;
+                    }
+                    else
+                    {
+                        qCritical() << "invalid sid for eventing." << request->peerAddress().toString() << sid;
+                    }
                 }
             }
             else
@@ -632,4 +690,74 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
     {
         qCritical() << "invalid event request" << request;
     }
+}
+
+
+void UpnpControlPoint::timerEvent(QTimerEvent *event)
+{
+    if (event->timerId() == m_eventCheckSubscription)
+    {
+        // check eventing subscription
+        foreach (const QString &sid, m_sidEvent.keys())
+        {
+            if (m_sidEvent[sid].size() == 3)
+            {
+                QDateTime timeout = QDateTime::fromString(m_sidEvent[sid].at(2));
+                if (timeout.isValid())
+                {
+                    if (QDateTime::currentDateTime().secsTo(timeout) < 0)
+                    {
+                        qCritical() << QDateTime::currentDateTime() << "event" << sid << "is obsolete" << timeout;
+                    }
+
+                    if (QDateTime::currentDateTime().secsTo(timeout) < 100)
+                    {
+                        QString deviceUuid = m_sidEvent[sid].at(0);
+                        QString serviceId = m_sidEvent[sid].at(1);
+
+                        qDebug() << QDateTime::currentDateTime() << "renew event" << sid << deviceUuid << serviceId << timeout;
+
+                        UpnpService *service = getService(deviceUuid, serviceId);
+                        if (service)
+                        {
+                            // renew subscription
+                            QNetworkRequest request(service->urlFromRelativePath(service->getInfo("eventSubURL")));
+                            request.setRawHeader("Connection", "close");
+                            request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
+                            request.setRawHeader("SID", sid.toUtf8());
+                            request.setRawHeader("TIMEOUT", "Second-300");
+
+                            QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
+                            connect(reply, SIGNAL(finished()), this, SLOT(subscribeEventingFinished()));
+                            reply->setProperty("deviceUuid", deviceUuid);
+                            reply->setProperty("serviceType", serviceId);
+                        }
+                        else
+                        {
+                            qCritical() << "unable to find service for eventing renewing" << deviceUuid << serviceId;
+                        }
+                    }
+                }
+                else
+                {
+                    qCritical() << "invalid timeout" << timeout << "for event sid" << sid;
+                }
+
+
+            }
+            else
+            {
+                qCritical() << "invalid event" << m_sidEvent[sid];
+            }
+        }
+    }
+}
+
+UpnpService *UpnpControlPoint::getService(const QString &deviceUuid, const QString &serviceId)
+{
+    UpnpDevice *device = qobject_cast<UpnpDevice*>(getUpnpObjectFromUSN(QString("uuid:%1").arg(deviceUuid)));
+    if (device)
+        return device->getService(serviceId);
+    else
+        return Q_NULLPTR;
 }
