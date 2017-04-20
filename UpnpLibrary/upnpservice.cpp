@@ -176,9 +176,13 @@ void UpnpService::readStateVariables()
                 QDomNode variable = l_variables.at(i);
 
                 QString name = variable.firstChildElement("name").firstChild().nodeValue();
-                StateVariableItem *item = new StateVariableItem(&m_stateVariablesModel);
-                item->setData(name, StateVariableItem::NameRole);
-                m_stateVariablesModel.appendRow(item);
+
+                if (name != "LastChange")
+                {
+                    StateVariableItem *item = new StateVariableItem(&m_stateVariablesModel);
+                    item->setData(name, StateVariableItem::NameRole);
+                    m_stateVariablesModel.appendRow(item);
+                }
             }
         }
         else
@@ -375,21 +379,91 @@ void UpnpService::updateStateVariables(QHash<QString, QString> data)
     // check all variables have been updated
     foreach (const QString &name, data.keys())
     {
-        bool found = false;
-        for (int i=0;i<m_stateVariablesModel.rowCount();++i)
+        if (name == "LastChange")
         {
-            StateVariableItem *item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
-            if (item)
+            updateLastChange(data[name]);
+        }
+        else
+        {
+            bool found = false;
+            for (int i=0;i<m_stateVariablesModel.rowCount();++i)
             {
-                if (item->data(StateVariableItem::NameRole) == name)
+                StateVariableItem *item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
+                if (item)
                 {
-                    found = true;
-                    break;
+                    if (item->data(StateVariableItem::NameRole) == name)
+                    {
+                        found = true;
+                        break;
+                    }
                 }
             }
-        }
 
-        if (!found)
-            qCritical() << "state variable not found" << name;
+            if (!found)
+                qCritical() << "state variable not found" << name;
+        }
+    }
+}
+
+void UpnpService::updateLastChange(QString data)
+{
+    qDebug() << "update LastChange data" << data;
+
+    QDomDocument xml;
+    xml.setContent(data, true);
+
+    QDomElement event = xml.documentElement();
+    if (event.localName() == "Event")
+    {
+        QDomNode instanceId = event.firstChild();
+        if (instanceId.localName() == "InstanceID")
+        {
+            QDomAttr attrInstanceId = instanceId.toElement().attributeNode("val");
+            if (!attrInstanceId.isNull())
+            {
+                QString valInstanceId = attrInstanceId.value();
+                qDebug() << "instanceID" << valInstanceId;
+
+                QHash<QString,QString> stateVariables;
+
+                QDomNodeList child = instanceId.childNodes();
+                for (int i=0;i<child.size();++i)
+                {
+                    QDomNode param = child.at(i);
+                    QDomAttr attrValue = param.toElement().attributeNode("val");
+                    if (!attrValue.isNull())
+                    {
+                        qDebug() << param.localName() << attrValue.value();
+                        if (param.localName() != "LastChange")
+                        {
+                            stateVariables[param.localName()] = attrValue.value();
+                        }
+                        else
+                        {
+                            qCritical() << "invalid param name" << param.localName() << data;
+                        }
+                    }
+                    else
+                    {
+                        qCritical() << "invalid xml LastChange (attribute value not found)" << param.localName() << data;
+                    }
+                }
+
+                if (!stateVariables.isEmpty())
+                    updateStateVariables(stateVariables);
+            }
+            else
+            {
+                qCritical() << "invalid xml LastChange (instanceID value not found)" << data;
+            }
+        }
+        else
+        {
+            qCritical() << "invalid xml LastChange (instanceID not found)" << data;
+        }
+    }
+    else
+    {
+        qCritical() << "invalid xml LastChange (event not found)" << data;
     }
 }

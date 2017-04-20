@@ -42,6 +42,7 @@ public:
     QStringList actionsModel() const;
     ListModel *stateVariablesModel();
     void updateStateVariables(QHash<QString,QString> data);
+    void updateLastChange(QString data);
 
 
 private:
