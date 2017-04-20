@@ -82,6 +82,8 @@ ColumnLayout {
 
             delegate: DeviceDelegate { }
 
+            clip: true
+
             function selectDevice(index) {
                 setDeviceDetails(item.device.devicesModel.at(index), item.rootIndex, item.iconurl)
             }
@@ -95,6 +97,8 @@ ColumnLayout {
             model: item.device.servicesModel
 
             delegate: ServiceDelegate { }
+
+            clip: true
 
             function selectService(index) {
                 setServiceDetails(item.device.servicesModel.at(index), item.rootIndex, item.iconurl)

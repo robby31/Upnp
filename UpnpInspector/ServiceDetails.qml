@@ -46,13 +46,13 @@ ColumnLayout {
         Layout.fillWidth: true
         currentIndex: swipeView.currentIndex
         TabButton {
-            text: qsTr("Description")
+            text: qsTr("StateVariables")
         }
         TabButton {
             text: qsTr("Actions")
         }
         TabButton {
-            text: qsTr("StateVariables")
+            text: qsTr("Description")
         }
     }
 
@@ -62,15 +62,16 @@ ColumnLayout {
         Layout.fillHeight: true
         currentIndex: tabBar.currentIndex
 
-        Flickable {
-            id: flickable
-
-            TextArea.flickable: TextArea {
-                text: item.service.description
-                wrapMode: TextArea.Wrap
-            }
+        ListView {
+            id: stateVariablesView
 
             ScrollBar.vertical: ScrollBar { }
+
+            model: service.stateVariablesModel
+
+            delegate: ServiceStateVariablesDelegate { }
+
+            clip: true
         }
 
         ListView {
@@ -82,19 +83,22 @@ ColumnLayout {
 
             delegate: ServiceActionsDelegate { }
 
+            clip: true
+
             function runAction(index) {
                 service.runAction(index)
             }
         }
 
-        ListView {
-            id: stateVariablesView
+        Flickable {
+            id: flickable
+
+            TextArea.flickable: TextArea {
+                text: item.service.description
+                wrapMode: TextArea.Wrap
+            }
 
             ScrollBar.vertical: ScrollBar { }
-
-            model: service.stateVariablesModel
-
-            delegate: ServiceStateVariablesDelegate { }
         }
     }
 }
