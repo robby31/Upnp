@@ -28,3 +28,5 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += tst_httprangetests.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
+
+include (../UpnpLibrary/UpnpLibrary.prf)

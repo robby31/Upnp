@@ -4,4 +4,5 @@ CONFIG += ordered
 
 SUBDIRS += \
     UpnpLibrary \
-    UpnpInspector
+    UpnpInspector \
+    tests
