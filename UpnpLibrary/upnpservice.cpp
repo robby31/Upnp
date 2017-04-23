@@ -365,10 +365,8 @@ void UpnpService::updateStateVariables(QHash<QString, QString> data)
         if (item)
         {
             QString name = item->data(StateVariableItem::NameRole).toString();
-            if (data.contains(name))
-            {
+            if (data.contains(name) && !data[name].isEmpty())
                 item->setData(data[name], StateVariableItem::ValueRole);
-            }
         }
         else
         {
@@ -381,7 +379,8 @@ void UpnpService::updateStateVariables(QHash<QString, QString> data)
     {
         if (name == "LastChange")
         {
-            updateLastChange(data[name]);
+            if (!data[name].isEmpty())
+                updateLastChange(data[name]);
         }
         else
         {
