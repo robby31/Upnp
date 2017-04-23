@@ -50,7 +50,8 @@ SOURCES += upnplibrary.cpp \
     didllite.cpp \
     Http/elapsedtimer.cpp \
     eventresponse.cpp \
-    statevariableitem.cpp
+    statevariableitem.cpp \
+    Http/httprange.cpp
 
 HEADERS += upnplibrary.h \
     upnpcontrolpoint.h \
@@ -68,7 +69,8 @@ HEADERS += upnplibrary.h \
     didllite.h \
     Http/elapsedtimer.h \
     eventresponse.h \
-    statevariableitem.h
+    statevariableitem.h \
+    Http/httprange.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
