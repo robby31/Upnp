@@ -491,7 +491,7 @@ bool HttpRequest::setData(const QVariant &value, const int &role)
             emit itemChanged(roles);
             return true;
         }
-        else if (value.toString() == "SUBSCRIBE" or value.toString() == "NOTIFY")
+        else if (value.toString() == "SUBSCRIBE" || value.toString() == "NOTIFY")
         {
             m_operation = QNetworkAccessManager::CustomOperation;
             m_customOperation = value.toString();
@@ -601,7 +601,7 @@ void HttpRequest::close()
 
         if (m_client)
         {            
-            if (m_version == "HTTP/1.0" or m_request.rawHeader("Connection").trimmed().toLower() == "close")
+            if (m_version == "HTTP/1.0" || m_request.rawHeader("Connection").trimmed().toLower() == "close")
             {
                 logMessage("close socket.");
                 m_client->disconnectFromHost();
@@ -653,7 +653,7 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
     }
     else if (m_client && m_status == "request ready")
     {
-        if (!m_client->isValid() or !m_client->isWritable() or !m_client->isOpen())
+        if (!m_client->isValid() || !m_client->isWritable() || !m_client->isOpen())
         {
             setError(QString("unable to send data, client not ready"));
             close();
@@ -723,7 +723,7 @@ bool HttpRequest::sendPartialData(const QByteArray &data)
 
     if (operation() != QNetworkAccessManager::HeadOperation && m_client && m_status == "header set")
     {
-        if (!m_client->isValid() or !m_client->isWritable() or !m_client->isOpen())
+        if (!m_client->isValid() || !m_client->isWritable() || !m_client->isOpen())
         {
             logMessage(QString("unable to send data, client not ready"));
             if (!isClosed())

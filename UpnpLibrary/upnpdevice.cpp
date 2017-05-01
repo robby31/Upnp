@@ -225,7 +225,7 @@ UpnpObject *UpnpDevice::getUpnpObjectFromUSN(const QString &usn)
 
         if (m_uuid == uuid)
         {
-            if (nt.isEmpty() or nt == deviceType())
+            if (nt.isEmpty() || nt == deviceType())
             {
                 return this;
             }
@@ -323,10 +323,10 @@ void UpnpDevice::searchForST(const QString &st)
     }
     else
     {
-        if (st == "ssdp:all" or st == QString("uuid:%1").arg(uuid()))
+        if (st == "ssdp:all" || st == QString("uuid:%1").arg(uuid()))
             emit searchResponse(QString("uuid:%1").arg(uuid()), QString("uuid:%1").arg(uuid()));
 
-        if (st == "ssdp:all" or st == deviceType())
+        if (st == "ssdp:all" || st == deviceType())
             emit searchResponse(deviceType(), QString("uuid:%1::%2").arg(uuid()).arg(deviceType()));
 
         for (int i=0;i<m_services->rowCount();++i)

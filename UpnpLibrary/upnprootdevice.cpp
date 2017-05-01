@@ -401,7 +401,7 @@ void UpnpRootDevice::sendByeBye()
 
 void UpnpRootDevice::searchForST(const QString &st)
 {
-    if (st == "ssdp:all" or st == UPNP_ROOTDEVICE)
+    if (st == "ssdp:all" || st == UPNP_ROOTDEVICE)
         emit searchResponse(UPNP_ROOTDEVICE, QString("uuid:%1::%2").arg(uuid()).arg(UPNP_ROOTDEVICE));
 
     if (st != UPNP_ROOTDEVICE)

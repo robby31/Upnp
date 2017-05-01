@@ -337,7 +337,7 @@ void UpnpService::searchForST(const QString &st, const QString &uuid)
     }
     else
     {
-        if (st == "ssdp:all" or st == serviceType())
+        if (st == "ssdp:all" || st == serviceType())
             emit searchResponse(serviceType(), QString("uuid:%1::%2").arg(uuid).arg(serviceType()));
     }
 }
