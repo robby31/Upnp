@@ -17,6 +17,7 @@
 #include "elapsedtimer.h"
 #include <QThread>
 #include <QTimerEvent>
+#include "httprange.h"
 
 
 class HttpRequest : public ListItem
@@ -59,6 +60,8 @@ public:
     QString version() const;
     QString header(const QString &param) const;
     QByteArray requestData() const;
+
+    HttpRange *range(qint64 size);
 
     QString serverName() const;
     void setServerName(const QString &name);

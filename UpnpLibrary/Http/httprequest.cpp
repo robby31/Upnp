@@ -1202,3 +1202,30 @@ void HttpRequest::setRequestedDisplayName(const QString &name)
 {
     m_requestedDisplayName = name;
 }
+
+HttpRange *HttpRequest::range(qint64 size)
+{
+    HttpRange *res = 0;
+
+    if (!header("RANGE").isEmpty())
+    {
+        res = new HttpRange(QString("RANGE: %1").arg(header("RANGE")));
+        if (res->isNull())
+        {
+            // invalid range, ignore it
+            delete res;
+            res = 0;
+            qCritical() << "Invalid range in request:" << header("RANGE");
+        }
+        else
+        {
+            res->setSize(size);
+        }
+
+        return res;
+    }
+    else
+    {
+        return res;
+    }
+}
