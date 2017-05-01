@@ -312,22 +312,13 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
                 UpnpRootDevice *device = getRootDeviceFromUuid(message.getUuidFromUsn());
 
                 if (device != 0)
-                {
                     device->setAvailable(false);
-                }
-                else
-                {
-                    qCritical() << "root device not found" << message.getUuidFromUsn();
-                    qCritical() << message.toStringList();
-                }
             }
             else
             {
                 UpnpObject *object = getUpnpObjectFromUSN(message.getHeader("USN"));
                 if (object != 0)
                     object->setAvailable(false);
-                else
-                    qCritical() << "device or servce not found" << nt;
             }
         }
         else
@@ -561,6 +552,14 @@ void UpnpControlPoint::subscribeEventingFinished()
         {
             qCritical() << "ERROR subscribe eventing" << reply->request().url().toString() << reply->error() << reply->errorString();
             qCritical() << reply->readAll();
+
+            QString sid = reply->request().rawHeader("SID").trimmed();
+            if (!sid.isEmpty() && m_sidEvent.contains(sid))
+            {
+                // cancel event
+                qWarning() << "remove sid from event subscribed" << sid << reply->request().url().toString();
+                m_sidEvent.remove(sid);
+            }
         }
         else
         {
@@ -649,6 +648,7 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
         {
             if (nts == "upnp:propchange")
             {
+                qDebug() << "event property change" << request->requestData();
                 EventResponse event(request->requestData());
                 if (!event.isValid())
                 {
@@ -735,12 +735,20 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
                         else
                         {
                             qCritical() << "unable to find service for eventing renewing" << deviceUuid << serviceId;
+
+                            // cancel event
+                            qWarning() << "remove sid from event subscribed" << sid;
+                            m_sidEvent.remove(sid);
                         }
                     }
                 }
                 else
                 {
                     qCritical() << "invalid timeout" << timeout << "for event sid" << sid;
+
+                    // cancel event
+                    qWarning() << "remove sid from event subscribed" << sid;
+                    m_sidEvent.remove(sid);
                 }
 
 
@@ -748,6 +756,10 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
             else
             {
                 qCritical() << "invalid event" << m_sidEvent[sid];
+
+                // cancel event
+                qWarning() << "remove sid from event subscribed" << sid;
+                m_sidEvent.remove(sid);
             }
         }
     }
