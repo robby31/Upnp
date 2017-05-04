@@ -1,6 +1,6 @@
 #include "httprequest.h"
 
-const int HttpRequest::STREAMING_PERIOD = 1000;
+const int HttpRequest::STREAMING_PERIOD = 500;
 
 HttpRequest::HttpRequest(QObject *parent):
     ListItem(parent),
@@ -628,7 +628,7 @@ void HttpRequest::close()
 
                 setData("Streaming aborted.", statusRole);
                 emit servingFinishedSignal(m_peerAddress.toString(), m_requestedResource, 1);
-                logMessage(QString("%1: Streaming aborted.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                logMessage(QString("Streaming aborted."));
             }
         }
 
@@ -1030,13 +1030,17 @@ void HttpRequest::logMessage(const QString &message)
 void HttpRequest::bytesWritten(const qint64 &size)
 {
     networkBytesSent += size;
+    emit bytesSentChanged();
 
     if (m_client)
     {
         qint64 bytesToWrite = m_client->bytesToWrite();
 
         qDebug() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite).arg(networkBytesSent);
-        //    logMessage(QString("data written to client (%1 bytes).").arg(size));
+//        logMessage(QString("data written to client (%1 bytes), %2 bytes to write, %3 bytes sent.").arg(size).arg(bytesToWrite).arg(networkBytesSent));
+
+        if (!m_requestedResource.isEmpty() && (m_maxBufferSize - bytesToWrite) > (m_maxBufferSize/2))
+            emit requestStreamingData(m_maxBufferSize - bytesToWrite);
     }
     else
     {
@@ -1228,4 +1232,22 @@ HttpRange *HttpRequest::range(qint64 size)
     {
         return res;
     }
+}
+
+void HttpRequest::streamClosed()
+{
+    logMessage(QString("Streaming closed."));
+
+    QObject * obj = sender();
+    if (obj)
+    {
+        // disconnect all signal between stream object and request object
+        obj->disconnect(this);
+        disconnect(obj);
+    }
+}
+
+long HttpRequest::bytesSent() const
+{
+    return networkBytesSent;
 }

@@ -24,6 +24,8 @@ class HttpRequest : public ListItem
 {
     Q_OBJECT
 
+    Q_PROPERTY(long bytesSent READ bytesSent NOTIFY bytesSentChanged)
+
 public:
     enum Roles {
         operationRole = Qt::UserRole+1,
@@ -80,6 +82,8 @@ public:
     quint16 peerPort() const;
     qintptr socketDescriptor() const;
 
+    long bytesSent() const;
+
     QString errorString() const;
 
     void incomingData();
@@ -133,6 +137,8 @@ signals:
 
     void networkPaused();
 
+    void bytesSentChanged();
+
 
 public slots:
     void setError(const QString &message);
@@ -154,6 +160,7 @@ private slots:
     void streamError(const QString &error);
     void streamingCompleted();
     void streamingStatus(const QString &status);
+    void streamClosed();
 
 private:
     static const int STREAMING_PERIOD;
