@@ -25,7 +25,8 @@ class UpnpControlPoint : public QObject
     Q_PROPERTY(ListModel *remoteRootDevices READ remoteRootDevices NOTIFY remoteRootDevicesChanged)
 
 public:
-    explicit UpnpControlPoint(QObject *parent = 0, qint16 eventPort = UPNP_PORT);
+    explicit UpnpControlPoint(QObject *parent = 0);
+    explicit UpnpControlPoint(qint16 eventPort = UPNP_PORT, QObject *parent = 0);
     virtual ~UpnpControlPoint();
 
     void close();
@@ -57,6 +58,8 @@ private:
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
 
     UpnpService *getService(const QString &deviceUuid, const QString &serviceId);
+
+    void removeSidEventFromUuid(const QString &deviceUuid);
 
 signals:
     void serverNameChanged();

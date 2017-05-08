@@ -12,7 +12,13 @@ const QHostAddress UpnpControlPoint::IPV4_UPNP_HOST = QHostAddress("239.255.255.
 
 const int UpnpControlPoint::UPNP_PORT = 1900;
 
-UpnpControlPoint::UpnpControlPoint(QObject *parent, qint16 eventPort):
+UpnpControlPoint::UpnpControlPoint(QObject *parent):
+    UpnpControlPoint(UPNP_PORT, parent)
+{
+
+}
+
+UpnpControlPoint::UpnpControlPoint(qint16 eventPort, QObject *parent):
     QObject(parent),
     netManager(0),
     m_eventPort(eventPort),
@@ -312,13 +318,19 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
                 UpnpRootDevice *device = getRootDeviceFromUuid(message.getUuidFromUsn());
 
                 if (device != 0)
+                {
                     device->setAvailable(false);
+                    removeSidEventFromUuid(device->uuid());
+                }
             }
             else
             {
                 UpnpObject *object = getUpnpObjectFromUSN(message.getHeader("USN"));
                 if (object != 0)
+                {
                     object->setAvailable(false);
+                    qWarning() << "object BYEBYE" << object;
+                }
             }
         }
         else
@@ -772,4 +784,18 @@ UpnpService *UpnpControlPoint::getService(const QString &deviceUuid, const QStri
         return device->getService(serviceId);
     else
         return Q_NULLPTR;
+}
+
+void UpnpControlPoint::removeSidEventFromUuid(const QString &deviceUuid)
+{
+    qDebug() << "removeSidEventFromUuid" << deviceUuid;
+    foreach (const QString &sid, m_sidEvent.keys())
+    {
+        QString uuid = m_sidEvent[sid].at(0);
+        if (uuid == deviceUuid)
+        {
+            m_sidEvent.remove(sid);
+            qDebug() << "remove sid" << sid;
+        }
+    }
 }
