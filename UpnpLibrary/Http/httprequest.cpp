@@ -1,6 +1,6 @@
 #include "httprequest.h"
 
-const int HttpRequest::STREAMING_PERIOD = 500;
+const int HttpRequest::STREAMING_PERIOD = 1000;
 
 HttpRequest::HttpRequest(QObject *parent):
     ListItem(parent),
