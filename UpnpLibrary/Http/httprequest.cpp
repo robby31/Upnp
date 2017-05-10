@@ -630,6 +630,9 @@ void HttpRequest::close()
                 emit servingFinishedSignal(m_peerAddress.toString(), m_requestedResource, 1);
                 logMessage(QString("Streaming aborted."));
             }
+
+            if (clockSending.pausedCounter() > 0)
+                qWarning() << "low speed network, network paused" << clockSending.pausedCounter() << "times when streaming" << m_requestedDisplayName;
         }
 
         setData(QDateTime::currentDateTime(), closeDateRole);

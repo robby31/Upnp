@@ -99,7 +99,6 @@ public:
     void replyAction(const SoapActionResponse &response);
 
     bool isClosed() const;
-    void close();
 
     void setClockSending(const qint64 &msec);
 
@@ -151,6 +150,7 @@ public slots:
 
     void bytesWritten(const qint64 &size);
 
+    void close();
 
 private slots:
     void clientDestroyed();
