@@ -16,6 +16,8 @@ public:
     void pause();
     bool isStatePaused() { return isPaused; }
 
+    qint64 pausedCounter() const;
+
     qint64 elapsed() const;
     qint64 elapsedFromBeginning() const { return m_elapsedBeforeStarting+elapsed(); }
     void addMSec(const qint64 &time) { m_elapsedBeforeStarting += time; }
@@ -25,6 +27,7 @@ private:
     qint64 m_elapsedBeforeStarting;
     qint64 m_elapsedFromStarting;
     bool isPaused;
+    qint64 m_pausedCounter;
 };
 
 #endif // ELAPSEDTIMER_H

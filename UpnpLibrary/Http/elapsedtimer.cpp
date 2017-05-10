@@ -4,7 +4,8 @@ ElapsedTimer::ElapsedTimer():
     timer(),
     m_elapsedBeforeStarting(0),
     m_elapsedFromStarting(0),
-    isPaused(true)
+    isPaused(true),
+    m_pausedCounter(0)
 {
     timer.invalidate();
 }
@@ -33,6 +34,7 @@ void ElapsedTimer::pause()
     if (!isPaused && timer.isValid()) {
         m_elapsedFromStarting += timer.restart();
         isPaused = true;
+        ++m_pausedCounter;
     }
 }
 
@@ -45,4 +47,9 @@ qint64 ElapsedTimer::elapsed() const
         return m_elapsedFromStarting;
     else
         return timer.elapsed()+m_elapsedFromStarting;
+}
+
+qint64 ElapsedTimer::pausedCounter() const
+{
+    return m_pausedCounter;
 }
