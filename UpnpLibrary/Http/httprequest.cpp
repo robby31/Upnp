@@ -760,7 +760,9 @@ bool HttpRequest::sendPartialData(const QByteArray &data)
                 }
 
                 qDebug() << "sendPartialData, data sent" << bytesWritten << m_client->bytesToWrite();
-//                logMessage(QString("sendPartialData, data written : %1, pending bytes to write %2").arg(bytesWritten).arg(m_client->bytesToWrite()));
+#if !defined(QT_NO_DEBUG_OUTPUT)
+                logMessage(QString("sendPartialData, data written : %1, pending bytes to write %2").arg(bytesWritten).arg(m_client->bytesToWrite()));
+#endif
                 return true;
             }
         }
@@ -1040,7 +1042,9 @@ void HttpRequest::bytesWritten(const qint64 &size)
         qint64 bytesToWrite = m_client->bytesToWrite();
 
         qDebug() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite).arg(networkBytesSent);
-//        logMessage(QString("data written to client (%1 bytes), %2 bytes to write, %3 bytes sent.").arg(size).arg(bytesToWrite).arg(networkBytesSent));
+#if !defined(QT_NO_DEBUG_OUTPUT)
+        logMessage(QString("data written to client (%1 bytes), %2 bytes to write, %3 bytes sent.").arg(size).arg(bytesToWrite).arg(networkBytesSent));
+#endif
 
         if (!m_requestedResource.isEmpty() && (m_maxBufferSize - bytesToWrite) > (m_maxBufferSize/2))
             emit requestStreamingData(m_maxBufferSize - bytesToWrite);
@@ -1100,6 +1104,7 @@ void HttpRequest::streamOpened()
 {
     if (!m_requestedResource.isEmpty() && netStatusTimerEvent == 0)
     {
+        logMessage("stream open, start timer");
         netStatusTimerEvent = startTimer(STREAMING_PERIOD);
         if (netStatusTimerEvent == 0)
             qCritical() << "unable to start timer";
@@ -1108,6 +1113,9 @@ void HttpRequest::streamOpened()
             clockSending.start();   // start clock to measure time taken for streaming
 
         emit servingRendererSignal(m_peerAddress.toString(), m_requestedDisplayName);
+
+        if (m_client)
+            emit requestStreamingData(m_maxBufferSize - m_client->bytesToWrite());
     }
     else
     {
@@ -1253,4 +1261,17 @@ void HttpRequest::streamClosed()
 long HttpRequest::bytesSent() const
 {
     return networkBytesSent;
+}
+
+void HttpRequest::streamDataAvailable()
+{
+    if (!clockSending.isValid())
+    {
+        qCritical() << "stream not open";
+    }
+    else
+    {
+        if (m_client && m_client->bytesToWrite() < m_maxBufferSize*0.5)
+            emit requestStreamingData(m_maxBufferSize - m_client->bytesToWrite());
+    }
 }

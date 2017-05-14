@@ -157,6 +157,7 @@ private slots:
     void clientError(QAbstractSocket::SocketError error);
     void socketStateChanged(QAbstractSocket::SocketState state);
 
+    void streamDataAvailable();
     void streamError(const QString &error);
     void streamingCompleted();
     void streamingStatus(const QString &status);
