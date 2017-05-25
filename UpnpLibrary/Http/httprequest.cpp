@@ -601,7 +601,7 @@ void HttpRequest::close()
 
         if (m_client)
         {            
-            if (m_version == "HTTP/1.0" || m_request.rawHeader("Connection").trimmed().toLower() == "close")
+            if (m_version == "HTTP/1.0" || header("Connection").toLower() == "close")
             {
                 logMessage("close socket.");
                 m_client->disconnectFromHost();
@@ -1114,7 +1114,7 @@ void HttpRequest::streamOpened()
 
         emit servingRendererSignal(m_peerAddress.toString(), m_requestedDisplayName);
 
-        if (m_client)
+        if (m_client && m_maxBufferSize - m_client->bytesToWrite() > 0)
             emit requestStreamingData(m_maxBufferSize - m_client->bytesToWrite());
     }
     else
@@ -1145,7 +1145,8 @@ void HttpRequest::timerEvent(QTimerEvent *event)
 
             if (m_client)
             {
-                emit requestStreamingData(m_maxBufferSize - m_client->bytesToWrite());
+                if (m_maxBufferSize - m_client->bytesToWrite() > 0)
+                    emit requestStreamingData(m_maxBufferSize - m_client->bytesToWrite());
 
                 if (m_streamingCompleted && m_client->bytesToWrite() == 0 && !isClosed())
                     close();
