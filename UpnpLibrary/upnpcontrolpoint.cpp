@@ -682,6 +682,7 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
                     }
                     else
                     {
+                        qCritical() << "available sid" << m_sidEvent.keys();
                         qCritical() << "invalid sid for eventing." << request->peerAddress().toString() << sid;
                     }
                 }

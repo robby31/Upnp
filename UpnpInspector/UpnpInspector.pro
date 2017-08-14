@@ -1,4 +1,4 @@
-QT += qml quick widgets webview
+QT += qml quick widgets webview sql
 
 CONFIG += c++11
 
