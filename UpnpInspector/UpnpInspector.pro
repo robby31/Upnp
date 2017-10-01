@@ -1,4 +1,4 @@
-QT += qml quick widgets webview sql
+QT += qml quick widgets webview sql xml
 
 CONFIG += c++11
 
@@ -10,8 +10,11 @@ SOURCES += main.cpp \
 
 RESOURCES += qml.qrc
 
-include (../UpnpLibrary/UpnpLibrary.prf)
-include (../../QmlApplication/QmlApplication.prf)
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/UpnpLibrary
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =

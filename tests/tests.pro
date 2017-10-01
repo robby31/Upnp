@@ -29,4 +29,5 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += tst_httprangetests.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
-include (../UpnpLibrary/UpnpLibrary.prf)
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/UpnpLibrary
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)

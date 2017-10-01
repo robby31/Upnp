@@ -19,9 +19,8 @@ CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
     error("variable MYLIBRARY not set.")
 }
 
-include (../../QmlApplication/QmlApplication.prf)
-
-DESTDIR = $$(MYLIBRARY)/$$QT_VERSION
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
@@ -71,13 +70,8 @@ HEADERS += upnplibrary.h \
     eventresponse.h \
     statevariableitem.h \
     Http/httprange.h
-unix {
-    target.path = /usr/lib
-    INSTALLS += target
-}
 
 DISTFILES += \
-    UpnpLibrary.prf \
     doc/AVTransport/UPnP-av-AVTransport-v1-Service-20020625.pdf \
     doc/AVTransport/UPnP-av-AVTransport-v1-Service-AnnexA-20101006.pdf \
     doc/AVTransport/UPnP-av-AVTransport-v2-Service-20080930.pdf \
@@ -133,3 +127,17 @@ DISTFILES += \
     doc/RenderingControl/RenderingControl1.xml \
     doc/RenderingControl/RenderingControl2.SyntaxTests.xml \
     doc/RenderingControl/RenderingControl2.xml
+
+installPath = $$(MYLIBRARY)/$$QT_VERSION
+target.path = $$installPath
+INSTALLS += target
+
+installIncludePath = $$installPath/include/UpnpLibrary
+
+h_include.files = *.h
+h_include.path = $$installIncludePath
+INSTALLS += h_include
+
+http.files = Http/*.h
+http.path = $$installIncludePath/Http
+INSTALLS += http
