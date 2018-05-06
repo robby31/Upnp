@@ -769,7 +769,7 @@ bool HttpRequest::sendPartialData(const QByteArray &data)
     }
     else
     {
-        logMessage(QString("cannot send reply, operation(%1) or client (%2) or status (%3) are invalid.").arg(operationString()).arg((qintptr)m_client).arg(m_status));
+        logMessage(QString("cannot send data, operation(%1) or client (%2) or status (%3) are invalid.").arg(operationString()).arg((qintptr)m_client).arg(m_status));
         if (!isClosed())
             close();
         return false;
