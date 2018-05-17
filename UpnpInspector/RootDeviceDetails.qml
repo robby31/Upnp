@@ -1,6 +1,6 @@
-import QtQuick 2.0
-import QtQuick.Layouts 1.1
-import QtQuick.Controls 2.0
+import QtQuick 2.9
+import QtQuick.Layouts 1.3
+import QtQuick.Controls 2.2
 import MyComponents 1.0
 
 ColumnLayout {
@@ -20,7 +20,7 @@ ColumnLayout {
             id: backButton
             anchors { verticalCenter: parent.verticalCenter }
             sourceComponent: Text { id: text; text: "< Back" }
-            onButtonClicked: setRootDeviceListView()
+            onButtonClicked: goBack()
         }
 
         Image {

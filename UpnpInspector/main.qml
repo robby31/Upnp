@@ -1,6 +1,4 @@
-import QtQuick 2.7
-import QtQuick.Controls 2.0
-import QtQuick.Layouts 1.0
+import QtQuick 2.9
 import MyComponents 1.0
 
 MyApplication {
@@ -31,5 +29,4 @@ MyApplication {
                 { messageModel: _app.messageModel,
                   upnpControlPoint: _app.upnpControlPoint })
     }
-
 }

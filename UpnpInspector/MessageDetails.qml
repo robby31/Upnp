@@ -1,20 +1,22 @@
-import QtQuick 2.0
+import QtQuick 2.9
 import MyComponents 1.0
 
-Column {
+Item {
     id: item
-    anchors.fill: parent
-    anchors.margins: 10
-    spacing: 10
 
     property alias text: message.text
 
-    MyButton {
-        sourceComponent: Text { id: text; text: "< Back" }
-        onButtonClicked: setMessageListView()
-    }
+    Column {
+        anchors { fill: parent; margins: 10 }
+        spacing: 10
 
-    Text {
-        id: message
+        MyButton {
+            sourceComponent: Text { id: text; text: "< Back" }
+            onButtonClicked: goBack()
+        }
+
+        Text {
+            id: message
+        }
     }
 }

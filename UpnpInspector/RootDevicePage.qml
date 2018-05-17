@@ -1,6 +1,5 @@
-import QtQuick 2.0
-import QtQuick.Layouts 1.1
-import QtQuick.Controls 2.0
+import QtQuick 2.9
+import QtQuick.Controls 2.2
 import MyComponents 1.0
 
 Page {
@@ -10,29 +9,26 @@ Page {
 
     property var upnpControlPoint
 
-    Loader {
-        id: loader
+    StackView {
+         id: stack
+         anchors.fill: parent
 
-        anchors.fill: parent
-    }
+         Component.onCompleted: stack.push("RootDeviceListView.qml", { model: upnpControlPoint.remoteRootDevices })
+     }
 
-    function setRootDeviceListView() {
-        loader.setSource("RootDeviceListView.qml", { model: upnpControlPoint.remoteRootDevices })
+    function goBack() {
+        stack.pop()
     }
 
     function setRootDeviceDetails(index, iconurl) {
-        loader.setSource("RootDeviceDetails.qml", { device: upnpControlPoint.remoteRootDevices.at(index), rootIndex: index, iconurl: iconurl})
+        stack.push("RootDeviceDetails.qml", { device: upnpControlPoint.remoteRootDevices.at(index), rootIndex: index, iconurl: iconurl})
     }
 
     function setServiceDetails(service, rootIndex, rootIconUrl) {
-        loader.setSource("ServiceDetails.qml", { service: service, rootIndex: rootIndex, rootIconUrl: rootIconUrl })
+        stack.push("ServiceDetails.qml", { service: service, rootIndex: rootIndex, rootIconUrl: rootIconUrl })
     }
 
     function setDeviceDetails(device, rootIndex, rootIconUrl) {
-        loader.setSource("DeviceDetails.qml", { device: device, rootIndex: rootIndex, rootIconUrl: rootIconUrl })
-    }
-
-    Component.onCompleted: {
-        setRootDeviceListView()
+        stack.push("DeviceDetails.qml", { device: device, rootIndex: rootIndex, rootIconUrl: rootIconUrl })
     }
 }

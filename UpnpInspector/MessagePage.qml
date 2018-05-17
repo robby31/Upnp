@@ -1,6 +1,5 @@
-import QtQuick 2.0
-import QtQuick.Layouts 1.1
-import QtQuick.Controls 2.0
+import QtQuick 2.9
+import QtQuick.Controls 2.2
 import MyComponents 1.0
 
 Page {
@@ -10,21 +9,22 @@ Page {
 
     property var messageModel
 
-    Loader {
-        id: loader
+    StackView {
+         id: stack
+         anchors.fill: parent
 
-        anchors.fill: parent
+         Component.onCompleted: setMessageListView()
+     }
+
+    function goBack() {
+        stack.pop()
     }
 
     function setMessageDetails(message) {
-        loader.setSource("MessageDetails.qml", {text: message})
+        stack.push("MessageDetails.qml", { text: message })
     }
 
     function setMessageListView() {
-        loader.setSource("MessageListView.qml", { model: messageModel })
-    }
-
-    Component.onCompleted: {
-        setMessageListView()
+        stack.push("MessageListView.qml", { model: messageModel })
     }
 }
