@@ -683,7 +683,7 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
             m_replyHeader << "";
             m_replyHeader << "";
 
-            if (operation() == QNetworkAccessManager::HeadOperation)
+            if (operation() == QNetworkAccessManager::HeadOperation or operationString() == "SUBSCRIBE")
             {
                 // no data expected so header is sent immediately
                 if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)

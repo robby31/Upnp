@@ -20,6 +20,7 @@ UpnpDevice::UpnpDevice(QString uuid, UpnpObject *upnpParent, QObject *parent) :
     m_services = new ListModel(new UpnpService, this);
     m_devices = new ListModel(new UpnpDevice, this);
 
+    connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
     connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(deviceTypeChanged()));
     connect(this, SIGNAL(descriptionChanged()), this, SLOT(readDevices()));
     connect(this, SIGNAL(descriptionChanged()), this, SLOT(readServices()));

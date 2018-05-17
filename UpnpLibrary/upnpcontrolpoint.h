@@ -127,7 +127,7 @@ private:
      * Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
      * MUST be 1900.
      */
-    static const int UPNP_PORT;
+    static const int UPNP_PORT = 1900;
 };
 
 #endif // UPNPCONTROLPOINT_H

@@ -10,8 +10,6 @@ const QString UpnpControlPoint::DISCOVER = "\"ssdp:discover\"";
 
 const QHostAddress UpnpControlPoint::IPV4_UPNP_HOST = QHostAddress("239.255.255.250");
 
-const int UpnpControlPoint::UPNP_PORT = 1900;
-
 UpnpControlPoint::UpnpControlPoint(QObject *parent):
     UpnpControlPoint(UPNP_PORT, parent)
 {

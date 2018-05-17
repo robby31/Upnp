@@ -18,6 +18,7 @@ UpnpService::UpnpService(UpnpObject *upnpParent, QDomNode info, QObject *parent)
     connect(this, SIGNAL(infoChanged()), this, SLOT(requestDescription()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
     connect(this, SIGNAL(descriptionChanged()), this, SLOT(subscribeEventing()));
+    connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
 
     emit infoChanged();
 }
