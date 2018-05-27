@@ -1,0 +1,56 @@
+<?xml version='1.0'?>
+   <device xmlns="urn:schemas-upnp-org:device-1-0">
+    <deviceType xmlns="urn:schemas-upnp-org:device-1-0">urn:schemas-upnp-org:device:WANDevice:2</deviceType>
+    <friendlyName xmlns="urn:schemas-upnp-org:device-1-0">Orange Livebox</friendlyName>
+    <manufacturer xmlns="urn:schemas-upnp-org:device-1-0">Sagemcom</manufacturer>
+    <manufacturerURL xmlns="urn:schemas-upnp-org:device-1-0">http://www.sagemcom.com/</manufacturerURL>
+    <modelDescription xmlns="urn:schemas-upnp-org:device-1-0">Sagemcom,fr,SG30_sip-fr-6.33.14.1</modelDescription>
+    <modelName xmlns="urn:schemas-upnp-org:device-1-0">Residential Livebox,(DSL,WAN Ethernet)</modelName>
+    <modelNumber xmlns="urn:schemas-upnp-org:device-1-0">3</modelNumber>
+    <modelURL xmlns="urn:schemas-upnp-org:device-1-0">http://www.sagemcom.com/</modelURL>
+    <serialNumber xmlns="urn:schemas-upnp-org:device-1-0">OPS301704009414</serialNumber>
+    <presentationURL xmlns="urn:schemas-upnp-org:device-1-0">http://192.168.1.1</presentationURL>
+    <UDN xmlns="urn:schemas-upnp-org:device-1-0">uuid:dc53b523-0f0a-396d-b3dc-249276216f3b</UDN>
+    <UPC xmlns="urn:schemas-upnp-org:device-1-0"/>
+    <serviceList xmlns="urn:schemas-upnp-org:device-1-0">
+     <service xmlns="urn:schemas-upnp-org:device-1-0">
+      <serviceType xmlns="urn:schemas-upnp-org:device-1-0">urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1</serviceType>
+      <serviceId xmlns="urn:schemas-upnp-org:device-1-0">urn:upnp-org:serviceId:WANCommonIFC1</serviceId>
+      <controlURL xmlns="urn:schemas-upnp-org:device-1-0">/293fd29a/upnp/control/WANCommonIFC1</controlURL>
+      <eventSubURL xmlns="urn:schemas-upnp-org:device-1-0">/293fd29a/upnp/control/WANCommonIFC1</eventSubURL>
+      <SCPDURL xmlns="urn:schemas-upnp-org:device-1-0">/293fd29a/gateicfgSCPD.xml</SCPDURL>
+     </service>
+    </serviceList>
+    <deviceList xmlns="urn:schemas-upnp-org:device-1-0">
+     <device xmlns="urn:schemas-upnp-org:device-1-0">
+      <deviceType xmlns="urn:schemas-upnp-org:device-1-0">urn:schemas-upnp-org:device:WANConnectionDevice:2</deviceType>
+      <friendlyName xmlns="urn:schemas-upnp-org:device-1-0">Orange Livebox</friendlyName>
+      <manufacturer xmlns="urn:schemas-upnp-org:device-1-0">Sagemcom</manufacturer>
+      <manufacturerURL xmlns="urn:schemas-upnp-org:device-1-0">http://www.sagemcom.com/</manufacturerURL>
+      <modelDescription xmlns="urn:schemas-upnp-org:device-1-0">Sagemcom,fr,SG30_sip-fr-6.33.14.1</modelDescription>
+      <modelName xmlns="urn:schemas-upnp-org:device-1-0">Residential Livebox,(DSL,WAN Ethernet)</modelName>
+      <modelNumber xmlns="urn:schemas-upnp-org:device-1-0">3</modelNumber>
+      <modelURL xmlns="urn:schemas-upnp-org:device-1-0">http://www.sagemcom.com/</modelURL>
+      <serialNumber xmlns="urn:schemas-upnp-org:device-1-0">OPS301704009414</serialNumber>
+      <presentationURL xmlns="urn:schemas-upnp-org:device-1-0">http://192.168.1.1</presentationURL>
+      <UDN xmlns="urn:schemas-upnp-org:device-1-0">uuid:038b5328-9d97-38ea-b2cd-65d4bdff4840</UDN>
+      <UPC xmlns="urn:schemas-upnp-org:device-1-0"/>
+      <serviceList xmlns="urn:schemas-upnp-org:device-1-0">
+       <service xmlns="urn:schemas-upnp-org:device-1-0">
+        <serviceType xmlns="urn:schemas-upnp-org:device-1-0">urn:schemas-upnp-org:service:WANIPConnection:2</serviceType>
+        <serviceId xmlns="urn:schemas-upnp-org:device-1-0">urn:upnp-org:serviceId:WANIPConn1</serviceId>
+        <controlURL xmlns="urn:schemas-upnp-org:device-1-0">/293fd29a/upnp/control/WANIPConn1</controlURL>
+        <eventSubURL xmlns="urn:schemas-upnp-org:device-1-0">/293fd29a/upnp/control/WANIPConn1</eventSubURL>
+        <SCPDURL xmlns="urn:schemas-upnp-org:device-1-0">/293fd29a/gateconnSCPD_IP.xml</SCPDURL>
+       </service>
+       <service xmlns="urn:schemas-upnp-org:device-1-0">
+        <serviceType xmlns="urn:schemas-upnp-org:device-1-0">urn:schemas-upnp-org:service:WANIPv6FirewallControl:1</serviceType>
+        <serviceId xmlns="urn:schemas-upnp-org:device-1-0">urn:upnp-org:serviceId:WANIPv6FwCtrl1</serviceId>
+        <controlURL xmlns="urn:schemas-upnp-org:device-1-0">/293fd29a/upnp/control/WANIPv6FwCtrl1</controlURL>
+        <eventSubURL xmlns="urn:schemas-upnp-org:device-1-0">/293fd29a/upnp/control/WANIPv6FwCtrl1</eventSubURL>
+        <SCPDURL xmlns="urn:schemas-upnp-org:device-1-0">/293fd29a/wanipv6fwctrlSCPD.xml</SCPDURL>
+       </service>
+      </serviceList>
+     </device>
+    </deviceList>
+   </device>

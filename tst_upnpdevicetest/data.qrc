@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>PMS.xml</file>
+        <file>PMS2.xml</file>
+    </qresource>
+</RCC>

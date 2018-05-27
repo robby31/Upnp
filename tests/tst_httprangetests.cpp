@@ -116,6 +116,6 @@ void HttpRangeTests::testCase1()
     delete obj;
 }
 
-QTEST_APPLESS_MAIN(HttpRangeTests)
+QTEST_MAIN(HttpRangeTests)
 
 #include "tst_httprangetests.moc"
