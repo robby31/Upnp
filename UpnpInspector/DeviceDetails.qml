@@ -65,9 +65,12 @@ ColumnLayout {
         Flickable {
             id: flickable
 
+            boundsBehavior: Flickable.StopAtBounds
+
             TextArea.flickable: TextArea {
                 text: item.device.description
                 wrapMode: TextArea.Wrap
+                selectByMouse: true
             }
 
             ScrollBar.vertical: ScrollBar { }
