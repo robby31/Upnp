@@ -5,4 +5,6 @@ CONFIG += ordered
 SUBDIRS += \
     UpnpLibrary \
     UpnpInspector \
-    tests
+    tests \
+    tst_upnpservice \
+    tst_upnpdevicetest
