@@ -668,7 +668,15 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
             {
                 m_replyHeader << QString("%1 200 OK").arg(m_version);
             }
-            else if (HTTP_500_KO)
+            else if (status == HTTP_400_KO)
+            {
+                m_replyHeader << QString("%1 400 Bad Request").arg(m_version);
+            }
+            else if (status == HTTP_412_KO)
+            {
+                m_replyHeader << QString("%1 412 Precondition Failed").arg(m_version);
+            }
+            else if (status == HTTP_500_KO)
             {
                 m_replyHeader << QString("%1 500 Internal Server Error").arg(m_version);
             }
@@ -931,6 +939,25 @@ void HttpRequest::replyError(const UpnpError &error)
     }
 
     close();
+}
+
+void HttpRequest::replyError(const HttpStatus &error)
+{
+    if (m_client && m_status == "request ready" && m_replyHeader.isEmpty())
+    {
+        QStringList header;
+        header << QString("Content-Length: 0");
+
+        if (!sendHeader(header, error))
+            setError(QString("unable to send header data to client"));
+    }
+    else
+    {
+        setError(QString("cannot send reply, client (%1) or status (%2) or reply header (%3) are invalid.").arg((qintptr)m_client).arg(m_status).arg(m_replyHeader.isEmpty()));
+    }
+
+    if (!isClosed())
+        close();
 }
 
 void HttpRequest::replyAction(const SoapActionResponse &response)

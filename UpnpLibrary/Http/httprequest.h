@@ -46,6 +46,8 @@ public:
 
     enum HttpStatus {
         HTTP_200_OK,
+        HTTP_400_KO, // Bad Request
+        HTTP_412_KO, // Precondition Failed
         HTTP_500_KO  // internal server error
     };
 
@@ -96,6 +98,7 @@ public:
     void replyData(const QByteArray &data, const QString &contentType = "text/xml; charset=\"utf-8\"");
     void replyFile(const QString &pathname);
     void replyError(const UpnpError &error);
+    void replyError(const HttpStatus &error);
     void replyAction(const SoapActionResponse &response);
 
     bool isClosed() const;
