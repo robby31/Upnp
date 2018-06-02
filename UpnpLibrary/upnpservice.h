@@ -6,6 +6,7 @@
 #include "soapaction.h"
 #include "Models/listmodel.h"
 #include "statevariableitem.h"
+#include "upnpservicedescription.h"
 
 class UpnpService : public UpnpObject
 {
@@ -28,14 +29,12 @@ public:
 
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
 
-    QString getInfo(const QString &param) const;
-
     QString serviceType() const;
     QString serviceId() const;
 
     QUrl scpdUrl() const;
     QUrl controlUrl() const;
-    QUrl eventUrl() const;
+    QUrl eventSubUrl() const;
 
     virtual void searchForST(const QString &st, const QString &uuid);
 
@@ -47,26 +46,27 @@ public:
 
 private:
     void initRoles();
-    void readActions();
-    void readStateVariables();
+
+    QString getInfo(const QString &param) const;
 
     QNetworkReply *sendAction(const SoapAction &action);
 
 signals:
-    void infoChanged();
     void serviceTypeChanged();
     void actionsModelChanged();
     void stateVariablesModelChanged();
     void subscribeEventingSignal(const QNetworkRequest &request, const QString &serviceId);
 
 public slots:
+    void requestDescription();
     void sendAlive(const QString &uuid);
     void sendByeBye(const QString &uuid);
     void runAction(const int &index);
     void subscribeEventing();
 
 private slots:
-    void requestDescription();
+    void readActions();
+    void readStateVariables();
     void itemAvailableChanged();
     void networkError(QNetworkReply::NetworkError error);
     void descriptionReceived();

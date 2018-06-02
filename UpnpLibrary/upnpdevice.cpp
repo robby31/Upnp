@@ -22,8 +22,6 @@ UpnpDevice::UpnpDevice(QString uuid, UpnpObject *upnpParent, QObject *parent) :
 
     connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
     connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(deviceTypeChanged()));
-    connect(this, SIGNAL(descriptionChanged()), this, SLOT(readDevices()));
-    connect(this, SIGNAL(descriptionChanged()), this, SLOT(readServices()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
 }
 
@@ -33,6 +31,7 @@ void UpnpDevice::initRoles()
     roles[HostRole] = "host";
     roles[DeviceTypeRole] = "devicetype";
     roles[AvailableRole] = "available";
+    roles[PresentationUrlRole] = "presentationurl";
     setRoles(roles);
 }
 
@@ -56,6 +55,10 @@ QVariant UpnpDevice::data(int role) const
     {
         return available();
     }
+    case PresentationUrlRole:
+    {
+        return valueFromDescription("presentationURL");
+    }
     default:
     {
         return QVariant::Invalid;
@@ -72,12 +75,20 @@ QString UpnpDevice::uuid() const
 
 QString UpnpDevice::deviceType() const
 {
-    return valueFromDescription("deviceType");
+    UpnpDeviceDescription *descr = (UpnpDeviceDescription*)description();
+    if (descr)
+        return descr->deviceAttribute("deviceType");
+    else
+        return QString();
 }
 
 QString UpnpDevice::friendlyName() const
 {
-    return valueFromDescription("friendlyName");
+    UpnpDeviceDescription *descr = (UpnpDeviceDescription*)description();
+    if (descr)
+        return descr->deviceAttribute("friendlyName");
+    else
+        return QString();
 }
 
 ListModel *UpnpDevice::servicesModel() const
@@ -87,45 +98,21 @@ ListModel *UpnpDevice::servicesModel() const
 
 void UpnpDevice::readServices()
 {
-    QDomNode desc = description();
-
-    if (!desc.isNull())
+    UpnpDeviceDescription *descr = (UpnpDeviceDescription*)description();
+    if (descr)
     {
-        QDomElement l_services = desc.firstChildElement("serviceList");
-        if (!l_services.isNull())
-        {
-            QDomNode serviceElt = l_services.firstChild();
-            while (!serviceElt.isNull())
-            {
-                addService(serviceElt);
-                serviceElt = serviceElt.nextSibling();
-            }
-        }
-
-        setStatus(Ready);
-    }
-    else
-    {
-        setStatus(Error);
+        foreach (const QDomElement &service, descr->services())
+            addService(service);
     }
 }
 
 void UpnpDevice::readDevices()
 {
-    QDomNode desc = description();
-
-    if (!desc.isNull())
+    UpnpDeviceDescription *descr = (UpnpDeviceDescription*)description();
+    if (descr)
     {
-        QDomElement l_devices = desc.firstChildElement("deviceList");
-        if (!l_devices.isNull())
-        {
-            QDomNode deviceElt = l_devices.firstChild();
-            while (!deviceElt.isNull())
-            {
-                addDevice(deviceElt);
-                deviceElt = deviceElt.nextSibling();
-            }
-        }
+        foreach (const QDomElement &device, descr->devices())
+            addDevice(device);
     }
 }
 
@@ -150,6 +137,7 @@ void UpnpDevice::addService(const QDomNode &descr)
             connect(service, SIGNAL(searchResponse(QString,QString)), this, SIGNAL(searchResponse(QString,QString)));
             connect(service, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString)), this, SLOT(subscribeEventingSlot(QNetworkRequest,QString)));
             m_services->appendRow(service);
+            service->requestDescription();
         }
         else
         {
@@ -182,8 +170,13 @@ void UpnpDevice::addDevice(const QDomNode &descr)
                 connect(device, SIGNAL(byebyeMessage(QString,QString)), this, SIGNAL(byebyeMessage(QString,QString)));
                 connect(device, SIGNAL(searchResponse(QString,QString)), this, SIGNAL(searchResponse(QString,QString)));
                 connect(device, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString,QString)), this, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString,QString)));
-                device->setDescription(descr);
+                UpnpDeviceDescription *description = new UpnpDeviceDescription();
+                description->setContent(descr);
+                device->setDescription(description);
                 m_devices->appendRow(device);
+                device->readDevices();
+                device->readServices();
+                device->setStatus(Ready);
             }
             else
             {
@@ -318,7 +311,7 @@ void UpnpDevice::sendByeBye()
 
 void UpnpDevice::searchForST(const QString &st)
 {
-    if (description().isNull())
+    if (status() != Ready)
     {
         qWarning() << "cannot answer to discover request, device is not ready" << this << st;
     }

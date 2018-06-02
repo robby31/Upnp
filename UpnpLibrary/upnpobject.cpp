@@ -5,8 +5,7 @@ UpnpObject::UpnpObject(QObject *parent) :
     m_upnpParent(0),
     m_status(Null),
     m_timeout(QDateTime::currentDateTime()),
-    m_available(false),
-    m_description()
+    m_available(false)
 {
 
 }
@@ -17,8 +16,7 @@ UpnpObject::UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent)
     m_status(Null),
     m_type(type),
     m_timeout(QDateTime::currentDateTime()),
-    m_available(false),
-    m_description()
+    m_available(false)
 {
     setUpnpParent(upnpParent);
 
@@ -194,33 +192,33 @@ QString UpnpObject::serverName() const
         return QString();
 }
 
-QDomNode UpnpObject::description() const
+UpnpDescription *UpnpObject::description() const
 {
     return m_description;
 }
 
 QString UpnpObject::strDescription() const
 {
-    QDomDocument doc;
-    QDomElement root = doc.createElement("description");
-    QDomNode elt = doc.importNode(m_description, true);
-    root.appendChild(elt);
-    doc.appendChild(root);
-    return doc.toString();
+    if (m_description)
+        return m_description->stringDescription();
+    else
+        return QString();
 }
 
 QString UpnpObject::valueFromDescription(const QString &param) const
 {
-    QDomNode elt = m_description.firstChildElement(param);
-
-    return elt.firstChild().nodeValue();
+    if (m_description)
+        return m_description->attribute(param);
+    else
+        return QString();
 }
 
-void UpnpObject::setDescription(QDomNode node)
+bool UpnpObject::setDescription(UpnpDescription *descr)
 {
-    m_description = node;
-
+    descr->setParent(this);
+    m_description = descr;
     emit descriptionChanged();
+    return m_description != Q_NULLPTR;
 }
 
 void UpnpObject::timeout()

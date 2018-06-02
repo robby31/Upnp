@@ -7,7 +7,6 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     netManager(Q_NULLPTR),
     m_servername(),
     m_url(),
-    m_rootDescription(),
     m_iconUrl(),
     m_advertise(false),
     m_advertisingTimer(this),
@@ -23,7 +22,6 @@ UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QString uuid, QObject
     netManager(Q_NULLPTR),
     m_servername(),
     m_url(),
-    m_rootDescription(),
     m_iconUrl(),
     m_advertise(false),
     m_advertisingTimer(3, 600000, this),
@@ -34,7 +32,6 @@ UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QString uuid, QObject
 
     initRoles();
 
-    connect(this, SIGNAL(rootDescriptionChanged()), this, SIGNAL(itemChanged()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
     connect(this, SIGNAL(urlChanged()), this, SLOT(requestDescription()));
 
@@ -73,7 +70,7 @@ QVariant UpnpRootDevice::data(int role) const
     }
     case IconUrlRole:
     {
-        return m_iconUrl;
+        return iconUrl();
     }
     case AvailableRole:
     {
@@ -140,33 +137,11 @@ void UpnpRootDevice::setServerName(const QString &name)
 
 QString UpnpRootDevice::version() const
 {
-    if (!m_rootDescription.isNull())
-    {
-        QDomNode root = m_rootDescription.firstChildElement("root");
-        if (!root.isNull())
-        {
-            QDomNode specVersion = root.firstChildElement("specVersion");
-            if (!specVersion.isNull())
-            {
-                QString major = specVersion.firstChildElement("major").firstChild().nodeValue();
-                QString minor = specVersion.firstChildElement("minor").firstChild().nodeValue();
-                if (!major.isNull() && !minor.isNull())
-                    return QString("%1.%2").arg(major).arg(minor);
-                else
-                    qCritical() << "unable to find major and minor" << major << minor;
-            }
-            else
-            {
-                qCritical() << "unable to find specVersion";
-            }
-        }
-        else
-        {
-            qCritical() << "unable to find root";
-        }
-    }
-
-    return QString();
+    UpnpRootDeviceDescription *descr = (UpnpRootDeviceDescription*)description();
+    if (descr)
+        return descr->version();
+    else
+        return QString();
 }
 
 void UpnpRootDevice::requestDescription()
@@ -188,109 +163,67 @@ void UpnpRootDevice::requestDescription()
     }
 }
 
-void UpnpRootDevice::setRootDescription(QByteArray data)
-{
-    m_rootDescription.setContent(data, true);
-    emit rootDescriptionChanged();
-}
-
-QString UpnpRootDevice::rootDescription() const
-{
-    return m_rootDescription.toString();
-}
-
 void UpnpRootDevice::descriptionReceived()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
 
     if (reply->error() == QNetworkReply::NoError)
     {
-        setRootDescription(reply->readAll());
+        UpnpRootDeviceDescription *descr = new UpnpRootDeviceDescription();
+        descr->setContent(reply->readAll());
+        setDescription(descr);
 
         qDebug() << "description received" << this << reply->request().url();
 
-        QDomElement root = m_rootDescription.firstChildElement("root");
-        if (root.isNull())
+        if (descr)
         {
-            qCritical() << "root not found in description";
-            setStatus(Error);
-        }
-        else
-        {
-            QDomElement device = root.firstChildElement("device");
-            if (!device.isNull())
+            // check uuid
+            QString udn = descr->deviceAttribute("UDN");
+            if (udn.startsWith("uuid:"))
             {
-                // check uuid
-                QDomElement udnElt = device.firstChildElement("UDN");
-
-                if (!udnElt.isNull())
+                if (udn.right(udn.size()-5) != uuid())
                 {
-                    QString udn = udnElt.firstChild().nodeValue();
-
-                    if (udn.startsWith("uuid:"))
-                    {
-                        if (udn.right(udn.size()-5) != uuid())
-                        {
-                            qCritical() << "invalid uuid in description" << uuid() << "!=" << udn.right(udn.size()-5);
-                            setStatus(Error);
-                        }
-                    }
-                    else
-                    {
-                        qCritical() << "invalid uuid in description" << udn;
-                        setStatus(Error);
-                    }
-                }
-                else
-                {
-                    qCritical() << "invalid uuid in description (no UDN found)";
+                    qCritical() << "invalid uuid in description" << uuid() << "!=" << udn.right(udn.size()-5);
                     setStatus(Error);
                 }
-
-                // read icon
-                QDomElement l_icon = device.firstChildElement("iconList");
-                if (!l_icon.isNull())
-                {
-                    QString iconUrl;
-                    int iconWidth = -1;
-                    QString iconMimeType;
-
-                    QDomNode icon = l_icon.firstChild();
-                    while (!icon.isNull())
-                    {
-                        int width = icon.firstChildElement("width").firstChild().nodeValue().toInt();
-                        QString mimetype = icon.firstChildElement("mimetype").firstChild().nodeValue();
-                        if (width > iconWidth)
-                        {
-                            // select larger icon
-                            iconWidth = width;
-                            iconUrl = icon.firstChildElement("url").firstChild().nodeValue();
-                            iconMimeType = mimetype;
-                        }
-
-                        icon = icon.nextSibling();
-                    }
-
-                    // get icon data
-                    QUrl iconLocation = urlFromRelativePath(iconUrl);
-                    if (iconLocation.isValid())
-                    {
-                        m_iconUrl = iconLocation.url();
-
-                        QVector<int> roles;
-                        roles << IconUrlRole;
-                        emit itemChanged(roles);
-                    }
-                }
-
-                setDescription(device);
             }
             else
             {
-                qCritical() << "device not found in description";
+                qCritical() << "invalid uuid in description" << udn;
                 setStatus(Error);
             }
+
+            // read icon
+            QString iconUrl = descr->iconUrl();
+            if (!iconUrl.isNull())
+            {
+                // get icon data
+                QUrl iconLocation = urlFromRelativePath(iconUrl);
+                if (iconLocation.isValid())
+                {
+                    m_iconUrl = iconLocation.url();
+
+                    QVector<int> roles;
+                    roles << IconUrlRole;
+                    emit itemChanged(roles);
+                }
+                else
+                {
+                    qCritical() << "invalid icon url" << iconLocation.toString();
+                }
+            }
         }
+        else
+        {
+            qCritical() << "invalid description";
+            setStatus(Error);
+        }
+
+        readDevices();
+
+        readServices();
+
+        setStatus(Ready);
     }
     else
     {
@@ -406,7 +339,7 @@ void UpnpRootDevice::searchForST(const QString &st)
 
     if (st != UPNP_ROOTDEVICE)
     {
-        if (description().isNull())
+        if (status() != Ready)
             qWarning() << "cannot answer to discover request, device is not ready" << this << st;
         else
             UpnpDevice::searchForST(st);

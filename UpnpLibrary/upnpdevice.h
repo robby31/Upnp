@@ -4,6 +4,7 @@
 #include "upnpobject.h"
 #include "upnpservice.h"
 #include "Models/listmodel.h"
+#include "upnpdevicedescription.h"
 
 class UpnpDevice : public UpnpObject
 {
@@ -18,7 +19,8 @@ public:
     enum Roles {
         HostRole = Qt::UserRole+1,
         DeviceTypeRole,
-        AvailableRole
+        AvailableRole,
+        PresentationUrlRole
     };
 
     explicit UpnpDevice(QObject *parent = 0);
@@ -58,10 +60,12 @@ public slots:
     virtual void sendAlive();
     virtual void sendByeBye();
 
-private slots:
-    void itemAvailableChanged();
     void readServices();
     void readDevices();
+
+private slots:
+    void itemAvailableChanged();
+
     void subscribeEventingSlot(const QNetworkRequest &request, const QString &serviceId);
 
 private:

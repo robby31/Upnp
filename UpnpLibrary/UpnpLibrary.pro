@@ -50,7 +50,12 @@ SOURCES += upnplibrary.cpp \
     Http/elapsedtimer.cpp \
     eventresponse.cpp \
     statevariableitem.cpp \
-    Http/httprange.cpp
+    Http/httprange.cpp \
+    upnpservicedescription.cpp \
+    upnpdevicedescription.cpp \
+    xmldescription.cpp \
+    upnprootdevicedescription.cpp \
+    upnpdescription.cpp
 
 HEADERS += upnplibrary.h \
     upnpcontrolpoint.h \
@@ -69,7 +74,12 @@ HEADERS += upnplibrary.h \
     Http/elapsedtimer.h \
     eventresponse.h \
     statevariableitem.h \
-    Http/httprange.h
+    Http/httprange.h \
+    upnpservicedescription.h \
+    upnpdevicedescription.h \
+    xmldescription.h \
+    upnprootdevicedescription.h \
+    upnpdescription.h
 
 DISTFILES += \
     doc/AVTransport/UPnP-av-AVTransport-v1-Service-20020625.pdf \

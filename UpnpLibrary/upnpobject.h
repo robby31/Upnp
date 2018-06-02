@@ -7,9 +7,9 @@
 #include <QHostAddress>
 #include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QDomDocument>
 #include "ssdpmessage.h"
 #include "Models/listitem.h"
+#include "upnpdescription.h"
 
 class UpnpObject : public ListItem
 {
@@ -57,9 +57,9 @@ public:
 
     QUrl urlFromRelativePath(QString path) const;
 
-    QDomNode description() const;
+    UpnpDescription *description() const;
     QString strDescription() const;
-    void setDescription(QDomNode node);
+    bool setDescription(UpnpDescription *descr);
 
     QString valueFromDescription(const QString &param) const;
 
@@ -86,14 +86,14 @@ private slots:
     void timeout();
 
 private:
-    UpnpObject *m_upnpParent;
-    Status m_status;
+    UpnpObject *m_upnpParent = Q_NULLPTR;
+    Status m_status = Null;
     QHash<int, QByteArray> m_roles;
     TypeObject m_type;
     QDateTime m_timeout;
     QTimer m_timer;
-    bool m_available;
-    QDomNode m_description;
+    bool m_available = false;
+    UpnpDescription *m_description = Q_NULLPTR;
 };
 
 #endif // UPNPOBJECT_H

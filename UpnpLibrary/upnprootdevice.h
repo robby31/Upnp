@@ -4,12 +4,11 @@
 #include "upnpdevice.h"
 #include "upnptimer.h"
 #include "Http/httpserver.h"
+#include "upnprootdevicedescription.h"
 
 class UpnpRootDevice : public UpnpDevice
 {
     Q_OBJECT
-
-    Q_PROPERTY(QString rootDescription READ rootDescription  NOTIFY rootDescriptionChanged)
 
 public:
 
@@ -45,9 +44,6 @@ public:
     virtual QUrl url() const Q_DECL_OVERRIDE;
     void setUrl(QUrl url);
 
-    QString rootDescription() const;
-    void setRootDescription(QByteArray data);
-
     void setAdvertise(const bool &flag);
     void startAdvertising();
     void startServer();
@@ -59,7 +55,6 @@ private:
 
 signals:
     void urlChanged();
-    void rootDescriptionChanged();
     void newRequest(HttpRequest *request);
     void requestCompleted(HttpRequest *request);
     void serverStarted();
@@ -73,7 +68,6 @@ private slots:
     void itemAvailableChanged();
     void statusChangedSlot();
 
-
     void requestDescription();
     void descriptionReceived();
 
@@ -84,7 +78,6 @@ private:
     QNetworkAccessManager *netManager;
     QString m_servername;
     QUrl m_url;
-    QDomDocument m_rootDescription;
     QString m_iconUrl;
 
     bool m_advertise;

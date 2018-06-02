@@ -15,12 +15,10 @@ UpnpService::UpnpService(UpnpObject *upnpParent, QDomNode info, QObject *parent)
 {
     initRoles();
 
-    connect(this, SIGNAL(infoChanged()), this, SLOT(requestDescription()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
-    connect(this, SIGNAL(descriptionChanged()), this, SLOT(subscribeEventing()));
     connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
-
-    emit infoChanged();
+    connect(this, SIGNAL(descriptionChanged()), this, SLOT(readActions()));
+    connect(this, SIGNAL(descriptionChanged()), this, SLOT(readStateVariables()));
 }
 
 void UpnpService::initRoles()
@@ -76,9 +74,9 @@ QUrl UpnpService::controlUrl() const
     return QUrl(urlFromRelativePath(getInfo("controlURL")).url());
 }
 
-QUrl UpnpService::eventUrl() const
+QUrl UpnpService::eventSubUrl() const
 {
-    return QUrl(urlFromRelativePath(getInfo("eventURL")).url());
+    return QUrl(urlFromRelativePath(getInfo("eventSubURL")).url());
 }
 
 QString UpnpService::getInfo(const QString &param) const
@@ -111,14 +109,13 @@ void UpnpService::descriptionReceived()
 
     if (reply->error() == QNetworkReply::NoError)
     {
-        QDomDocument doc;
-        doc.setContent(reply->readAll(), true);
-        setDescription(doc.documentElement());
+        UpnpServiceDescription *description = new UpnpServiceDescription();
+        description->setContent(reply->readAll());
+        setDescription(description);
+
+        subscribeEventing();
 
         qDebug() << "description received" << this << reply->request().url();
-
-        readActions();
-        readStateVariables();
 
         setStatus(Ready);
     }
@@ -135,28 +132,9 @@ void UpnpService::readActions()
 {
     m_actionsModel.clear();
 
-    QDomNode root = description();
-    if (root.nodeName() == "scpd")
-    {
-        QDomElement actionList = root.firstChildElement("actionList");
-        if (!actionList.isNull())
-        {
-            QDomNodeList l_action = actionList.elementsByTagName("action");
-            for (int i=0;i<l_action.size();++i)
-            {
-                QDomNode action = l_action.at(i);
-                m_actionsModel << action.firstChildElement("name").firstChild().nodeValue();
-            }
-        }
-        else
-        {
-            qCritical() << "unable to find actionList element";
-        }
-    }
-    else
-    {
-        qCritical() << host() << serviceType() << "unable to find scpd element";
-    }
+    UpnpServiceDescription *descr = (UpnpServiceDescription*)description();
+    if (descr)
+        m_actionsModel += descr->actionsName();
 
     emit actionsModelChanged();
 }
@@ -165,35 +143,18 @@ void UpnpService::readStateVariables()
 {
     m_stateVariablesModel.clear();
 
-    QDomNode root = description();
-    if (root.nodeName() == "scpd")
+    UpnpServiceDescription *descr = (UpnpServiceDescription*)description();
+    if (descr)
     {
-        QDomElement variableList = root.firstChildElement("serviceStateTable");
-        if (!variableList.isNull())
+        foreach (const QString &name, descr->stateVariablesName())
         {
-            QDomNodeList l_variables = variableList.elementsByTagName("stateVariable");
-            for (int i=0;i<l_variables.size();++i)
+            if (name != "LastChange")
             {
-                QDomNode variable = l_variables.at(i);
-
-                QString name = variable.firstChildElement("name").firstChild().nodeValue();
-
-                if (name != "LastChange")
-                {
-                    StateVariableItem *item = new StateVariableItem(&m_stateVariablesModel);
-                    item->setData(name, StateVariableItem::NameRole);
-                    m_stateVariablesModel.appendRow(item);
-                }
+                StateVariableItem *item = new StateVariableItem(&m_stateVariablesModel);
+                item->setData(name, StateVariableItem::NameRole);
+                m_stateVariablesModel.appendRow(item);
             }
         }
-        else
-        {
-            qCritical() << "unable to find serviceStateTable element";
-        }
-    }
-    else
-    {
-        qCritical() << host() << serviceType() << "unable to find scpd element";
     }
 
     emit stateVariablesModelChanged();
@@ -215,59 +176,62 @@ void UpnpService::runAction(const int &index)
     QStringList in;
     QStringList out;
 
-    QDomNode root = description();
-    if (root.nodeName() == "scpd")
+    if (description())
     {
-        QDomElement actionList = root.firstChildElement("actionList");
-        if (!actionList.isNull())
+        QDomElement root = description()->xmlDescription();
+        if (root.nodeName() == "scpd")
         {
-            QDomNodeList l_action = actionList.elementsByTagName("action");
-            if (index < l_action.size())
+            QDomElement actionList = root.firstChildElement("actionList");
+            if (!actionList.isNull())
             {
-                QDomNode action = l_action.at(index);
-
-                name = action.firstChildElement("name").firstChild().nodeValue();
-
-                QDomElement argumentList = action.firstChildElement("argumentList");
-                if (!argumentList.isNull())
+                QDomNodeList l_action = actionList.elementsByTagName("action");
+                if (index < l_action.size())
                 {
-                    QDomNodeList l_arguments = argumentList.elementsByTagName("argument");
-                    for (int i=0;i<l_arguments.size();++i)
+                    QDomNode action = l_action.at(index);
+
+                    name = action.firstChildElement("name").firstChild().nodeValue();
+
+                    QDomElement argumentList = action.firstChildElement("argumentList");
+                    if (!argumentList.isNull())
                     {
-                        QDomNode argument = l_arguments.at(i);
+                        QDomNodeList l_arguments = argumentList.elementsByTagName("argument");
+                        for (int i=0;i<l_arguments.size();++i)
+                        {
+                            QDomNode argument = l_arguments.at(i);
 
-                        QString argName = argument.firstChildElement("name").firstChild().nodeValue();
-                        QString direction = argument.firstChildElement("direction").firstChild().nodeValue();
+                            QString argName = argument.firstChildElement("name").firstChild().nodeValue();
+                            QString direction = argument.firstChildElement("direction").firstChild().nodeValue();
 
-                        if (direction == "in")
-                            in << argName;
-                        else if (direction == "out")
-                            out << argName;
-                        else
-                            qCritical() << "invalid direction" << direction;
+                            if (direction == "in")
+                                in << argName;
+                            else if (direction == "out")
+                                out << argName;
+                            else
+                                qCritical() << "invalid direction" << direction;
+                        }
+                    }
+
+                    //                qWarning() << name << in << out;
+
+                    if (in.isEmpty())
+                    {
+                        SoapAction action(serviceType(), name);
+
+                        QNetworkReply *reply = sendAction(action);
+                        connect(reply, SIGNAL(finished()), this, SLOT(actionFinished()));
+                        connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
                     }
                 }
-
-//                qWarning() << name << in << out;
-
-                if (in.isEmpty())
-                {
-                    SoapAction action(serviceType(), name);
-
-                    QNetworkReply *reply = sendAction(action);
-                    connect(reply, SIGNAL(finished()), this, SLOT(actionFinished()));
-                    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
-                }
+            }
+            else
+            {
+                qCritical() << "unable to find actionList element";
             }
         }
         else
         {
-            qCritical() << "unable to find actionList element";
+            qCritical() << host() << serviceType() << "unable to find scpd element";
         }
-    }
-    else
-    {
-        qCritical() << host() << serviceType() << "unable to find scpd element";
     }
 }
 
@@ -332,9 +296,9 @@ void UpnpService::sendByeBye(const QString &uuid)
 
 void UpnpService::searchForST(const QString &st, const QString &uuid)
 {
-    if (description().isNull())
+    if (status() != Ready)
     {
-        qCritical() << "cannot answer to discover request, device is not ready" << this << st;
+        qCritical() << "cannot answer to discover request, service is not ready" << this << st;
     }
     else
     {
@@ -345,10 +309,10 @@ void UpnpService::searchForST(const QString &st, const QString &uuid)
 
 void UpnpService::subscribeEventing()
 {
-    QString streventUrl = getInfo("eventSubURL");
-    if (!streventUrl.isEmpty())
+    QString streventSubUrl = getInfo("eventSubURL");
+    if (!streventSubUrl.isEmpty())
     {
-        QNetworkRequest request(urlFromRelativePath(streventUrl));
+        QNetworkRequest request(urlFromRelativePath(streventSubUrl));
         request.setRawHeader("NT", "upnp:event");
         request.setRawHeader("TIMEOUT", "Second-300");
 

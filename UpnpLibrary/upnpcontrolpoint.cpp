@@ -719,9 +719,12 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
                     if (QDateTime::currentDateTime().secsTo(timeout) < 0)
                     {
                         qCritical() << QDateTime::currentDateTime() << "event" << sid << "is obsolete" << timeout;
-                    }
 
-                    if (QDateTime::currentDateTime().secsTo(timeout) < 100)
+                        // cancel event
+                        qWarning() << "remove sid from event subscribed" << sid;
+                        m_sidEvent.remove(sid);
+                    }
+                    else if (QDateTime::currentDateTime().secsTo(timeout) < 100)
                     {
                         QString deviceUuid = m_sidEvent[sid].at(0);
                         QString serviceId = m_sidEvent[sid].at(1);
@@ -732,7 +735,7 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
                         if (service)
                         {
                             // renew subscription
-                            QNetworkRequest request(service->urlFromRelativePath(service->getInfo("eventSubURL")));
+                            QNetworkRequest request(service->eventSubUrl());
                             request.setRawHeader("Connection", "close");
                             request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
                             request.setRawHeader("SID", sid.toUtf8());
