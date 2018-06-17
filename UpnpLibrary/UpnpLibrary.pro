@@ -55,7 +55,11 @@ SOURCES += upnplibrary.cpp \
     upnpdevicedescription.cpp \
     xmldescription.cpp \
     upnprootdevicedescription.cpp \
-    upnpdescription.cpp
+    upnpdescription.cpp \
+    Services/serviceconnectionmanager.cpp \
+    Services/servicecontentdirectory.cpp \
+    Services/abstractservice.cpp \
+    xmlevent.cpp
 
 HEADERS += upnplibrary.h \
     upnpcontrolpoint.h \
@@ -79,7 +83,11 @@ HEADERS += upnplibrary.h \
     upnpdevicedescription.h \
     xmldescription.h \
     upnprootdevicedescription.h \
-    upnpdescription.h
+    upnpdescription.h \
+    Services/serviceconnectionmanager.h \
+    Services/servicecontentdirectory.h \
+    Services/abstractservice.h \
+    xmlevent.h
 
 DISTFILES += \
     doc/AVTransport/UPnP-av-AVTransport-v1-Service-20020625.pdf \
@@ -151,3 +159,7 @@ INSTALLS += h_include
 http.files = Http/*.h
 http.path = $$installIncludePath/Http
 INSTALLS += http
+
+services.files = Services/*.h
+services.path = $$installIncludePath/Services
+INSTALLS += services
