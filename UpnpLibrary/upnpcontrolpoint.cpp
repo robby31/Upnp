@@ -170,7 +170,7 @@ void UpnpControlPoint::_sendAliveMessage(const QString &uuid, const QString &nt)
 {
     UpnpObject *object = qobject_cast<UpnpObject*>(sender());
 
-    if (object->type() != UpnpObject::RootDevice)
+    if (object->type() != UpnpObject::T_RootDevice)
     {
         qCritical() << "ALIVE message shall be sent from RootDevice" << object->type() << object;
     }
@@ -207,7 +207,7 @@ void UpnpControlPoint::_sendByeByeMessage(const QString &uuid, const QString &nt
 {
     UpnpObject *object = qobject_cast<UpnpObject*>(sender());
 
-    if (object->type() != UpnpObject::RootDevice)
+    if (object->type() != UpnpObject::T_RootDevice)
     {
         qCritical() << "BYEBYE message shall be sent from RootDevice" << object->type() << object;
     }
@@ -389,13 +389,14 @@ void UpnpControlPoint::addRootDevice(SsdpMessage message)
 
         if (device == 0)
         {
-            device = new UpnpRootDevice(netManager, uuid, m_remoteRootDevice);
+            device = new UpnpRootDevice(netManager, m_macAddress, uuid, m_remoteRootDevice);
             connect(device, SIGNAL(availableChanged()), this, SLOT(_rootDeviceAvailableChanged()));
             connect(device, SIGNAL(statusChanged()), this, SLOT(_rootDeviceStatusChanged()));
             connect(device, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString,QString)), this, SLOT(subscribeEventing(QNetworkRequest,QString,QString)));
             device->setServerName(serverName());
             device->update(message);
             device->setUrl(message.getHeader("LOCATION"));
+            device->requestDescription();
             m_remoteRootDevice->appendRow(device);
         }
         else
@@ -420,12 +421,15 @@ UpnpRootDevice *UpnpControlPoint::getRootDeviceFromUuid(const QString &uuid)
     return 0;
 }
 
-UpnpRootDevice *UpnpControlPoint::addLocalRootDevice(int port, QString uuid, QString url)
+UpnpRootDevice *UpnpControlPoint::addLocalRootDevice(UpnpRootDeviceDescription *description, int port, QString url)
 {
-    UpnpRootDevice *device = new UpnpRootDevice(netManager, uuid, m_localRootDevice);
+    UpnpRootDevice *device = new UpnpRootDevice(netManager, m_macAddress, QString(), m_localRootDevice);
     connect(device, SIGNAL(aliveMessage(QString,QString)), this, SLOT(_sendAliveMessage(QString,QString)));
     connect(device, SIGNAL(byebyeMessage(QString,QString)), this, SLOT(_sendByeByeMessage(QString,QString)));
     connect(device, SIGNAL(searchResponse(QString,QString)), this, SLOT(_sendSearchResponse(QString,QString)));
+
+    description->setDeviceAttribute("UDN", QString("uuid:%1").arg(device->id()));
+    device->setDescription(description);
     device->setServerName(serverName());
     device->setAdvertise(true);
 
@@ -459,7 +463,7 @@ void UpnpControlPoint::_sendSearchResponse(const QString &st, const QString &usn
 {
     UpnpObject *object = qobject_cast<UpnpObject*>(sender());
 
-    if (object->type() != UpnpObject::RootDevice)
+    if (object->type() != UpnpObject::T_RootDevice)
     {
         qCritical() << "SEARCH response message shall be sent from RootDevice" << object->type() << object;
     }
@@ -506,38 +510,6 @@ void UpnpControlPoint::_rootDeviceStatusChanged()
         emit newRootDevice(root);
 
     advertiseLocalRootDevice();
-}
-
-QString UpnpControlPoint::generateUuid()
-{
-    // http://www.ietf.org/rfc/rfc4122.txt
-
-    auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-
-    QString time_low;
-    time_low.sprintf("%8.8x", (unsigned int)(timestamp & 0xFFFFFFFF));
-
-    QString time_short;
-    time_short.sprintf("%4.4x", (unsigned short)((timestamp >> 32) & 0xFFFF));
-
-    QString time_hi_and_version;
-    unsigned short tmp = (timestamp >> 48) & 0x0FFF;
-    tmp |= (1 << 12);
-    time_hi_and_version.sprintf("%4.4x", (unsigned short)(tmp));
-
-    unsigned short tmp_clock_seq = 0;
-    QString clock_seq_low;
-    clock_seq_low.sprintf("%2.2x", tmp_clock_seq & 0xFF);
-
-    unsigned short tmp2 = (tmp_clock_seq & 0x3F00) >> 8;
-    tmp2 |= 0x80;
-    QString clock_seq_hi_and_reserved;
-    clock_seq_hi_and_reserved.sprintf("%2.2x", (unsigned short)(tmp2));
-
-    QString node(m_macAddress);
-    node = node.replace(":", "").toLower();
-
-    return QString("%1-%2-%3-%4%5-%6").arg(time_low).arg(time_short).arg(time_hi_and_version).arg(clock_seq_low).arg(clock_seq_hi_and_reserved).arg(node);
 }
 
 void UpnpControlPoint::subscribeEventing(QNetworkRequest request, const QString &uuid, const QString &serviceId)

@@ -39,12 +39,11 @@ public:
     ListModel *localRootDevices() const;
     ListModel *remoteRootDevices() const;
 
-    UpnpRootDevice *addLocalRootDevice(int port, QString uuid, QString url);
+    UpnpRootDevice *addLocalRootDevice(UpnpRootDeviceDescription *description, int port, QString url);
     void advertiseLocalRootDevice();
 
     void sendDiscover(const QString &search_target);
 
-    QString generateUuid();
 
 protected:
     virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
