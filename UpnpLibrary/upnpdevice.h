@@ -5,6 +5,7 @@
 #include "upnpservice.h"
 #include "Models/listmodel.h"
 #include "upnpdevicedescription.h"
+#include "Http/httprequest.h"
 
 class UpnpDevice : public UpnpObject
 {
@@ -31,16 +32,22 @@ public:
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
 
     QString uuid() const;
+    void setUuid(const QString &uuid);
+
     QString deviceType() const;
     QString friendlyName() const;
 
     ListModel *devicesModel() const;
     ListModel *servicesModel() const;
 
+    bool addService(UpnpService *p_service);
+
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
     UpnpService *getService(const QString &serviceId);
 
     virtual void searchForST(const QString &st);
+
+    virtual void replyRequest(HttpRequest *request);
 
 private:
     void initRoles();
@@ -60,11 +67,12 @@ public slots:
     virtual void sendAlive();
     virtual void sendByeBye();
 
-    void readServices();
-    void readDevices();
-
 private slots:
     void itemAvailableChanged();
+
+    virtual void parseObject() Q_DECL_OVERRIDE; // parse device to read Device and Services
+    void readServices();
+    void readDevices();
 
     void subscribeEventingSlot(const QNetworkRequest &request, const QString &serviceId);
 

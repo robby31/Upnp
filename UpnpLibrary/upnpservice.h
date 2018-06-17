@@ -7,6 +7,8 @@
 #include "Models/listmodel.h"
 #include "statevariableitem.h"
 #include "upnpservicedescription.h"
+#include "Http/httprequest.h"
+#include "xmlevent.h"
 
 class UpnpService : public UpnpObject
 {
@@ -16,18 +18,22 @@ class UpnpService : public UpnpObject
     Q_PROPERTY(QStringList actionsModel READ actionsModel NOTIFY actionsModelChanged)
     Q_PROPERTY(ListModel* stateVariablesModel READ stateVariablesModel NOTIFY stateVariablesModelChanged)
 
+public:
+
     enum Roles {
         ServiceTypeRole = Qt::UserRole+1,
         AvailableRole
     };
 
-public:
     explicit UpnpService(QObject *parent = 0);
+    explicit UpnpService(UpnpObject *upnpParent, QObject *parent = 0);
     explicit UpnpService(UpnpObject *upnpParent, QDomNode info, QObject *parent = 0);
 
     virtual QString id() const Q_DECL_OVERRIDE;
 
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
+
+    bool setInfo(QDomNode info);
 
     QString serviceType() const;
     QString serviceId() const;
@@ -40,9 +46,12 @@ public:
 
     QStringList actionsModel() const;
     ListModel *stateVariablesModel();
+    StateVariableItem *findStateVariableByName(const QString &name);
+    void updateStateVariable(const QString &name, const QString &value);
     void updateStateVariables(QHash<QString,QString> data);
     void updateLastChange(QString data);
 
+    virtual bool replyRequest(HttpRequest *request);
 
 private:
     void initRoles();
@@ -50,6 +59,14 @@ private:
     QString getInfo(const QString &param) const;
 
     QNetworkReply *sendAction(const SoapAction &action);
+
+    bool replyNewSubscription(HttpRequest *request);
+    bool replyRenewSubscription(HttpRequest *request);
+
+    void sendEvent(const QString &uuid);
+
+protected:
+    virtual bool replyAction(HttpRequest *request, const SoapAction &action);
 
 signals:
     void serviceTypeChanged();
@@ -65,6 +82,8 @@ public slots:
     void subscribeEventing();
 
 private slots:
+    virtual void parseObject() Q_DECL_OVERRIDE; // parse service to read actions and state variables
+
     void readActions();
     void readStateVariables();
     void itemAvailableChanged();
@@ -72,10 +91,14 @@ private slots:
     void descriptionReceived();
     void actionFinished();
 
+    void sendEventReply();
+
 private:
     QDomNode m_info;
     QStringList m_actionsModel;
     ListModel m_stateVariablesModel;
+
+    QHash<QString, QStringList> m_subscription;
 };
 
 #endif // UPNPSERVICE_H

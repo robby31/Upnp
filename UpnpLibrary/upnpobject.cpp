@@ -20,6 +20,7 @@ UpnpObject::UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent)
 {
     setUpnpParent(upnpParent);
 
+    connect(this, SIGNAL(descriptionChanged()), this, SLOT(parseObject()));
     connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
     connect(this, SIGNAL(statusChanged()), this, SIGNAL(availableChanged()));
 
@@ -38,15 +39,15 @@ UpnpObject *UpnpObject::upnpParent() const
 
 void UpnpObject::setUpnpParent(UpnpObject *parent)
 {
-    if (m_type == RootDevice && parent != 0)
+    if (m_type == T_RootDevice && parent != 0)
     {
         qCritical() << "RootDevice shall not have parent";
     }
-    else if (m_type == Device && parent && parent->type() == Service)
+    else if (m_type == T_Device && parent && parent->type() == T_Service)
     {
         qCritical() << "Device shall not have Service as parent";
     }
-    else if (m_type == Service && parent && parent->type() == Service)
+    else if (m_type == T_Service && parent && parent->type() == T_Service)
     {
         qCritical() << "Service shall not have Service as parent";
     }
@@ -256,4 +257,17 @@ QUrl UpnpObject::url() const
 QUrl UpnpObject::urlFromRelativePath(QString path) const
 {
     return url().resolved(path);
+}
+
+QString UpnpObject::generateUuid()
+{
+    if (m_upnpParent)
+    {
+        return m_upnpParent->generateUuid();
+    }
+    else
+    {
+        qCritical() << "unable to generate uuid, no upnp parent defined";
+        return QString();
+    }
 }

@@ -88,28 +88,36 @@ QDomElement UpnpServiceDescription::addAction(const QString &name)
 
 QDomElement UpnpServiceDescription::addArgument(const QDomElement &action, const QString &name, const DIRECTION &direction, const QString &stateVariable)
 {
-    QDomElement argument = m_xml.addParam("argument", action);
-
-    m_xml.addParam("name", argument);
-    m_xml.setParam("name", name, argument);
-
-    m_xml.addParam("direction", argument);
-    switch (direction) {
-    case IN:
-        m_xml.setParam("direction", "in", argument);
-        break;
-    case OUT:
-        m_xml.setParam("direction", "out", argument);
-        break;
-    default:
-        qCritical() << "invalid direction" << direction;
-        break;
+    if (!stateVariablesName().contains(stateVariable))
+    {
+        qCritical() << "invalid state variable name" << stateVariable;
+        return QDomElement();
     }
+    else
+    {
+        QDomElement argument = m_xml.addParam("argument", action);
 
-    m_xml.addParam("relatedStateVariable", argument);
-    m_xml.setParam("relatedStateVariable", stateVariable, argument);
+        m_xml.addParam("name", argument);
+        m_xml.setParam("name", name, argument);
 
-    return argument;
+        m_xml.addParam("direction", argument);
+        switch (direction) {
+        case IN:
+            m_xml.setParam("direction", "in", argument);
+            break;
+        case OUT:
+            m_xml.setParam("direction", "out", argument);
+            break;
+        default:
+            qCritical() << "invalid direction" << direction;
+            break;
+        }
+
+        m_xml.addParam("relatedStateVariable", argument);
+        m_xml.setParam("relatedStateVariable", stateVariable, argument);
+
+        return argument;
+    }
 }
 
 QDomElement UpnpServiceDescription::addStateVariable(const QString &name, const bool &sendEvents, const bool &multicast, const QString &type, const QString &defaultValue)
@@ -218,4 +226,9 @@ QStringList UpnpServiceDescription::stateVariablesName()
     }
 
     return res;
+}
+
+QDomElement UpnpServiceDescription::stateVariables()
+{
+    return m_xml.getParam("serviceStateTable", m_xml.root(), false);
 }

@@ -2,6 +2,7 @@
 #define UPNPDEVICEDESCRIPTION_H
 
 #include "upnpdescription.h"
+#include "upnpservice.h"
 
 class UpnpDeviceDescription : public UpnpDescription
 {
@@ -16,6 +17,8 @@ public:
 
     void addIcon(const QString &mimeType, const int &width, const int &height, const int &depth, const QString &url);
     QString iconUrl();
+
+    bool addService(UpnpService *service);
 
     QList<QDomElement> devices();
     QList<QDomElement> services();

@@ -1,24 +1,39 @@
 #include "upnpservice.h"
 
 UpnpService::UpnpService(QObject *parent) :
-    UpnpObject(parent),
+    UpnpObject(T_Service, Q_NULLPTR, parent),
     m_info(),
     m_stateVariablesModel(new StateVariableItem)
 {
     initRoles();
+
+    connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
+}
+
+UpnpService::UpnpService(UpnpObject *upnpParent, QObject *parent) :
+    UpnpObject(T_Service, upnpParent, parent),
+    m_info(),
+    m_stateVariablesModel(new StateVariableItem)
+{
+    initRoles();
+
+    connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
 }
 
 UpnpService::UpnpService(UpnpObject *upnpParent, QDomNode info, QObject *parent) :
-    UpnpObject(Service, upnpParent, parent),
+    UpnpObject(T_Service, upnpParent, parent),
     m_info(info),
     m_stateVariablesModel(new StateVariableItem)
 {
     initRoles();
 
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
-    connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
-    connect(this, SIGNAL(descriptionChanged()), this, SLOT(readActions()));
-    connect(this, SIGNAL(descriptionChanged()), this, SLOT(readStateVariables()));
+}
+
+bool UpnpService::setInfo(QDomNode info)
+{
+    m_info = info;
+    return true;
 }
 
 void UpnpService::initRoles()
@@ -113,11 +128,7 @@ void UpnpService::descriptionReceived()
         description->setContent(reply->readAll());
         setDescription(description);
 
-        subscribeEventing();
-
         qDebug() << "description received" << this << reply->request().url();
-
-        setStatus(Ready);
     }
     else
     {
@@ -146,14 +157,25 @@ void UpnpService::readStateVariables()
     UpnpServiceDescription *descr = (UpnpServiceDescription*)description();
     if (descr)
     {
-        foreach (const QString &name, descr->stateVariablesName())
+        QDomNodeList l_variables = descr->stateVariables().elementsByTagName("stateVariable");
+        for (int i=0;i<l_variables.size();++i)
         {
-            if (name != "LastChange")
+            QDomNode variable = l_variables.at(i);
+            QString name = variable.firstChildElement("name").firstChild().nodeValue();
+            QDomNamedNodeMap attr = variable.attributes();
+
+            StateVariableItem *item = new StateVariableItem(&m_stateVariablesModel);
+            item->setData(name, StateVariableItem::NameRole);
+            if (!attr.namedItem("sendEvents").isNull() && attr.namedItem("sendEvents").nodeValue() == "yes")
+                item->setData(true, StateVariableItem::SendEventsRole);
+            if (!attr.namedItem("multicast").isNull() && attr.namedItem("multicast").nodeValue() == "yes")
+                item->setData(true, StateVariableItem::MulticastRole);
+            if (!variable.firstChildElement("defaultValue").isNull())
             {
-                StateVariableItem *item = new StateVariableItem(&m_stateVariablesModel);
-                item->setData(name, StateVariableItem::NameRole);
-                m_stateVariablesModel.appendRow(item);
+                item->setData(variable.firstChildElement("defaultValue").firstChild().nodeValue(), StateVariableItem::DefaultValueRole);
+                item->setData(variable.firstChildElement("defaultValue").firstChild().nodeValue(), StateVariableItem::ValueRole);
             }
+            m_stateVariablesModel.appendRow(item);
         }
     }
 
@@ -320,6 +342,32 @@ void UpnpService::subscribeEventing()
     }
 }
 
+StateVariableItem *UpnpService::findStateVariableByName(const QString &name)
+{
+    for (int i=0;i<m_stateVariablesModel.rowCount();++i)
+    {
+        StateVariableItem *item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
+        if (item)
+        {
+            QString var_name = item->data(StateVariableItem::NameRole).toString();
+            if (var_name == name)
+                return item;
+        }
+    }
+
+    return Q_NULLPTR;
+}
+
+void UpnpService::updateStateVariable(const QString &name, const QString &value)
+{
+    StateVariableItem *item = findStateVariableByName(name);
+
+    if (item)
+        item->setData(value, StateVariableItem::ValueRole);
+    else
+        qCritical() << "unable to update state variable" << name << "(variable not found).";
+}
+
 void UpnpService::updateStateVariables(QHash<QString, QString> data)
 {
     qDebug() << "update state variables" << host() << serviceType() << data;
@@ -430,4 +478,196 @@ void UpnpService::updateLastChange(QString data)
     {
         qCritical() << "invalid xml LastChange (event not found)" << data;
     }
+}
+
+void UpnpService::parseObject()
+{
+    readActions();
+
+    readStateVariables();
+
+    if (status() != Error)
+    {
+        setStatus(Ready);
+
+        subscribeEventing();
+    }
+}
+
+bool UpnpService::replyRequest(HttpRequest *request)
+{
+    QUrl requestUrl = urlFromRelativePath(request->url().toString());
+
+    if (request->operation() == QNetworkAccessManager::GetOperation && scpdUrl() == requestUrl)
+    {
+        // returns description of service
+        request->replyData(description()->stringDescription().toUtf8());
+        return true;
+    }
+    else if (request->operationString() == "SUBSCRIBE" && requestUrl == eventSubUrl() && request->header("NT") == "upnp:event")
+    {
+        replyNewSubscription(request);
+        return true;
+    }
+    else if (request->operationString() == "SUBSCRIBE" && requestUrl == eventSubUrl() && !request->header("SID").isEmpty())
+    {
+        replyRenewSubscription(request);
+        return true;
+    }
+    else if (request->operation() == QNetworkAccessManager::PostOperation && requestUrl == controlUrl())
+    {
+        SoapAction action(request->requestData());
+
+        QString soapaction = request->header("SOAPACTION");
+
+        if (!action.isValid() || soapaction != action.soapaction())
+        {
+            qCritical() << "invalid action" << soapaction << action.soapaction();
+            UpnpError error(UpnpError::INVALID_ACTION);
+            request->replyError(error);
+        }
+        else
+        {
+            replyAction(request, action);
+        }
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool UpnpService::replyNewSubscription(HttpRequest *request)
+{
+    QStringList l_url;
+    QRegularExpression callback("<(.+)>");
+    QRegularExpressionMatchIterator i = callback.globalMatch(request->header("CALLBACK"));
+    while (i.hasNext())
+    {
+        QRegularExpressionMatch match = i.next();
+        if (match.hasMatch())
+            l_url << match.captured(1);
+    }
+
+    QStringList header;
+
+    QDateTime sdf;
+    header << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+    if (!request->serverName().isEmpty())
+        header << QString("SERVER: %1").arg(request->serverName());
+
+    QString uuid = generateUuid();
+    header << QString("SID: uuid:%1").arg(uuid);
+    header << QString("Content-Length: 0");
+    header << QString("TIMEOUT: Second-1800");
+
+    if (!request->sendHeader(header))
+        request->setError(QString("unable to send header to client"));
+    else
+        m_subscription[uuid] = l_url;
+
+    sendEvent(uuid);
+
+    return true;
+}
+
+bool UpnpService::replyRenewSubscription(HttpRequest *request)
+{
+    QRegularExpression pattern("uuid:\\s*(.+)");
+    QRegularExpressionMatch match = pattern.match(request->header("SID"));
+    if (match.hasMatch())
+    {
+        QString sid = match.captured(1);
+        if (m_subscription.contains(sid))
+        {
+            qDebug() << "RENEW SUBSCRIPTION" << sid;
+
+            QStringList header;
+
+            QDateTime sdf;
+            header << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+            if (!request->serverName().isEmpty())
+                header << QString("SERVER: %1").arg(request->serverName());
+
+            header << QString("SID: uuid:%1").arg(sid);
+            header << QString("Content-Length: 0");
+            header << QString("TIMEOUT: Second-1800");
+
+            if (!request->sendHeader(header))
+            {
+                request->setError(QString("RENEW: unable to send header to client"));
+            }
+        }
+        else
+        {
+            qCritical() << "Invalid subscription renewal" << sid;
+        }
+    }
+    else
+    {
+        qCritical() << "invalid SID" << request->header("SID") << "in SUBSCRIPTION renewal";
+    }
+
+    return true;
+}
+
+void UpnpService::sendEvent(const QString &uuid)
+{
+    if (m_subscription[uuid].size() > 0)
+    {
+        QNetworkRequest request(QUrl(m_subscription[uuid].at(0)));
+        request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port(80)).toUtf8());
+        request.setRawHeader("CONTENT-TYPE", "text/xml; charset=\"utf-8\"");
+        request.setRawHeader("NT", "upnp:event");
+        request.setRawHeader("NTS", "upnp:propchange");
+        request.setRawHeader("SID", QString("uuid:%1").arg(uuid).toUtf8());
+        request.setRawHeader("SEQ", "event key");
+
+        XmlEvent event;
+
+        for (int index=0;index<m_stateVariablesModel.rowCount();++index)
+        {
+            StateVariableItem *item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(index));
+            bool sendEvents = item->data(StateVariableItem::SendEventsRole).toBool();
+            if (sendEvents)
+            {
+                QString name = item->data(StateVariableItem::NameRole).toString();
+                QString value = item->data(StateVariableItem::ValueRole).toString();
+
+                // state variable shall be sent by eventing
+                event.addProperty(name, value);
+            }
+        }
+
+        if (networkManager())
+        {
+            QNetworkReply *reply = networkManager()->sendCustomRequest(request, "NOTIFY", event.toString().toUtf8());
+            connect(reply, SIGNAL(finished()), this, SLOT(sendEventReply()));
+        }
+        else
+        {
+            qCritical() << "unable to send reply, network manager not initialised.";
+        }
+    }
+}
+
+void UpnpService::sendEventReply()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply)
+    {
+        qWarning() << "send event reply" << reply << "from" << reply->request().url();
+        qWarning() << "answer data" << reply->rawHeaderList() << reply->readAll();
+        reply->deleteLater();
+    }
+}
+
+bool UpnpService::replyAction(HttpRequest *request, const SoapAction &action)
+{
+    Q_UNUSED(request)
+    Q_UNUSED(action)
+    qCritical() << "function replyAction shall be defined by class";
+    return false;
 }

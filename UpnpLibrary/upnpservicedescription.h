@@ -23,10 +23,11 @@ public:
     QDomElement addArgument(const QDomElement &action, const QString &name, const DIRECTION &direction, const QString &stateVariable);
     QStringList actionsName();
 
-    QDomElement addStateVariable(const QString &name, const bool &sendEvents, const bool &multicast, const QString &type, const QString &defaultValue);
+    QDomElement addStateVariable(const QString &name, const bool &sendEvents, const bool &multicast, const QString &type, const QString &defaultValue = QString());
     QDomElement addAllowedValueRange(const QDomElement &stateVariable, const QString &minimum, const QString &maximum, const QString &step);
     QDomElement addAllowedValueList(const QDomElement &stateVariable, const QStringList &values);
     QStringList stateVariablesName();
+    QDomElement stateVariables();
 
     QDomElement xmlInfo();
     QString stringInfo();

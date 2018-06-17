@@ -24,7 +24,7 @@ public:
     };
 
     explicit UpnpRootDevice(QObject *parent = 0);
-    explicit UpnpRootDevice(QNetworkAccessManager *nam, QString uuid, QObject *parent = 0);
+    explicit UpnpRootDevice(QNetworkAccessManager *nam, QString macAddress, QString uuid, QObject *parent = 0);
 
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
 
@@ -50,6 +50,8 @@ public:
 
     virtual void searchForST(const QString &st) Q_DECL_OVERRIDE;
 
+    virtual QString generateUuid() Q_DECL_OVERRIDE;
+
 private:
     void initRoles();
 
@@ -64,12 +66,15 @@ public slots:
     virtual void sendAlive() Q_DECL_OVERRIDE;
     virtual void sendByeBye() Q_DECL_OVERRIDE;
 
+    void requestDescription();
+
 private slots:
     void itemAvailableChanged();
     void statusChangedSlot();
 
-    void requestDescription();
     void descriptionReceived();
+
+    virtual void replyRequest(HttpRequest *request) Q_DECL_OVERRIDE;
 
 public:
     static const QString UPNP_ROOTDEVICE;
@@ -83,6 +88,7 @@ private:
     bool m_advertise;
     UpnpTimer m_advertisingTimer;
     HttpServer *server;
+    QString m_macAddress;
 };
 
 #endif // UPNPROOTDEVICE_H

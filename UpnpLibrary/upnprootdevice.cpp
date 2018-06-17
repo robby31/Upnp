@@ -10,14 +10,15 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     m_iconUrl(),
     m_advertise(false),
     m_advertisingTimer(this),
-    server(Q_NULLPTR)
+    server(Q_NULLPTR),
+    m_macAddress()
 {
-    setType(RootDevice);
+    setType(T_RootDevice);
 
     initRoles();   
 }
 
-UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QString uuid, QObject *parent) :
+UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QString macAddress, QString uuid, QObject *parent) :
     UpnpDevice(uuid, 0, parent),
     netManager(Q_NULLPTR),
     m_servername(),
@@ -25,15 +26,18 @@ UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QString uuid, QObject
     m_iconUrl(),
     m_advertise(false),
     m_advertisingTimer(3, 600000, this),
-    server(Q_NULLPTR)
+    server(Q_NULLPTR),
+    m_macAddress(macAddress)
 {
-    setType(RootDevice);
+    setType(T_RootDevice);
     setNetworkManager(nam);
+
+    if (id().isEmpty())
+        setUuid(generateUuid());
 
     initRoles();
 
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
-    connect(this, SIGNAL(urlChanged()), this, SLOT(requestDescription()));
 
     connect(this, SIGNAL(statusChanged()), this, SLOT(statusChangedSlot()));
     connect(&m_advertisingTimer, SIGNAL(timeout()), this, SLOT(sendAlive()));
@@ -218,12 +222,6 @@ void UpnpRootDevice::descriptionReceived()
             qCritical() << "invalid description";
             setStatus(Error);
         }
-
-        readDevices();
-
-        readServices();
-
-        setStatus(Ready);
     }
     else
     {
@@ -285,6 +283,7 @@ void UpnpRootDevice::startServer()
         server = new HttpServer(this);
         server->setDeviceUuid(uuid());
         connect(server, SIGNAL(newRequest(HttpRequest*)), this, SIGNAL(newRequest(HttpRequest*)));
+        connect(server, SIGNAL(requestCompleted(HttpRequest*)), this, SLOT(replyRequest(HttpRequest*)));
         connect(server, SIGNAL(requestCompleted(HttpRequest*)), this, SIGNAL(requestCompleted(HttpRequest*)));
     }
 
@@ -343,5 +342,59 @@ void UpnpRootDevice::searchForST(const QString &st)
             qWarning() << "cannot answer to discover request, device is not ready" << this << st;
         else
             UpnpDevice::searchForST(st);
+    }
+}
+
+void UpnpRootDevice::replyRequest(HttpRequest *request)
+{
+    QUrl requestUrl = urlFromRelativePath(request->url().toString());
+    if (request->operation() == QNetworkAccessManager::GetOperation && requestUrl == url())
+    {
+        // returns description of root device
+        request->replyData(description()->stringDescription().toUtf8());
+    }
+    else
+    {
+        UpnpDevice::replyRequest(request);
+    }
+}
+
+QString UpnpRootDevice::generateUuid()
+{
+    if (m_macAddress.isEmpty())
+    {
+        qCritical() << "unable to generate uuid, invalid mac address.";
+        return QString();
+    }
+    else
+    {
+        // http://www.ietf.org/rfc/rfc4122.txt
+
+        auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+
+        QString time_low;
+        time_low.sprintf("%8.8x", (unsigned int)(timestamp & 0xFFFFFFFF));
+
+        QString time_short;
+        time_short.sprintf("%4.4x", (unsigned short)((timestamp >> 32) & 0xFFFF));
+
+        QString time_hi_and_version;
+        unsigned short tmp = (timestamp >> 48) & 0x0FFF;
+        tmp |= (1 << 12);
+        time_hi_and_version.sprintf("%4.4x", (unsigned short)(tmp));
+
+        unsigned short tmp_clock_seq = 0;
+        QString clock_seq_low;
+        clock_seq_low.sprintf("%2.2x", tmp_clock_seq & 0xFF);
+
+        unsigned short tmp2 = (tmp_clock_seq & 0x3F00) >> 8;
+        tmp2 |= 0x80;
+        QString clock_seq_hi_and_reserved;
+        clock_seq_hi_and_reserved.sprintf("%2.2x", (unsigned short)(tmp2));
+
+        QString node(m_macAddress);
+        node = node.replace(":", "").toLower();
+
+        return QString("%1-%2-%3-%4%5-%6").arg(time_low).arg(time_short).arg(time_hi_and_version).arg(clock_seq_low).arg(clock_seq_hi_and_reserved).arg(node);
     }
 }

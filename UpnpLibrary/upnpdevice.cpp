@@ -10,7 +10,7 @@ UpnpDevice::UpnpDevice(QObject *parent) :
 }
 
 UpnpDevice::UpnpDevice(QString uuid, UpnpObject *upnpParent, QObject *parent) :
-    UpnpObject(Device, upnpParent, parent),
+    UpnpObject(T_Device, upnpParent, parent),
     m_uuid(uuid),
     m_services(0),
     m_devices(0)
@@ -20,7 +20,6 @@ UpnpDevice::UpnpDevice(QString uuid, UpnpObject *upnpParent, QObject *parent) :
     m_services = new ListModel(new UpnpService, this);
     m_devices = new ListModel(new UpnpDevice, this);
 
-    connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(itemChanged()));
     connect(this, SIGNAL(descriptionChanged()), this, SIGNAL(deviceTypeChanged()));
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
 }
@@ -73,6 +72,14 @@ QString UpnpDevice::uuid() const
     return m_uuid;
 }
 
+void UpnpDevice::setUuid(const QString &uuid)
+{
+    if (m_uuid.isEmpty())
+        m_uuid = uuid;
+    else
+        qCritical() << "unable to set uuid, uuid is already initialised.";
+}
+
 QString UpnpDevice::deviceType() const
 {
     UpnpDeviceDescription *descr = (UpnpDeviceDescription*)description();
@@ -94,6 +101,16 @@ QString UpnpDevice::friendlyName() const
 ListModel *UpnpDevice::servicesModel() const
 {
     return m_services;
+}
+
+void UpnpDevice::parseObject()
+{
+    readDevices();
+
+    readServices();
+
+    if (status() != Error)
+        setStatus(Ready);
 }
 
 void UpnpDevice::readServices()
@@ -127,7 +144,7 @@ void UpnpDevice::addService(const QDomNode &descr)
     {
         QString serviceId = id.firstChild().nodeValue();
 
-        UpnpService *service = qobject_cast<UpnpService*>(m_services->find(serviceId));
+        UpnpService *service = getService(serviceId);
 
         if (service == 0)
         {
@@ -142,6 +159,50 @@ void UpnpDevice::addService(const QDomNode &descr)
         else
         {
             qCritical() << "service already exists" << serviceId;
+        }
+    }
+}
+
+bool UpnpDevice::addService(UpnpService *p_service)
+{
+    if (p_service->serviceId().isNull())
+    {
+        return false;
+    }
+    else
+    {
+        UpnpService *service = getService(p_service->serviceId());
+        if (service == 0)
+        {
+            // update xml description of the device
+            UpnpDeviceDescription *desc = (UpnpDeviceDescription*)description();
+            if (desc)
+            {
+                if (!desc->addService(p_service))
+                {
+                    qCritical() << "unable to update description of the device";
+                    return false;
+                }
+            }
+            else
+            {
+                qCritical() << "invalid description" << this;
+                return false;
+            }
+
+            p_service->setParent(m_services);
+            connect(p_service, SIGNAL(aliveMessage(QString,QString)), this, SIGNAL(aliveMessage(QString,QString)));
+            connect(p_service, SIGNAL(byebyeMessage(QString,QString)), this, SIGNAL(byebyeMessage(QString,QString)));
+            connect(p_service, SIGNAL(searchResponse(QString,QString)), this, SIGNAL(searchResponse(QString,QString)));
+            connect(p_service, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString)), this, SLOT(subscribeEventingSlot(QNetworkRequest,QString)));
+            m_services->appendRow(p_service);
+
+            return true;
+        }
+        else
+        {
+            qCritical() << "unable to add service, service already exists" << p_service->serviceId();
+            return false;
         }
     }
 }
@@ -176,7 +237,6 @@ void UpnpDevice::addDevice(const QDomNode &descr)
                 m_devices->appendRow(device);
                 device->readDevices();
                 device->readServices();
-                device->setStatus(Ready);
             }
             else
             {
@@ -344,12 +404,18 @@ void UpnpDevice::subscribeEventingSlot(const QNetworkRequest &request, const QSt
 
 UpnpService *UpnpDevice::getService(const QString &serviceId)
 {
-    for (int index=0;index<m_services->rowCount();++index)
+    return qobject_cast<UpnpService*>(m_services->find(serviceId));;
+}
+
+void UpnpDevice::replyRequest(HttpRequest *request)
+{
+    for (int i=0;i<m_services->rowCount();++i)
     {
-        UpnpService *service = qobject_cast<UpnpService*>(m_services->at(index));
-        if (service && service->serviceId() == serviceId)
-            return service;
+        UpnpService *service = qobject_cast<UpnpService*>(m_services->at(i));
+        if (service->replyRequest(request))
+            return;
     }
 
-    return Q_NULLPTR;
+
+    qWarning() << this << "unknown request" << request->operationString() << request->url();
 }

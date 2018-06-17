@@ -21,7 +21,7 @@ class UpnpObject : public ListItem
     Q_PROPERTY(bool available READ available WRITE setAvailable NOTIFY availableChanged)
 
 public:
-    enum TypeObject { RootDevice, Device, Service };
+    enum TypeObject { T_RootDevice, T_Device, T_Service };
     enum Status { Null, Loading, Ready, Error };
 
     explicit UpnpObject(QObject *parent = 0);
@@ -36,11 +36,11 @@ public:
     void setRoles(QHash<int, QByteArray> roles);
 
     UpnpObject *upnpParent() const;
+    void setUpnpParent(UpnpObject *parent);
 
     virtual QNetworkAccessManager *networkManager() const;
 
     Status status() const;
-    void setStatus(const Status &status);
 
     bool available() const;
     void setAvailable(bool flag);
@@ -66,8 +66,10 @@ public:
     QNetworkReply *get(QNetworkRequest request);
     QNetworkReply *post(QNetworkRequest request, QByteArray data);
 
-private:
-    void setUpnpParent(UpnpObject *parent);
+    virtual QString generateUuid();
+
+protected:
+    void setStatus(const Status &status);
 
 signals:
     void upnpParentChanged();
@@ -84,6 +86,8 @@ public slots:
 
 private slots:
     void timeout();
+
+    virtual void parseObject() = 0; // parse Upnp Object to read content
 
 private:
     UpnpObject *m_upnpParent = Q_NULLPTR;

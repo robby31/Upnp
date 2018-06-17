@@ -133,3 +133,27 @@ QList<QDomElement> UpnpDeviceDescription::services()
 
     return res;
 }
+
+bool UpnpDeviceDescription::addService(UpnpService *service)
+{
+
+    QDomElement services = device().firstChildElement("serviceList");
+    if (!services.isNull())
+    {
+        UpnpServiceDescription *desc = (UpnpServiceDescription*)service->description();
+        if (desc)
+        {
+            QDomNode node = services.appendChild(desc->xmlInfo().cloneNode(true));
+            return !node.isNull();
+        }
+        else
+        {
+            qCritical() << "invalid service description" << service->description();
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
