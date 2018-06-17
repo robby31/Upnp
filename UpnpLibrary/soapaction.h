@@ -20,7 +20,7 @@ public:
     QByteArray soapaction() const;
 
     bool addArgument(const QString &name, const QString &value);
-    QString argumentValue(const QString &param);
+    QString argumentValue(const QString &param) const;
 
     QByteArray toByteArray() const;
 

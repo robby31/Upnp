@@ -89,7 +89,7 @@ bool SoapAction::addArgument(const QString &name, const QString &value)
     }
 }
 
-QString SoapAction::argumentValue(const QString &param)
+QString SoapAction::argumentValue(const QString &param) const
 {
     QDomNodeList l_arg = m_xmlAction.elementsByTagName(param);
     if (l_arg.size() == 1)

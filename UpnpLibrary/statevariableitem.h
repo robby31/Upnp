@@ -12,7 +12,10 @@ class StateVariableItem : public ListItem
 public:
     enum Roles {
         NameRole = Qt::UserRole+1,
-        ValueRole
+        ValueRole,
+        SendEventsRole,
+        MulticastRole,
+        DefaultValueRole
     };
 
     explicit StateVariableItem(QObject *parent = 0);
@@ -29,6 +32,9 @@ private:
     QHash<int, QByteArray> m_roles;
     QString m_name;
     QString m_value;
+    bool m_sendEnvents = false;
+    bool m_multicast = false;
+    QString m_defaultValue;
 };
 
 #endif // STATEVARIABLEITEM_H

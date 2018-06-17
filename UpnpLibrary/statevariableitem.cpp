@@ -5,6 +5,9 @@ StateVariableItem::StateVariableItem(QObject *parent):
 {
     m_roles[NameRole] = "name";
     m_roles[ValueRole] = "value";
+    m_roles[SendEventsRole] = "sendEvents";
+    m_roles[MulticastRole] = "multicast";
+    m_roles[DefaultValueRole] = "defaultValue";
 }
 
 QHash<int, QByteArray>  StateVariableItem::roleNames() const
@@ -19,6 +22,12 @@ QVariant StateVariableItem::data(int role) const
         return m_name;
     case ValueRole:
         return m_value;
+    case SendEventsRole:
+        return m_sendEnvents;
+    case MulticastRole:
+        return m_multicast;
+    case DefaultValueRole:
+        return m_defaultValue;
     default:
         break;
     }
@@ -39,6 +48,24 @@ bool StateVariableItem::setData(const QVariant &value, const int &role)
 
     case ValueRole:
         m_value = value.toString();
+        roles << role;
+        emit itemChanged(roles);
+        return true;
+
+    case SendEventsRole:
+        m_sendEnvents = value.toBool();
+        roles << role;
+        emit itemChanged(roles);
+        return true;
+
+    case MulticastRole:
+        m_multicast = value.toBool();
+        roles << role;
+        emit itemChanged(roles);
+        return true;
+
+    case DefaultValueRole:
+        m_defaultValue = value.toString();
         roles << role;
         emit itemChanged(roles);
         return true;
