@@ -4,6 +4,8 @@
 #include "upnprootdevice.h"
 #include "upnprootdevicedescription.h"
 #include <QFile>
+#include "Services/serviceconnectionmanager.h"
+#include "Services/servicecontentdirectory.h"
 
 class UpnpDeviceTest : public QObject
 {
@@ -85,7 +87,7 @@ void UpnpDeviceTest::testUpnpRootDeviceFromDescription()
     QCOMPARE(deviceDescription->xmlDescription().childNodes().at(1).toElement().tagName(), "device");
     QCOMPARE(deviceDescription->xmlDescription().childNodes().at(1).childNodes().size(), 15);
 
-    UpnpRootDevice device(&nam, "uuid-1-2", Q_NULLPTR);
+    UpnpRootDevice device(&nam, "macaddress", "uuid-1-2", Q_NULLPTR);
     device.setDescription(deviceDescription);
     QCOMPARE(device.version(), QString("2.1"));
     QCOMPARE(device.deviceType(), QString("urn:schemas-upnp-org:device:MediaServer:1"));
@@ -95,10 +97,7 @@ void UpnpDeviceTest::testUpnpRootDeviceFromDescription()
     QCOMPARE(device.data(UpnpRootDevice::PresentationUrlRole), QString("http://[host]:[port]/console/index.html"));
 
     QCOMPARE(device.available(), false);
-    QCOMPARE(device.status(), UpnpObject::Null);
-
-    UpnpService *service = device.getService("urn:upnp-org:serviceId:ContentDirectory");
-    QVERIFY(service != Q_NULLPTR);
+    QCOMPARE(device.status(), UpnpObject::Ready);
 }
 
 void UpnpDeviceTest::testUpnpRootDeviceFromXml()
@@ -116,6 +115,21 @@ void UpnpDeviceTest::testUpnpRootDeviceFromXml()
 
     QCOMPARE(description->xmlDescription().childNodes().at(1).toElement().tagName(), "device");
     QCOMPARE(description->xmlDescription().childNodes().at(1).childNodes().size(), 14);
+
+    UpnpRootDevice device(&nam, "macaddress", "uuid-1-2", Q_NULLPTR);
+    device.setDescription(description);
+    QCOMPARE(device.version(), QString("1.0"));
+    QCOMPARE(device.deviceType(), QString("urn:schemas-upnp-org:device:MediaServer:1"));
+    QCOMPARE(device.friendlyName(), QString("QT Media Server"));
+    QCOMPARE(device.uuid(), QString("uuid-1-2"));
+    QCOMPARE(device.id(), QString("uuid-1-2"));
+    QCOMPARE(device.data(UpnpRootDevice::PresentationUrlRole), QString("http://[host]:[port]/console/index.html"));
+
+    QCOMPARE(device.available(), false);
+    QCOMPARE(device.status(), UpnpObject::Ready);
+
+    UpnpService *service = device.getService("urn:upnp-org:serviceId:ContentDirectory");
+    QVERIFY(service != Q_NULLPTR);
 }
 
 void UpnpDeviceTest::testUpnpDeviceFromDescription()
@@ -141,8 +155,6 @@ void UpnpDeviceTest::testUpnpDeviceFromDescription()
     deviceDescription->addIcon("image/png", 32, 32, 24, "/images/icon-32.png");
     deviceDescription->addIcon("image/png", 16, 16, 24, "/images/icon-16.png");
 
-    qDebug() << deviceDescription->stringDescription();
-
     QCOMPARE(deviceDescription->deviceAttribute("deviceType"), "urn:schemas-upnp-org:device:MediaServer:1");
     QCOMPARE(deviceDescription->deviceAttribute("friendlyName"), "QT Media Server");
     QCOMPARE(deviceDescription->deviceAttribute("manufacturer"), "G HIMBERT");
@@ -162,10 +174,45 @@ void UpnpDeviceTest::testUpnpDeviceFromDescription()
     QCOMPARE(device.id(), QString("uuid-1-4"));
     QCOMPARE(device.data(UpnpDevice::PresentationUrlRole), QString("http://[host]:[port]/console/index.html"));
 
-
     QCOMPARE(device.valueFromDescription("deviceType"), "urn:schemas-upnp-org:device:MediaServer:1");
     QCOMPARE(device.available(), false);
-    QCOMPARE(device.status(), UpnpObject::Null);
+    QCOMPARE(device.status(), UpnpObject::Ready);
+
+    QCOMPARE(device.devicesModel()->rowCount(), 0);
+    QCOMPARE(device.servicesModel()->rowCount(), 0);
+
+    UpnpDeviceDescription *device_descr = (UpnpDeviceDescription*)device.description();
+    QVERIFY(device_descr != Q_NULLPTR);
+    QCOMPARE(device_descr->devices().size(), 0);
+    QCOMPARE(device_descr->services().size(), 0);
+
+    ServiceConnectionManager *service_connectionmanager = new ServiceConnectionManager();
+    QCOMPARE(service_connectionmanager->serviceType(), "urn:schemas-upnp-org:service:ConnectionManager:1");
+
+    QCOMPARE(device.addService(service_connectionmanager), true);
+    QCOMPARE(device.devicesModel()->rowCount(), 0);
+    QCOMPARE(device.servicesModel()->rowCount(), 1);
+    QCOMPARE(device_descr->devices().size(), 0);
+    QCOMPARE(device_descr->services().size(), 1);
+
+    // add same service
+    QCOMPARE(device.addService(service_connectionmanager), false);
+    QCOMPARE(device.devicesModel()->rowCount(), 0);
+    QCOMPARE(device.servicesModel()->rowCount(), 1);
+    QCOMPARE(device_descr->devices().size(), 0);
+    QCOMPARE(device_descr->services().size(), 1);
+
+
+    ServiceContentDirectory *service_contentdirectory = new ServiceContentDirectory();
+    QCOMPARE(service_contentdirectory->serviceType(), "urn:schemas-upnp-org:service:ContentDirectory:1");
+
+    QCOMPARE(device.addService(service_contentdirectory), true);
+    QCOMPARE(device.devicesModel()->rowCount(), 0);
+    QCOMPARE(device.servicesModel()->rowCount(), 2);
+    QCOMPARE(device_descr->devices().size(), 0);
+    QCOMPARE(device_descr->services().size(), 2);
+
+    qDebug() << device.description()->stringDescription();
 }
 
 void UpnpDeviceTest::testUpnpDeviceFromXml()
