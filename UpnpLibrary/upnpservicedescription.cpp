@@ -95,7 +95,11 @@ QDomElement UpnpServiceDescription::addArgument(const QDomElement &action, const
     }
     else
     {
-        QDomElement argument = m_xml.addParam("argument", action);
+        QDomElement argumentList = m_xml.getParam("argumentList", action);
+        if (argumentList.isNull())
+            argumentList = m_xml.addParam("argumentList", action);
+
+        QDomElement argument = m_xml.addParam("argument", argumentList);
 
         m_xml.addParam("name", argument);
         m_xml.setParam("name", name, argument);

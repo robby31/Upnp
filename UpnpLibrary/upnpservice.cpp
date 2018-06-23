@@ -233,7 +233,7 @@ void UpnpService::runAction(const int &index)
                         }
                     }
 
-                    //                qWarning() << name << in << out;
+                    qWarning() << name << in << out;
 
                     if (in.isEmpty())
                     {

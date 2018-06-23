@@ -6,13 +6,11 @@ UpnpError::UpnpError(QNetworkReply::NetworkError netError, QByteArray data, QObj
 {
     m_data.setContent(data, true);
 
-    qWarning() << "UPNPERROR RECEIVED" << data;
-
     // read UPNP error
-    QDomElement body = m_data.documentElement().firstChildElement("s:Body");
+    QDomElement body = m_data.documentElement().firstChildElement("Body");
     if (!body.isNull())
     {
-        m_fault = body.firstChildElement("s:Fault");
+        m_fault = body.firstChildElement("Fault");
         if (!m_fault.isNull())
         {
             m_detail = m_fault.firstChildElement("detail");
@@ -21,22 +19,22 @@ UpnpError::UpnpError(QNetworkReply::NetworkError netError, QByteArray data, QObj
                 m_detail = m_detail.firstChildElement("UPnPError");
                 if (m_detail.isNull())
                 {
-                    qCritical() << "invalid UPNP Error" << m_data.toString();
+                    qCritical() << "invalid UPNP Error (wrong detail)" << m_data.toString();
                 }
             }
             else
             {
-                qCritical() << "invalid UPNP Error" << m_data.toString();
+                qCritical() << "invalid UPNP Error (detail not found)" << m_data.toString();
             }
         }
         else
         {
-            qCritical() << "invalid UPNP Error" << m_data.toString();
+            qCritical() << "invalid UPNP Error (Fault not found)" << m_data.toString();
         }
     }
     else
     {
-        qCritical() << "invalid UPNP Error" << m_data.toString();
+        qCritical() << "invalid UPNP Error (body not found)" << m_data.toString();
     }
 
     if (faultCode() != "s:Client")
