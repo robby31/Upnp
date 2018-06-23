@@ -441,6 +441,29 @@ UpnpRootDevice *UpnpControlPoint::addLocalRootDevice(UpnpRootDeviceDescription *
     return device;
 }
 
+bool UpnpControlPoint::addLocalRootDevice(UpnpRootDevice *device)
+{
+    if (device)
+    {
+        device->setParent(m_localRootDevice);
+
+        connect(device, SIGNAL(aliveMessage(QString,QString)), this, SLOT(_sendAliveMessage(QString,QString)));
+        connect(device, SIGNAL(byebyeMessage(QString,QString)), this, SLOT(_sendByeByeMessage(QString,QString)));
+        connect(device, SIGNAL(searchResponse(QString,QString)), this, SLOT(_sendSearchResponse(QString,QString)));
+
+        device->setServerName(serverName());
+        device->setAdvertise(true);
+
+        m_localRootDevice->appendRow(device);
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 void UpnpControlPoint::advertiseLocalRootDevice()
 {
     for (int i=0;i<m_localRootDevice->rowCount();++i)
@@ -772,4 +795,9 @@ void UpnpControlPoint::removeSidEventFromUuid(const QString &deviceUuid)
             qDebug() << "remove sid" << sid;
         }
     }
+}
+
+QString UpnpControlPoint::macAddress() const
+{
+    return m_macAddress;
 }

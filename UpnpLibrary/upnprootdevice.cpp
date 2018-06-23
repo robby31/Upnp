@@ -111,6 +111,15 @@ QString UpnpRootDevice::iconUrl() const
     return m_iconUrl;
 }
 
+QStringList UpnpRootDevice::iconUrls() const
+{
+    UpnpRootDeviceDescription *descr = (UpnpRootDeviceDescription*)description();
+    if (descr)
+        return descr->iconUrls();
+    else
+        return QStringList();
+}
+
 QHostAddress UpnpRootDevice::host() const
 {
     return QHostAddress(m_url.host());
@@ -353,6 +362,10 @@ void UpnpRootDevice::replyRequest(HttpRequest *request)
         // returns description of root device
         request->replyData(description()->stringDescription().toUtf8());
     }
+    else if (request->operation() == QNetworkAccessManager::GetOperation && iconUrls().contains(request->url().toString()))
+    {
+        replyGetIcon(request);
+    }
     else
     {
         UpnpDevice::replyRequest(request);
@@ -397,4 +410,10 @@ QString UpnpRootDevice::generateUuid()
 
         return QString("%1-%2-%3-%4%5-%6").arg(time_low).arg(time_short).arg(time_hi_and_version).arg(clock_seq_low).arg(clock_seq_hi_and_reserved).arg(node);
     }
+}
+
+void UpnpRootDevice::replyGetIcon(HttpRequest *request)
+{
+    Q_UNUSED(request)
+    qWarning() << "function replyGetIcon shall be defined";
 }

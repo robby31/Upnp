@@ -16,7 +16,8 @@ public:
     void setDeviceAttribute(const QString &name, const QString &value);
 
     void addIcon(const QString &mimeType, const int &width, const int &height, const int &depth, const QString &url);
-    QString iconUrl();
+    QString iconUrl() const;
+    QStringList iconUrls() const;
 
     bool addService(UpnpService *service);
 

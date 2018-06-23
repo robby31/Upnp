@@ -31,6 +31,7 @@ public:
 
     void close();
 
+    QString macAddress() const;
     QString serverName() const;
     QHostAddress host() const;
 
@@ -40,6 +41,7 @@ public:
     ListModel *remoteRootDevices() const;
 
     UpnpRootDevice *addLocalRootDevice(UpnpRootDeviceDescription *description, int port, QString url);
+    bool addLocalRootDevice(UpnpRootDevice *device);
     void advertiseLocalRootDevice();
 
     void sendDiscover(const QString &search_target);

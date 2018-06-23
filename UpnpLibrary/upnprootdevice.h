@@ -37,6 +37,7 @@ public:
     int port() const;
 
     QString iconUrl() const;
+    QStringList iconUrls() const;
 
     virtual QString serverName() const Q_DECL_OVERRIDE;
     void setServerName(const QString &name);
@@ -75,6 +76,7 @@ private slots:
     void descriptionReceived();
 
     virtual void replyRequest(HttpRequest *request) Q_DECL_OVERRIDE;
+    virtual void replyGetIcon(HttpRequest *request);
 
 public:
     static const QString UPNP_ROOTDEVICE;

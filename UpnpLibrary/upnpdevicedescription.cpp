@@ -65,7 +65,7 @@ void UpnpDeviceDescription::addIcon(const QString &mimeType, const int &width, c
 
 }
 
-QString UpnpDeviceDescription::iconUrl()
+QString UpnpDeviceDescription::iconUrl() const
 {
     QDomElement l_icon = device().firstChildElement("iconList");
     if (!l_icon.isNull())
@@ -96,6 +96,24 @@ QString UpnpDeviceDescription::iconUrl()
     {
         return QString();
     }
+}
+
+QStringList UpnpDeviceDescription::iconUrls() const
+{
+    QStringList res;
+
+    QDomElement l_icon = device().firstChildElement("iconList");
+    if (!l_icon.isNull())
+    {
+        QDomNode icon = l_icon.firstChild();
+        while (!icon.isNull())
+        {
+            res << icon.firstChildElement("url").firstChild().nodeValue();
+            icon = icon.nextSibling();
+        }
+    }
+
+    return res;
 }
 
 QList<QDomElement> UpnpDeviceDescription::devices()
