@@ -340,17 +340,17 @@ void UpnpRootDevice::sendByeBye()
     UpnpDevice::sendByeBye();
 }
 
-void UpnpRootDevice::searchForST(const QString &st)
+void UpnpRootDevice::searchForST(const QHostAddress &host, const int &port, const QString &st)
 {
     if (st == "ssdp:all" || st == UPNP_ROOTDEVICE)
-        emit searchResponse(UPNP_ROOTDEVICE, QString("uuid:%1::%2").arg(uuid()).arg(UPNP_ROOTDEVICE));
+        emit searchResponse(host, port, UPNP_ROOTDEVICE, QString("uuid:%1::%2").arg(uuid()).arg(UPNP_ROOTDEVICE));
 
     if (st != UPNP_ROOTDEVICE)
     {
         if (status() != Ready)
             qWarning() << "cannot answer to discover request, device is not ready" << this << st;
         else
-            UpnpDevice::searchForST(st);
+            UpnpDevice::searchForST(host, port, st);
     }
 }
 
@@ -416,4 +416,19 @@ void UpnpRootDevice::replyGetIcon(HttpRequest *request)
 {
     Q_UNUSED(request)
     qWarning() << "function replyGetIcon shall be defined";
+}
+
+int UpnpRootDevice::bootId() const
+{
+    return m_bootId;
+}
+
+UpnpRootDeviceDescription *UpnpRootDevice::description() const
+{
+    return (UpnpRootDeviceDescription *)UpnpDevice::description();
+}
+
+QString UpnpRootDevice::configId() const
+{
+    return description()->configId();
 }

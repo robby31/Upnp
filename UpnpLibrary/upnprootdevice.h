@@ -28,13 +28,18 @@ public:
 
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
 
+    UpnpRootDeviceDescription *description() const;
+
     QString version() const;
 
     virtual QNetworkAccessManager *networkManager() const Q_DECL_OVERRIDE;
     void setNetworkManager(QNetworkAccessManager *nam);
 
+    int bootId() const;
     virtual QHostAddress host() const Q_DECL_OVERRIDE;
     int port() const;
+
+    QString configId() const;
 
     QString iconUrl() const;
     QStringList iconUrls() const;
@@ -49,7 +54,7 @@ public:
     void startAdvertising();
     void startServer();
 
-    virtual void searchForST(const QString &st) Q_DECL_OVERRIDE;
+    virtual void searchForST(const QHostAddress &host, const int &port, const QString &st) Q_DECL_OVERRIDE;
 
     virtual QString generateUuid() Q_DECL_OVERRIDE;
 
@@ -84,6 +89,7 @@ public:
 private:
     QNetworkAccessManager *netManager;
     QString m_servername;
+    int m_bootId = 0;
     QUrl m_url;
     QString m_iconUrl;
 

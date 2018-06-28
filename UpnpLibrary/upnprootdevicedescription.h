@@ -11,6 +11,7 @@ public:
 
     virtual QDomElement device() const Q_DECL_OVERRIDE;
 
+    QString configId() const;
     void setConfigId(const QString &id);
 
     QString version() const;

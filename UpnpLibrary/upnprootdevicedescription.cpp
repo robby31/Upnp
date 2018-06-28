@@ -66,6 +66,11 @@ void UpnpRootDeviceDescription::setVersion(const int &major, const int &minor)
     }
 }
 
+QString UpnpRootDeviceDescription::configId() const
+{
+    return m_xml.root().attribute("configId");
+}
+
 void UpnpRootDeviceDescription::setConfigId(const QString &id)
 {
     QDomElement root = m_xml.root();

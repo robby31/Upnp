@@ -316,7 +316,7 @@ void UpnpService::sendByeBye(const QString &uuid)
     emit byebyeMessage(uuid, serviceType());
 }
 
-void UpnpService::searchForST(const QString &st, const QString &uuid)
+void UpnpService::searchForST(const QHostAddress &host, const int &port, const QString &st, const QString &uuid)
 {
     if (status() != Ready)
     {
@@ -325,7 +325,7 @@ void UpnpService::searchForST(const QString &st, const QString &uuid)
     else
     {
         if (st == "ssdp:all" || st == serviceType())
-            emit searchResponse(serviceType(), QString("uuid:%1::%2").arg(uuid).arg(serviceType()));
+            emit searchResponse(host, port, serviceType(), QString("uuid:%1::%2").arg(uuid).arg(serviceType()));
     }
 }
 
@@ -559,14 +559,23 @@ bool UpnpService::replyNewSubscription(HttpRequest *request)
         header << QString("SERVER: %1").arg(request->serverName());
 
     QString uuid = generateUuid();
+
+    if (m_subscription.contains(uuid))
+        qCritical() << "invalid subscription uuid" << uuid << m_subscription.keys();
+
     header << QString("SID: uuid:%1").arg(uuid);
     header << QString("Content-Length: 0");
     header << QString("TIMEOUT: Second-1800");
 
     if (!request->sendHeader(header))
+    {
         request->setError(QString("unable to send header to client"));
+    }
     else
-        m_subscription[uuid] = l_url;
+    {
+        m_subscription[uuid].urls = l_url;
+        m_subscription[uuid].eventKey = 0;
+    }
 
     sendEvent(uuid);
 
@@ -615,15 +624,15 @@ bool UpnpService::replyRenewSubscription(HttpRequest *request)
 
 void UpnpService::sendEvent(const QString &uuid)
 {
-    if (m_subscription[uuid].size() > 0)
+    if (m_subscription[uuid].urls.size() > 0)
     {
-        QNetworkRequest request(QUrl(m_subscription[uuid].at(0)));
+        QNetworkRequest request(QUrl(m_subscription[uuid].urls.at(0)));
         request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port(80)).toUtf8());
         request.setRawHeader("CONTENT-TYPE", "text/xml; charset=\"utf-8\"");
         request.setRawHeader("NT", "upnp:event");
         request.setRawHeader("NTS", "upnp:propchange");
         request.setRawHeader("SID", QString("uuid:%1").arg(uuid).toUtf8());
-        request.setRawHeader("SEQ", "event key");
+        request.setRawHeader("SEQ", QVariant::fromValue(m_subscription[uuid].eventKey++).toString().toUtf8());
 
         XmlEvent event;
 
@@ -658,8 +667,12 @@ void UpnpService::sendEventReply()
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     if (reply)
     {
-        qWarning() << "send event reply" << reply << "from" << reply->request().url();
-        qWarning() << "answer data" << reply->rawHeaderList() << reply->readAll();
+        if (reply->error() != QNetworkReply::NoError)
+        {
+            qCritical() << "send event reply" << reply << "from" << reply->request().url();
+            qCritical() << "answer data" << reply->errorString() << reply->rawHeaderList() << reply->readAll();
+        }
+
         reply->deleteLater();
     }
 }

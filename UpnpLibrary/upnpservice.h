@@ -10,6 +10,11 @@
 #include "Http/httprequest.h"
 #include "xmlevent.h"
 
+typedef struct {
+    QStringList urls;
+    int eventKey = 0;
+} T_SUBSCRIPTION;
+
 class UpnpService : public UpnpObject
 {
     Q_OBJECT
@@ -42,7 +47,7 @@ public:
     QUrl controlUrl() const;
     QUrl eventSubUrl() const;
 
-    virtual void searchForST(const QString &st, const QString &uuid);
+    virtual void searchForST(const QHostAddress &host, const int &port, const QString &st, const QString &uuid);
 
     QStringList actionsModel() const;
     ListModel *stateVariablesModel();
@@ -98,7 +103,7 @@ private:
     QStringList m_actionsModel;
     ListModel m_stateVariablesModel;
 
-    QHash<QString, QStringList> m_subscription;
+    QHash<QString, T_SUBSCRIPTION> m_subscription;
 };
 
 #endif // UPNPSERVICE_H

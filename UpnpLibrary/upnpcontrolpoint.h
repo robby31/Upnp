@@ -42,7 +42,6 @@ public:
 
     UpnpRootDevice *addLocalRootDevice(UpnpRootDeviceDescription *description, int port, QString url);
     bool addLocalRootDevice(UpnpRootDevice *device);
-    void advertiseLocalRootDevice();
 
     void sendDiscover(const QString &search_target);
 
@@ -73,11 +72,13 @@ signals:
 
 private slots:
     void _sendMulticastSsdpMessage(SsdpMessage message);
+    void _sendUnicastSsdpMessage(const QHostAddress &host, const int &port, SsdpMessage message);
+
     void _sendAliveMessage(const QString &uuid, const QString &nt);
     void _sendByeByeMessage(const QString &uuid, const QString &nt);
 
-    void _searchForST(const QString &st);
-    void _sendSearchResponse(const QString &st, const QString &usn);
+    void _searchForST(const QHostAddress &host, const int &port, const QString &st);
+    void _sendSearchResponse(const QHostAddress &host, const int &port, const QString &st, const QString &usn);
 
     // Function called when a request is received
     void _processPendingMulticastDatagrams();
@@ -128,7 +129,7 @@ private:
      * Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
      * MUST be 1900.
      */
-    static const int UPNP_PORT = 1900;
+    static const int UPNP_PORT;
 };
 
 #endif // UPNPCONTROLPOINT_H

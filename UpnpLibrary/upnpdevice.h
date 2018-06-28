@@ -45,12 +45,15 @@ public:
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
     UpnpService *getService(const QString &serviceId);
 
-    virtual void searchForST(const QString &st);
+    virtual void searchForST(const QHostAddress &host, const int &port, const QString &st);
 
     virtual void replyRequest(HttpRequest *request);
 
 private:
     void initRoles();
+
+    void readServices();
+    void readDevices();
 
     void addService(const QDomNode &descr);
     void addDevice(const QDomNode &descr);
@@ -71,8 +74,6 @@ private slots:
     void itemAvailableChanged();
 
     virtual void parseObject() Q_DECL_OVERRIDE; // parse device to read Device and Services
-    void readServices();
-    void readDevices();
 
     void subscribeEventingSlot(const QNetworkRequest &request, const QString &serviceId);
 

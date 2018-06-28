@@ -151,7 +151,7 @@ void UpnpDevice::addService(const QDomNode &descr)
             UpnpService *service = new UpnpService(this, descr, m_services);
             connect(service, SIGNAL(aliveMessage(QString,QString)), this, SIGNAL(aliveMessage(QString,QString)));
             connect(service, SIGNAL(byebyeMessage(QString,QString)), this, SIGNAL(byebyeMessage(QString,QString)));
-            connect(service, SIGNAL(searchResponse(QString,QString)), this, SIGNAL(searchResponse(QString,QString)));
+            connect(service, &UpnpService::searchResponse, this, &UpnpDevice::searchResponse);
             connect(service, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString)), this, SLOT(subscribeEventingSlot(QNetworkRequest,QString)));
             m_services->appendRow(service);
             service->requestDescription();
@@ -193,7 +193,7 @@ bool UpnpDevice::addService(UpnpService *p_service)
             p_service->setParent(m_services);
             connect(p_service, SIGNAL(aliveMessage(QString,QString)), this, SIGNAL(aliveMessage(QString,QString)));
             connect(p_service, SIGNAL(byebyeMessage(QString,QString)), this, SIGNAL(byebyeMessage(QString,QString)));
-            connect(p_service, SIGNAL(searchResponse(QString,QString)), this, SIGNAL(searchResponse(QString,QString)));
+            connect(p_service, &UpnpService::searchResponse, this, &UpnpDevice::searchResponse);
             connect(p_service, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString)), this, SLOT(subscribeEventingSlot(QNetworkRequest,QString)));
             m_services->appendRow(p_service);
 
@@ -229,14 +229,12 @@ void UpnpDevice::addDevice(const QDomNode &descr)
                 UpnpDevice *device = new UpnpDevice(strUuid, this, m_devices);
                 connect(device, SIGNAL(aliveMessage(QString,QString)), this, SIGNAL(aliveMessage(QString,QString)));
                 connect(device, SIGNAL(byebyeMessage(QString,QString)), this, SIGNAL(byebyeMessage(QString,QString)));
-                connect(device, SIGNAL(searchResponse(QString,QString)), this, SIGNAL(searchResponse(QString,QString)));
+                connect(device, &UpnpDevice::searchResponse, this, &UpnpDevice::searchResponse);
                 connect(device, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString,QString)), this, SIGNAL(subscribeEventingSignal(QNetworkRequest,QString,QString)));
                 UpnpDeviceDescription *description = new UpnpDeviceDescription();
                 description->setContent(descr);
                 device->setDescription(description);
                 m_devices->appendRow(device);
-                device->readDevices();
-                device->readServices();
             }
             else
             {
@@ -369,7 +367,7 @@ void UpnpDevice::sendByeBye()
     }
 }
 
-void UpnpDevice::searchForST(const QString &st)
+void UpnpDevice::searchForST(const QHostAddress &host, const int &port, const QString &st)
 {
     if (status() != Ready)
     {
@@ -378,21 +376,21 @@ void UpnpDevice::searchForST(const QString &st)
     else
     {
         if (st == "ssdp:all" || st == QString("uuid:%1").arg(uuid()))
-            emit searchResponse(QString("uuid:%1").arg(uuid()), QString("uuid:%1").arg(uuid()));
+            emit searchResponse(host, port, QString("uuid:%1").arg(uuid()), QString("uuid:%1").arg(uuid()));
 
         if (st == "ssdp:all" || st == deviceType())
-            emit searchResponse(deviceType(), QString("uuid:%1::%2").arg(uuid()).arg(deviceType()));
+            emit searchResponse(host, port, deviceType(), QString("uuid:%1::%2").arg(uuid()).arg(deviceType()));
 
         for (int i=0;i<m_services->rowCount();++i)
         {
             UpnpService *service = qobject_cast<UpnpService*>(m_services->at(i));
-            service->searchForST(st, uuid());
+            service->searchForST(host, port, st, uuid());
         }
 
         for (int i=0;i<m_devices->rowCount();++i)
         {
             UpnpDevice *device = qobject_cast<UpnpDevice*>(m_devices->at(i));
-            device->searchForST(st);
+            device->searchForST(host, port, st);
         }
     }
 }

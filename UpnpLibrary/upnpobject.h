@@ -80,7 +80,7 @@ signals:
     void aliveMessage(const QString &uuid, const QString &nt);
     void byebyeMessage(const QString &uuid, const QString &nt);
 
-    void searchResponse(const QString &st, const QString &usn);
+    void searchResponse(const QHostAddress &address, const int &port, const QString &st, const QString &usn);
 
 public slots:
 
