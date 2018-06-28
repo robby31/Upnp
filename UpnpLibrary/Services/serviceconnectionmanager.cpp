@@ -151,6 +151,13 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
 
         return true;
     }
+    else if (action.actionName() == "GetCurrentConnectionInfo")
+    {
+        QString connectionID = action.argumentValue("ConnectionID");
+        qWarning() << "GetCurrentConnectionInfo : " << connectionID;
+
+        return true;
+    }
     else
     {
         qCritical() << "unknwon action" << action.actionName();
