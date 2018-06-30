@@ -592,7 +592,7 @@ void UpnpControlPoint::subscribeEventingFinished()
                     m_sidEvent[sid].timeOut = reply->rawHeader("TIMEOUT").trimmed();
                 }
 
-                qDebug() << "new event subscribed" << sid << m_sidEvent[sid] << reply->request().url();
+                qDebug() << "new event subscribed" << sid << reply->request().url();
             }
             else
             {
