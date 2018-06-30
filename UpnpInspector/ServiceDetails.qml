@@ -104,4 +104,8 @@ ColumnLayout {
             ScrollBar.vertical: ScrollBar { }
         }
     }
+
+    Component.onCompleted: {
+        service.subscribeEventing()
+    }
 }

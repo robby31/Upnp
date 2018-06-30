@@ -16,6 +16,12 @@
 #include <chrono>
 #include "eventresponse.h"
 
+typedef struct {
+    QString deviceUuid;
+    QString serviceId;
+    QString timeOut;
+} T_EVENT;
+
 class UpnpControlPoint : public QObject
 {
     Q_OBJECT
@@ -98,7 +104,7 @@ private:
 
     HttpServer eventServer;
     qint16 m_eventPort;
-    QHash<QString, QStringList> m_sidEvent;
+    QHash<QString, T_EVENT> m_sidEvent;
     int m_eventCheckSubscription;
 
     QString m_servername;

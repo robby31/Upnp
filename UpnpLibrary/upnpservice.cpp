@@ -331,14 +331,21 @@ void UpnpService::searchForST(const QHostAddress &host, const int &port, const Q
 
 void UpnpService::subscribeEventing()
 {
-    QString streventSubUrl = getInfo("eventSubURL");
-    if (!streventSubUrl.isEmpty())
+    if (status() == Ready)
     {
-        QNetworkRequest request(urlFromRelativePath(streventSubUrl));
-        request.setRawHeader("NT", "upnp:event");
-        request.setRawHeader("TIMEOUT", "Second-300");
+        QString streventSubUrl = getInfo("eventSubURL");
+        if (!streventSubUrl.isEmpty())
+        {
+            QNetworkRequest request(urlFromRelativePath(streventSubUrl));
+            request.setRawHeader("NT", "upnp:event");
+            request.setRawHeader("TIMEOUT", "Second-300");
 
-        emit subscribeEventingSignal(request, serviceId());
+            emit subscribeEventingSignal(request, serviceId());
+        }
+    }
+    else
+    {
+        qCritical() << "unable to subscibe event, service not ready";
     }
 }
 
@@ -489,8 +496,6 @@ void UpnpService::parseObject()
     if (status() != Error)
     {
         setStatus(Ready);
-
-        subscribeEventing();
     }
 }
 
@@ -577,7 +582,12 @@ bool UpnpService::replyNewSubscription(HttpRequest *request)
         m_subscription[uuid].eventKey = 0;
     }
 
-    sendEvent(uuid);
+    // send events in 1 second
+    int timerId = startTimer(1000);
+    if (timerId > 0)
+        m_sendEventTimer[timerId] = uuid;
+    else
+        qCritical() << "unable to start timer to send events" << uuid;
 
     return true;
 }
@@ -683,4 +693,18 @@ bool UpnpService::replyAction(HttpRequest *request, const SoapAction &action)
     Q_UNUSED(action)
     qCritical() << "function replyAction shall be defined by class";
     return false;
+}
+
+void UpnpService::timerEvent(QTimerEvent *event)
+{
+    if (m_sendEventTimer.contains(event->timerId()))
+    {
+        sendEvent(m_sendEventTimer[event->timerId()]);
+        killTimer(event->timerId());
+    }
+    else
+    {
+        qCritical() << "invalid timer" << event->timerId();
+        killTimer(event->timerId());
+    }
 }

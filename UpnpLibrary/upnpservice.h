@@ -73,6 +73,8 @@ private:
 protected:
     virtual bool replyAction(HttpRequest *request, const SoapAction &action);
 
+    virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
+
 signals:
     void serviceTypeChanged();
     void actionsModelChanged();
@@ -104,6 +106,7 @@ private:
     ListModel m_stateVariablesModel;
 
     QHash<QString, T_SUBSCRIPTION> m_subscription;
+    QHash<int, QString> m_sendEventTimer;
 };
 
 #endif // UPNPSERVICE_H
