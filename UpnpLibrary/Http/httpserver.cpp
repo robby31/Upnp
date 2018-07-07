@@ -43,6 +43,7 @@ void HttpServer::incomingData()
             qDebug() << "new request" << socket << clientConnection->peerAddress().toString();
             request = new HttpRequest(clientConnection, this);
             request->setDeviceUuid(deviceUuid());
+            request->setServerName(m_serverName);
             request->incomingData();
 
             if (request->operation() != QNetworkAccessManager::UnknownOperation)
@@ -84,4 +85,14 @@ QString HttpServer::deviceUuid() const
 void HttpServer::setDeviceUuid(const QString &uuid)
 {
     m_uuid = uuid;
+}
+
+QString HttpServer::serverName() const
+{
+    return m_serverName;
+}
+
+void HttpServer::setServerName(const QString &name)
+{
+    m_serverName = name;
 }

@@ -13,6 +13,9 @@ public:
     explicit HttpServer(QObject *parent = 0);
     virtual ~HttpServer() Q_DECL_OVERRIDE;
 
+    QString serverName() const;
+    void setServerName(const QString &name);
+
     QString deviceUuid() const;
     void setDeviceUuid(const QString &uuid);
 
@@ -25,6 +28,7 @@ private slots:
     void incomingData();
 
 private:
+    QString m_serverName;
     QHash<qintptr, HttpRequest*> m_request;
     QString m_uuid;
 };
