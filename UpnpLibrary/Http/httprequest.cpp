@@ -691,7 +691,19 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
             m_replyHeader << "";
             m_replyHeader << "";
 
-            if (operation() == QNetworkAccessManager::HeadOperation or operationString() == "SUBSCRIBE")
+            int content_length = 0;
+            QRegularExpression length("^Content-Length:\\s*(\\d+)", QRegularExpression::CaseInsensitiveOption);
+            foreach (const QString &param, m_replyHeader)
+            {
+                QRegularExpressionMatch match = length.match(param);
+                if (match.hasMatch())
+                {
+                    content_length = match.captured(1).toInt();
+                    break;
+                }
+            }
+
+            if (operation() == QNetworkAccessManager::HeadOperation or content_length == 0)
             {
                 // no data expected so header is sent immediately
                 if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
