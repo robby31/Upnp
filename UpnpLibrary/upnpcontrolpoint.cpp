@@ -23,7 +23,7 @@ UpnpControlPoint::UpnpControlPoint(qint16 eventPort, QObject *parent):
     netManager(0),
     m_eventPort(eventPort),
     m_eventCheckSubscription(-1),
-    m_servername(QString("%1/%2 UPnP/%3 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(UPNP_VERSION)),
+    m_servername(QString("%1/%2 UPnP/%3 CTP/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(UPNP_VERSION)),
     m_hostAddress(),
     udpSocketMulticast(this),
     udpSocketUnicast(this),
@@ -54,6 +54,8 @@ UpnpControlPoint::UpnpControlPoint(qint16 eventPort, QObject *parent):
     }
     else
     {
+        eventServer.setServerName(m_servername);
+
         // start event server
         if (!eventServer.listen(m_hostAddress, m_eventPort))
             qCritical() << "unable to start event server" << m_hostAddress.toString() << m_eventPort << eventServer.errorString();
@@ -61,7 +63,7 @@ UpnpControlPoint::UpnpControlPoint(qint16 eventPort, QObject *parent):
         connect(&eventServer, &HttpServer::requestCompleted, this, &UpnpControlPoint::requestEventReceived);
     }
 
-    m_eventCheckSubscription = startTimer(10000);
+    m_eventCheckSubscription = startTimer(60000);
 }
 
 UpnpControlPoint::~UpnpControlPoint()
@@ -200,7 +202,7 @@ void UpnpControlPoint::_sendAliveMessage(const QString &uuid, const QString &nt)
         else
             message.addHeader("NT", nt);
         message.addHeader("NTS", ALIVE);
-        message.addHeader("SERVER", m_servername);
+        message.addHeader("SERVER", root->serverName());
         message.addHeader("USN", usn);
         message.addHeader("BOOTID.UPNP.ORG", QString("%1").arg(root->bootId()));
         message.addHeader("CONFIGID.UPNP.ORG", QString("%1").arg(root->configId()));
@@ -365,10 +367,33 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
             QString st = message.getHeader("ST");
             if (!st.isEmpty())
             {
+                int delay = -1;
                 if (!message.getHeader("MX").isNull())
-                    qWarning() << "SEARCH MULTICAST" << host << port << message.getHeader("MX") << "seconds.";
+                {
+                    delay = QRandomGenerator::global()->bounded(message.getHeader("MX").toInt()*1000);
+                    qDebug() << "SEARCH MULTICAST" << host << port << st << message.getHeader("MX") << "seconds." << delay;
+                }
 
-                _searchForST(host, port, st);
+                if (delay > 0)
+                {
+                    qDebug() << "delay answer" << delay << "seconds";
+                    int timerEvent = startTimer(delay);
+                    if (timerEvent > 0)
+                    {
+                        m_searchAnswer[timerEvent].host = host;
+                        m_searchAnswer[timerEvent].port = port;
+                        m_searchAnswer[timerEvent].st = st;
+                    }
+                    else
+                    {
+                        qCritical() << "unable to start timer";
+                        _searchForST(host, port, st);
+                    }
+                }
+                else
+                {
+                    _searchForST(host, port, st);
+                }
             }
             else
             {
@@ -440,7 +465,6 @@ UpnpRootDevice *UpnpControlPoint::addLocalRootDevice(UpnpRootDeviceDescription *
 
     description->setDeviceAttribute("UDN", QString("uuid:%1").arg(device->id()));
     device->setDescription(description);
-    device->setServerName(serverName());
     device->setAdvertise(true);
 
     QUrl tmp(QString("http://%1:%2").arg(m_hostAddress.toString()).arg(port));
@@ -461,7 +485,6 @@ bool UpnpControlPoint::addLocalRootDevice(UpnpRootDevice *device)
         connect(device, &UpnpRootDevice::byebyeMessage, this, &UpnpControlPoint::_sendByeByeMessage);
         connect(device, &UpnpRootDevice::searchResponse, this, &UpnpControlPoint::_sendSearchResponse);
 
-        device->setServerName(serverName());
         device->setAdvertise(true);
 
         m_localRootDevice->appendRow(device);
@@ -502,7 +525,7 @@ void UpnpControlPoint::_sendSearchResponse(const QHostAddress &host, const int &
         message.addHeader("DATE", sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
         message.addHeader("EXT", "");
         message.addHeader("LOCATION", root->url().toString());
-        message.addHeader("SERVER", m_servername);
+        message.addHeader("SERVER", root->serverName());
         message.addHeader("ST", st);
         message.addHeader("USN", usn);
         message.addHeader("BOOTID.UPNP.ORG", QString("%1").arg(root->bootId()));
@@ -570,7 +593,6 @@ void UpnpControlPoint::subscribeEventingFinished()
 
             if (!m_sidEvent.contains(sid))
             {
-                qWarning() << "new event subscribe" << sid;
                 m_sidEvent[sid].deviceUuid = reply->property("deviceUuid").toString();
                 m_sidEvent[sid].serviceId = reply->property("serviceId").toString();
 
@@ -592,7 +614,7 @@ void UpnpControlPoint::subscribeEventingFinished()
                     m_sidEvent[sid].timeOut = reply->rawHeader("TIMEOUT").trimmed();
                 }
 
-                qDebug() << "new event subscribed" << sid << reply->request().url();
+                qDebug() << "new event subscribed" << sid << reply->request().url() << reply->property("serviceId").toString();
             }
             else
             {
@@ -656,6 +678,8 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
                 if (!event.isValid())
                 {
                     qCritical() << "invalid eventing request received" << event.toString();
+                    UpnpError error(UpnpError::BAD_REQUEST);
+                    request->replyError(error);
                 }
                 else
                 {
@@ -666,25 +690,38 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
 
                         UpnpService *service = getService(deviceUuid, serviceId);
                         if (service)
+                        {
                             service->updateStateVariables(event.variables());
+                            request->sendHeader(QStringList());
+                        }
                         else
+                        {
                             qCritical() << "unable to find service" << serviceId << deviceUuid << request->peerAddress() << sid << seq;
+                            UpnpError error(UpnpError::PRECONDITIN_FAILED);
+                            request->replyError(error);
+                        }
                     }
                     else
                     {
                         qCritical() << "available sid" << m_sidEvent.keys();
                         qCritical() << "invalid sid for eventing." << request->peerAddress().toString() << sid;
+                        UpnpError error(UpnpError::PRECONDITIN_FAILED);
+                        request->replyError(error);
                     }
                 }
             }
             else
             {
                 qCritical() << "invalid NTS for eventing" << nts;
+                UpnpError error(UpnpError::PRECONDITIN_FAILED);
+                request->replyError(error);
             }
         }
         else
         {
             qCritical() << "invalid NT for eventing" << nt;
+            UpnpError error(UpnpError::PRECONDITIN_FAILED);
+            request->replyError(error);
         }
 
         request->deleteLater();
@@ -755,6 +792,17 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
                 m_sidEvent.remove(sid);
             }
         }
+    }
+    else if (m_searchAnswer.contains(event->timerId()))
+    {
+        T_SEARCH_ANSWER search = m_searchAnswer[event->timerId()];
+        _searchForST(search.host, search.port, search.st);
+        killTimer(event->timerId());
+        m_searchAnswer.remove(event->timerId());
+    }
+    else
+    {
+        qCritical() << "invalid timer event" << event->timerId();
     }
 }
 

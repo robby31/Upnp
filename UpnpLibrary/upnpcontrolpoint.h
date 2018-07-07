@@ -15,12 +15,19 @@
 #include "Models/listmodel.h"
 #include <chrono>
 #include "eventresponse.h"
+#include <QRandomGenerator>
 
 typedef struct {
     QString deviceUuid;
     QString serviceId;
     QString timeOut;
 } T_EVENT;
+
+typedef struct {
+    QHostAddress host;
+    int port;
+    QString st;
+} T_SEARCH_ANSWER;
 
 class UpnpControlPoint : public QObject
 {
@@ -106,6 +113,7 @@ private:
     qint16 m_eventPort;
     QHash<QString, T_EVENT> m_sidEvent;
     int m_eventCheckSubscription;
+    QHash<int, T_SEARCH_ANSWER> m_searchAnswer;
 
     QString m_servername;
     QHostAddress m_hostAddress;
