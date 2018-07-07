@@ -13,7 +13,13 @@
 typedef struct {
     QStringList urls;
     int eventKey = 0;
+    int timeOut = 0;
+    QDateTime timeOver;
 } T_SUBSCRIPTION;
+
+typedef struct {
+    QNetworkReply *reply;
+} T_SENDEVENTS;
 
 class UpnpService : public UpnpObject
 {
@@ -67,6 +73,8 @@ private:
 
     bool replyNewSubscription(HttpRequest *request);
     bool replyRenewSubscription(HttpRequest *request);
+    void startCheckSubscription();
+    void stopCheckSubscription();
 
     void sendEvent(const QString &uuid);
 
@@ -106,7 +114,9 @@ private:
     ListModel m_stateVariablesModel;
 
     QHash<QString, T_SUBSCRIPTION> m_subscription;
+    int m_timerCheckSubscription = -1;
     QHash<int, QString> m_sendEventTimer;
+    QHash<int, T_SENDEVENTS> m_checkSendEvent;
 };
 
 #endif // UPNPSERVICE_H

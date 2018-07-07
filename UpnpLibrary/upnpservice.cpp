@@ -509,7 +509,7 @@ bool UpnpService::replyRequest(HttpRequest *request)
         request->replyData(description()->stringDescription().toUtf8());
         return true;
     }
-    else if (request->operationString() == "SUBSCRIBE" && requestUrl == eventSubUrl() && request->header("NT") == "upnp:event")
+    else if (request->operationString() == "SUBSCRIBE" && requestUrl == eventSubUrl() && !request->header("NT").isEmpty())
     {
         replyNewSubscription(request);
         return true;
@@ -546,48 +546,76 @@ bool UpnpService::replyRequest(HttpRequest *request)
 
 bool UpnpService::replyNewSubscription(HttpRequest *request)
 {
-    QStringList l_url;
-    QRegularExpression callback("<(.+)>");
-    QRegularExpressionMatchIterator i = callback.globalMatch(request->header("CALLBACK"));
-    while (i.hasNext())
+    if (request->header("NT") == "upnp:event")
     {
-        QRegularExpressionMatch match = i.next();
-        if (match.hasMatch())
-            l_url << match.captured(1);
-    }
+        QStringList l_url;
+        QRegularExpression callback("<(.+)>");
+        QRegularExpressionMatchIterator i = callback.globalMatch(request->header("CALLBACK"));
+        while (i.hasNext())
+        {
+            QRegularExpressionMatch match = i.next();
+            if (match.hasMatch())
+                l_url << match.captured(1);
+        }
 
-    QStringList header;
+        if (l_url.isEmpty())
+        {
+            UpnpError error(UpnpError::PRECONDITIN_FAILED);
+            request->replyError(error);
+        }
+        else
+        {
+            QStringList header;
 
-    QDateTime sdf;
-    header << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
-    if (!request->serverName().isEmpty())
-        header << QString("SERVER: %1").arg(request->serverName());
+            QDateTime sdf;
+            header << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+            if (!request->serverName().isEmpty())
+                header << QString("SERVER: %1").arg(request->serverName());
 
-    QString uuid = generateUuid();
+            QString uuid = generateUuid();
+            int timeOut = 1800;
 
-    if (m_subscription.contains(uuid))
-        qCritical() << "invalid subscription uuid" << uuid << m_subscription.keys();
+            if (m_subscription.contains(uuid))
+                qCritical() << "invalid subscription uuid" << uuid << m_subscription.keys();
 
-    header << QString("SID: uuid:%1").arg(uuid);
-    header << QString("Content-Length: 0");
-    header << QString("TIMEOUT: Second-1800");
+            header << QString("SID: uuid:%1").arg(uuid);
+            header << QString("Content-Length: 0");
+            header << QString("TIMEOUT: Second-%1").arg(timeOut);
 
-    if (!request->sendHeader(header))
-    {
-        request->setError(QString("unable to send header to client"));
+            if (!request->sendHeader(header))
+            {
+                request->setError(QString("unable to send header to client"));
+            }
+            else
+            {                
+                m_subscription[uuid].urls = l_url;
+                m_subscription[uuid].eventKey = 0;
+                m_subscription[uuid].timeOut = timeOut;
+                m_subscription[uuid].timeOver = QDateTime::currentDateTime().addSecs(timeOut);
+
+                if (m_timerCheckSubscription <= 0)
+                    startCheckSubscription();
+
+                // send events in 1 second
+                int timerId = startTimer(1000);
+                if (timerId > 0)
+                {
+                    m_sendEventTimer[timerId] = uuid;
+                }
+                else
+                {
+                    qCritical() << "unable to start timer to send events" << uuid;
+                    sendEvent(uuid);
+                }
+            }
+        }
     }
     else
     {
-        m_subscription[uuid].urls = l_url;
-        m_subscription[uuid].eventKey = 0;
+        // param NT in header is invalid
+        UpnpError error(UpnpError::PRECONDITIN_FAILED);
+        request->replyError(error);
     }
-
-    // send events in 1 second
-    int timerId = startTimer(1000);
-    if (timerId > 0)
-        m_sendEventTimer[timerId] = uuid;
-    else
-        qCritical() << "unable to start timer to send events" << uuid;
 
     return true;
 }
@@ -603,6 +631,7 @@ bool UpnpService::replyRenewSubscription(HttpRequest *request)
         {
             qDebug() << "RENEW SUBSCRIPTION" << sid;
 
+            int timeOut = 1800;
             QStringList header;
 
             QDateTime sdf;
@@ -612,21 +641,30 @@ bool UpnpService::replyRenewSubscription(HttpRequest *request)
 
             header << QString("SID: uuid:%1").arg(sid);
             header << QString("Content-Length: 0");
-            header << QString("TIMEOUT: Second-1800");
+            header << QString("TIMEOUT: Second-%1").arg(timeOut);
 
             if (!request->sendHeader(header))
             {
                 request->setError(QString("RENEW: unable to send header to client"));
             }
+            else
+            {
+                qDebug() << "RENEW EVENT" << QDateTime::currentDateTime().secsTo(m_subscription[sid].timeOver);
+                m_subscription[sid].timeOver = QDateTime::currentDateTime().addSecs(timeOut);
+            }
         }
         else
         {
             qCritical() << "Invalid subscription renewal" << sid;
+            UpnpError error(UpnpError::PRECONDITIN_FAILED);
+            request->replyError(error);
         }
     }
     else
     {
         qCritical() << "invalid SID" << request->header("SID") << "in SUBSCRIPTION renewal";
+        UpnpError error(UpnpError::BAD_REQUEST);
+        request->replyError(error);
     }
 
     return true;
@@ -643,6 +681,7 @@ void UpnpService::sendEvent(const QString &uuid)
         request.setRawHeader("NTS", "upnp:propchange");
         request.setRawHeader("SID", QString("uuid:%1").arg(uuid).toUtf8());
         request.setRawHeader("SEQ", QVariant::fromValue(m_subscription[uuid].eventKey++).toString().toUtf8());
+        request.setRawHeader("CONNECTION", "close");
 
         XmlEvent event;
 
@@ -664,6 +703,10 @@ void UpnpService::sendEvent(const QString &uuid)
         {
             QNetworkReply *reply = networkManager()->sendCustomRequest(request, "NOTIFY", event.toString().toUtf8());
             connect(reply, SIGNAL(finished()), this, SLOT(sendEventReply()));
+
+            // check answer is received (30 seconds timeout)
+            int timerId = startTimer(30000);
+            m_checkSendEvent[timerId].reply = reply;
         }
         else
         {
@@ -675,12 +718,24 @@ void UpnpService::sendEvent(const QString &uuid)
 void UpnpService::sendEventReply()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    qDebug() << "reply received" << reply;
     if (reply)
     {
         if (reply->error() != QNetworkReply::NoError)
         {
             qCritical() << "send event reply" << reply << "from" << reply->request().url();
             qCritical() << "answer data" << reply->errorString() << reply->rawHeaderList() << reply->readAll();
+        }
+
+        foreach (const int &timerId, m_checkSendEvent.keys())
+        {
+            if (m_checkSendEvent[timerId].reply == reply)
+            {
+                qDebug() << "kill timer timeout" << timerId;
+                killTimer(timerId);
+                m_checkSendEvent.remove(timerId);
+                break;
+            }
         }
 
         reply->deleteLater();
@@ -701,10 +756,56 @@ void UpnpService::timerEvent(QTimerEvent *event)
     {
         sendEvent(m_sendEventTimer[event->timerId()]);
         killTimer(event->timerId());
+        m_sendEventTimer.remove(event->timerId());
+    }
+    else if (m_timerCheckSubscription == event->timerId())
+    {
+        // check event subscribed are still valid
+        foreach (const QString &uuid, m_subscription.keys())
+        {
+            if (QDateTime::currentDateTime().secsTo(m_subscription[uuid].timeOver) < 1)
+            {
+                qWarning() << uuid << m_subscription[uuid].timeOver << "subscription over";
+                m_subscription.remove(uuid);
+            }
+        }
+
+        if (m_subscription.isEmpty())
+            stopCheckSubscription();
+    }
+    else if (m_checkSendEvent.contains(event->timerId()))
+    {
+        qWarning() << "SEND EVENT TIMEOUT" << event->timerId();
+
+        m_checkSendEvent[event->timerId()].reply->deleteLater();
+
+        killTimer(event->timerId());
+        m_checkSendEvent.remove(event->timerId());
     }
     else
     {
         qCritical() << "invalid timer" << event->timerId();
         killTimer(event->timerId());
+    }
+}
+
+void UpnpService::startCheckSubscription()
+{
+    if (m_timerCheckSubscription > 0)
+    {
+        qCritical() << "check subscription already started in service" << id();
+    }
+    else
+    {
+        m_timerCheckSubscription = startTimer(60000);
+    }
+}
+
+void UpnpService::stopCheckSubscription()
+{
+    if (m_timerCheckSubscription > 0)
+    {
+        killTimer(m_timerCheckSubscription);
+        m_timerCheckSubscription = -1;
     }
 }
