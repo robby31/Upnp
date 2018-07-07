@@ -291,6 +291,7 @@ void UpnpRootDevice::startServer()
     {
         server = new HttpServer(this);
         server->setDeviceUuid(uuid());
+        server->setServerName(m_servername);
         connect(server, SIGNAL(newRequest(HttpRequest*)), this, SIGNAL(newRequest(HttpRequest*)));
         connect(server, SIGNAL(requestCompleted(HttpRequest*)), this, SLOT(replyRequest(HttpRequest*)));
         connect(server, SIGNAL(requestCompleted(HttpRequest*)), this, SIGNAL(requestCompleted(HttpRequest*)));
