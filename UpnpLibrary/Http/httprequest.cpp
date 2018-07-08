@@ -691,14 +691,14 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
             m_replyHeader << "";
             m_replyHeader << "";
 
-            int content_length = 0;
+            qint64 content_length = 0;
             QRegularExpression length("^Content-Length:\\s*(\\d+)", QRegularExpression::CaseInsensitiveOption);
             foreach (const QString &param, m_replyHeader)
             {
                 QRegularExpressionMatch match = length.match(param);
                 if (match.hasMatch())
                 {
-                    content_length = match.captured(1).toInt();
+                    content_length = match.captured(1).toLongLong();
                     break;
                 }
             }
