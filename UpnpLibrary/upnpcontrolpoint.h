@@ -74,6 +74,9 @@ private:
 
     void removeSidEventFromUuid(const QString &deviceUuid);
 
+    // return sid event subscribed
+    QString eventSubscribed(const QString &uuid, const QString &serviceId);
+
 signals:
     void serverNameChanged();
     void localRootDevicesChanged();

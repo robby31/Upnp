@@ -322,11 +322,14 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
             if (nt == UpnpRootDevice::UPNP_ROOTDEVICE)
             {
                 UpnpRootDevice *device = getRootDeviceFromUuid(message.getUuidFromUsn());
-
                 if (device != 0)
                 {
                     device->setAvailable(false);
                     removeSidEventFromUuid(device->uuid());
+                }
+                else
+                {
+                    qCritical() << "invalid object" << device << nt;
                 }
             }
             else
@@ -334,8 +337,22 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
                 UpnpObject *object = getUpnpObjectFromUSN(message.getHeader("USN"));
                 if (object != 0)
                 {
-                    object->setAvailable(false);
-                    qWarning() << "object BYEBYE" << object;
+                    if (object->type() == UpnpObject::T_Device)
+                    {
+                        UpnpDevice *device = (UpnpDevice*) object;
+                        device->setAvailable(false);
+                        removeSidEventFromUuid(device->uuid());
+
+                    }
+                    else
+                    {
+                        object->setAvailable(false);
+                        qWarning() << "object BYEBYE" << object;
+                    }
+                }
+                else
+                {
+                    qCritical() << "invalid object" << object << nt;
                 }
             }
         }
@@ -556,16 +573,36 @@ void UpnpControlPoint::_rootDeviceStatusChanged()
         emit newRootDevice(root);
 }
 
+QString UpnpControlPoint::eventSubscribed(const QString &uuid, const QString &serviceId)
+{
+    foreach (const QString &sid, m_sidEvent.keys())
+    {
+        if (m_sidEvent[sid].deviceUuid == uuid && m_sidEvent[sid].serviceId==serviceId)
+            return sid;  // return sid of events subscribed for serviceId on device identified by uuid
+    }
+
+    return QString();
+}
+
 void UpnpControlPoint::subscribeEventing(QNetworkRequest request, const QString &uuid, const QString &serviceId)
 {
-    request.setRawHeader("Connection", "close");
-    request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
-    request.setRawHeader("CALLBACK", QString("<http://%1:%2/event/%3/%4>").arg(host().toString()).arg(m_eventPort).arg(uuid).arg(serviceId).toUtf8());
+    QString sid = eventSubscribed(uuid, serviceId);
 
-    QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
-    connect(reply, &QNetworkReply::finished, this, &UpnpControlPoint::subscribeEventingFinished);
-    reply->setProperty("deviceUuid", uuid);
-    reply->setProperty("serviceId", serviceId);
+    if (sid.isEmpty())
+    {
+        request.setRawHeader("Connection", "close");
+        request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
+        request.setRawHeader("CALLBACK", QString("<http://%1:%2/event/%3/%4>").arg(host().toString()).arg(m_eventPort).arg(uuid).arg(serviceId).toUtf8());
+
+        QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
+        connect(reply, &QNetworkReply::finished, this, &UpnpControlPoint::subscribeEventingFinished);
+        reply->setProperty("deviceUuid", uuid);
+        reply->setProperty("serviceId", serviceId);
+    }
+    else
+    {
+        qDebug() << "event already subscribed" << uuid << serviceId;
+    }
 }
 
 void UpnpControlPoint::subscribeEventingFinished()
