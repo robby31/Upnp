@@ -7,7 +7,6 @@ ColumnLayout {
     id: item
 
     property var service
-    property int rootIndex
     property string rootIconUrl
 
     Row {

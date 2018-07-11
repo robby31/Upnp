@@ -21,14 +21,17 @@ Page {
     }
 
     function setRootDeviceDetails(index, iconurl) {
-        stack.push("RootDeviceDetails.qml", { device: upnpControlPoint.remoteRootDevices.at(index), rootIndex: index, iconurl: iconurl})
+        stack.push("RootDeviceDetails.qml", { device: upnpControlPoint.remoteRootDevices.at(index), iconurl: iconurl})
     }
 
-    function setServiceDetails(service, rootIndex, rootIconUrl) {
-        stack.push("ServiceDetails.qml", { service: service, rootIndex: rootIndex, rootIconUrl: rootIconUrl })
+    function setServiceDetails(service, rootIconUrl) {
+        if (service.serviceType.startsWith("urn:schemas-upnp-org:service:ConnectionManager:"))
+            stack.push("ServiceConnectionManager.qml", { service: service, rootIconUrl: rootIconUrl })
+        else
+            stack.push("ServiceDetails.qml", { service: service, rootIconUrl: rootIconUrl })
     }
 
-    function setDeviceDetails(device, rootIndex, rootIconUrl) {
-        stack.push("DeviceDetails.qml", { device: device, rootIndex: rootIndex, rootIconUrl: rootIconUrl })
+    function setDeviceDetails(device, rootIconUrl) {
+        stack.push("DeviceDetails.qml", { device: device, rootIconUrl: rootIconUrl })
     }
 }

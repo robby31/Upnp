@@ -7,7 +7,6 @@ ColumnLayout {
     id: item
 
     property var device
-    property int rootIndex
     property string rootIconUrl
 
     Row {
@@ -88,7 +87,7 @@ ColumnLayout {
             clip: true
 
             function selectDevice(index) {
-                setDeviceDetails(item.device.devicesModel.at(index), item.rootIndex, item.iconurl)
+                setDeviceDetails(item.device.devicesModel.at(index), item.iconurl)
             }
         }
 
@@ -104,7 +103,7 @@ ColumnLayout {
             clip: true
 
             function selectService(index) {
-                setServiceDetails(item.device.servicesModel.at(index), item.rootIndex, item.iconurl)
+                setServiceDetails(item.device.servicesModel.at(index), item.iconurl)
             }
         }
     }
