@@ -327,10 +327,6 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
                     device->setAvailable(false);
                     removeSidEventFromUuid(device->uuid());
                 }
-                else
-                {
-                    qCritical() << "invalid object" << device << nt;
-                }
             }
             else
             {
@@ -349,10 +345,6 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
                         object->setAvailable(false);
                         qWarning() << "object BYEBYE" << object;
                     }
-                }
-                else
-                {
-                    qCritical() << "invalid object" << object << nt;
                 }
             }
         }
