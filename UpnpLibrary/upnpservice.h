@@ -70,6 +70,7 @@ private:
     QString getInfo(const QString &param) const;
 
     QNetworkReply *sendAction(const SoapAction &action);
+    QDomNode getAction(const QString &actionName);
 
     bool replyNewSubscription(HttpRequest *request);
     bool replyRenewSubscription(HttpRequest *request);
@@ -88,12 +89,15 @@ signals:
     void actionsModelChanged();
     void stateVariablesModelChanged();
     void subscribeEventingSignal(const QNetworkRequest &request, const QString &serviceId);
+    void actionXmlAnswer(const QString &xml);
+    void actionAnswer(const QString &name, const QVariantMap &data);
 
 public slots:
     void requestDescription();
     void sendAlive(const QString &uuid);
     void sendByeBye(const QString &uuid);
     void runAction(const int &index);
+    void runAction(const QString &actionName, QVariantMap args = QVariantMap());
     void subscribeEventing();
 
 private slots:

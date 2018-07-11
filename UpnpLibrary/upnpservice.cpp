@@ -192,6 +192,92 @@ ListModel *UpnpService::stateVariablesModel()
     return &m_stateVariablesModel;
 }
 
+QDomNode UpnpService::getAction(const QString &actionName)
+{
+    if (description())
+    {
+        QDomElement root = description()->xmlDescription();
+        if (root.nodeName() == "scpd")
+        {
+            QDomElement actionList = root.firstChildElement("actionList");
+            if (!actionList.isNull())
+            {
+                QDomNodeList l_action = actionList.elementsByTagName("action");
+                for (int index=0;index<l_action.size();++index)
+                {
+                    QDomNode action = l_action.at(index);
+                    QString name = action.firstChildElement("name").firstChild().nodeValue();
+                    if (name == actionName)
+                        return action;
+                }
+            }
+            else
+            {
+                qCritical() << "unable to find actionList element";
+            }
+        }
+        else
+        {
+            qCritical() << host() << serviceType() << "unable to find scpd element";
+        }
+    }
+
+    return QDomNode();
+}
+
+void UpnpService::runAction(const QString &actionName, QVariantMap args)
+{
+    QDomNode actionDefinition = getAction(actionName);
+
+    if (!actionDefinition.isNull())
+    {
+        SoapAction action(serviceType(), actionName);
+
+        bool error = false;
+
+        QDomElement argumentList = actionDefinition.firstChildElement("argumentList");
+        if (!argumentList.isNull())
+        {
+            QDomNodeList l_arguments = argumentList.elementsByTagName("argument");
+            for (int i=0;i<l_arguments.size();++i)
+            {
+                QDomNode argument = l_arguments.at(i);
+
+                QString argName = argument.firstChildElement("name").firstChild().nodeValue();
+                QString direction = argument.firstChildElement("direction").firstChild().nodeValue();
+
+                if (direction == "in")
+                {
+                    if (args.contains(argName))
+                    {
+                        action.addArgument(argName, args[argName].toString());
+                    }
+                    else
+                    {
+                        qCritical() << "missing argument" << argName << "in action" << actionName;
+                        error = true;
+                    }
+                }
+            }
+        }
+
+        if (!error)
+        {
+            QNetworkReply *reply = sendAction(action);
+            connect(reply, SIGNAL(finished()), this, SLOT(actionFinished()));
+            connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
+        }
+        else
+        {
+            qCritical() << "unable to run action" << actionName;
+        }
+    }
+    else
+    {
+        qCritical() << "invalid action" << actionName;
+    }
+}
+
 void UpnpService::runAction(const int &index)
 {
     QString name;
@@ -284,8 +370,31 @@ void UpnpService::actionFinished()
 
     if (reply->error() == QNetworkReply::NoError)
     {
-        qWarning() << "action done" << this << reply->request().rawHeader("SOAPACTION");
-        qWarning() << reply->readAll();
+        qDebug() << "action done" << this << reply->request().rawHeader("SOAPACTION");
+        QString actionName = reply->request().rawHeader("SOAPACTION");
+        QByteArray xml_data = reply->readAll();
+        emit actionXmlAnswer(xml_data);
+
+        QVariantMap data;
+        QDomDocument xml_doc;
+        xml_doc.setContent(xml_data, true);
+        QDomNode root = xml_doc.firstChild();
+        if (!root.isNull())
+        {
+            QDomNode body = root.firstChild();
+            if (!body.isNull())
+            {
+                QDomElement answer = body.firstChildElement();
+                QDomElement child = answer.firstChildElement();
+                while (!child.isNull())
+                {
+                    data[child.tagName()] = child.firstChild().toText().data();
+                    child = child.nextSiblingElement();
+                }
+            }
+        }
+
+        emit actionAnswer(actionName, data);
     }
     else
     {
