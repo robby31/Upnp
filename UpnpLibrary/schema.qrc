@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>xml schema/upnp_device.xsd</file>
+        <file>xml schema/upnp_service.xsd</file>
+        <file>xml schema/upnp_error.xsd</file>
+        <file>xml schema/upnp_control.xsd</file>
+        <file>xml schema/upnp_event.xsd</file>
+    </qresource>
+</RCC>

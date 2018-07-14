@@ -1,0 +1,39 @@
+<xsd:schema targetNamespace="urn:schemas-upnp-org:service:[serviceType:v]" xmlns="urn:schemas-upnp-org:service:[serviceType:v]" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<xsd:element name="[actionName]" type="[actionName]Type"/>
+<xsd:element name="[actionName]Response" type="[actionName]ResponseType"/> <xsd:complexType name="[actionName]Type">
+    <xsd:sequence>
+      <!-- Use this for an argument of simple content. -->
+      <xsd:element name="[argumentName]">
+       <xsd:complexType>
+         <xsd:simpleContent>
+<xsd:extension base="[argumentType]">
+<xsd:anyAttribute namespace="##other" processContents="lax"/>
+           </xsd:extension>
+         </xsd:simpleContent>
+</xsd:complexType>
+</xsd:element>
+<!-- Use this for an argument of complex content. -->
+<xsd:element name="[argumentName]" type="[argumentType]"/>
+<!-- Other arguments and their types go here, if any. -->
+<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:sequence>
+<xsd:anyAttribute namespace="##other" processContents="lax"/> </xsd:complexType>
+<xsd:complexType name="[actionName]ResponseType">
+    <xsd:sequence>
+    <!-- Use this for an argument of simple content. -->
+    <xsd:element name="[argumentName]">
+     <xsd:complexType>
+       <xsd:simpleContent>
+<xsd:extension base="[argumentType]">
+<xsd:anyAttribute namespace="##other" processContents="lax"/>
+         </xsd:extension>
+       </xsd:simpleContent>
+</xsd:complexType>
+</xsd:element>
+<!-- Use this for an argument of complex content. -->
+<xsd:element name="[argumentName]" type="[argumentType]"/>
+<!-- Other arguments and their types go here, if any. -->
+<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+  </xsd:sequence>
+<xsd:anyAttribute namespace="##other" processContents="lax"/> </xsd:complexType>
+</xsd:schema>
