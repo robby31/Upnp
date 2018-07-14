@@ -144,7 +144,13 @@ DISTFILES += \
     doc/RenderingControl/RenderingControl1.SyntaxTests.xml \
     doc/RenderingControl/RenderingControl1.xml \
     doc/RenderingControl/RenderingControl2.SyntaxTests.xml \
-    doc/RenderingControl/RenderingControl2.xml
+    doc/RenderingControl/RenderingControl2.xml \
+    xml schema/upnp_device.xsd \
+    xml schema/upnp_service.xsd \
+    xml schema/upnp_control.xsd \
+    xml schema/upnp_error.xsd \
+    xml schema/upnp_event.xsd \
+    xml schema/upnp_control_service_connection_manager.xsd
 
 installPath = $$(MYLIBRARY)/$$QT_VERSION
 target.path = $$installPath
@@ -163,3 +169,6 @@ INSTALLS += http
 services.files = Services/*.h
 services.path = $$installIncludePath/Services
 INSTALLS += services
+
+RESOURCES += \
+    schema.qrc
