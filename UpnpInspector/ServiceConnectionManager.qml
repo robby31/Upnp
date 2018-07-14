@@ -69,9 +69,11 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            TextArea {
+            ListView {
                 clip: true
-                text: sourceProtocol
+                model: sourceProtocolModel
+                delegate: Text { text: protocol }
+                ScrollBar.vertical: ScrollBar { }
             }
 
             ListView {
@@ -130,7 +132,7 @@ Item {
     ListModel {
         id: sinkProtocolModel
 
-        function updateSinkProtocol(value) {
+        function updateProtocol(value) {
             clear()
             var protocols = value.split(",")
             for (var i=0;i<protocols.length;++i) {
@@ -139,7 +141,21 @@ Item {
         }
     }
 
-    onSinkProtocolChanged: sinkProtocolModel.updateSinkProtocol(sinkProtocol)
+    onSinkProtocolChanged: sinkProtocolModel.updateProtocol(sinkProtocol)
+
+    ListModel {
+        id: sourceProtocolModel
+
+        function updateProtocol(value) {
+            clear()
+            var protocols = value.split(",")
+            for (var i=0;i<protocols.length;++i) {
+                append({protocol: protocols[i]})
+            }
+        }
+    }
+
+    onSourceProtocolChanged: sourceProtocolModel.updateProtocol(sourceProtocol)
 
     Connections {
         target: service.stateVariablesModel
