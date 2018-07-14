@@ -132,10 +132,17 @@ int UpnpRootDevice::port() const
 
 void UpnpRootDevice::setNetworkManager(QNetworkAccessManager *nam)
 {
-    if (thread() != nam->thread())
-        qWarning() << "NetworkManager and UpnpObject are in different thread.";
+    if (nam)
+    {
+        if (thread() != nam->thread())
+            qWarning() << "NetworkManager and UpnpObject are in different thread.";
 
-    netManager = nam;
+        netManager = nam;
+    }
+    else
+    {
+        qCritical() << "invalid network access manager" << nam;
+    }
 }
 
 QString UpnpRootDevice::serverName() const
