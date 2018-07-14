@@ -7,4 +7,6 @@ SUBDIRS += \
     UpnpInspector \
     tests \
     tst_upnpservice \
-    tst_upnpdevicetest
+    tst_upnpdevicetest \
+    upnpserviceconnectionmanager \
+    tst_upnprootdevice
