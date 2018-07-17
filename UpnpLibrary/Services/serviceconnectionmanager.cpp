@@ -155,8 +155,33 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
     {
         QString connectionID = action.argumentValue("ConnectionID");
 
-        UpnpError error(UpnpError::INVALID_ACTION);
-        request->replyError(error);
+        if (connectionID == "0")
+        {
+            SoapActionResponse response(action.serviceType(), action.actionName());
+
+            response.addArgument("RcsID", "0");  // 0 or -1
+            response.addArgument("AVTransportID", "0");  // 0 or -1
+            response.addArgument("ProtocolInfo", "");
+            response.addArgument("PeerConnectionManager", "");
+            response.addArgument("PeerConnectionID", "-1");
+
+            if (m_direction == Input)
+                response.addArgument("Direction", "Input");  // Input or Output
+            else
+                response.addArgument("Direction", "Output");
+
+            if (m_connectionStatus == Ok)
+                response.addArgument("Status", "OK");  // OK or Unknown
+            else
+                response.addArgument("Status", "Unknown");
+
+            request->replyAction(response);
+        }
+        else
+        {
+            UpnpError error(UpnpError::INVALID_ARGS);
+            request->replyError(error);
+        }
 
         return true;
     }
@@ -167,4 +192,24 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
         request->replyError(error);
         return false;
     }
+}
+
+ServiceConnectionManager::T_DIRECTION ServiceConnectionManager::direction() const
+{
+    return m_direction;
+}
+
+void ServiceConnectionManager::setDirection(const T_DIRECTION &direction)
+{
+    m_direction = direction;
+}
+
+ServiceConnectionManager::T_STATUS ServiceConnectionManager::connectionStatus() const
+{
+    return m_connectionStatus;
+}
+
+void ServiceConnectionManager::setConnectionStatus(const T_STATUS &status)
+{
+    m_connectionStatus = status;
 }

@@ -47,6 +47,7 @@ public:
     enum HttpStatus {
         HTTP_200_OK,
         HTTP_400_KO, // Bad Request
+        HTTP_401_KO, // Invalid action
         HTTP_412_KO, // Precondition Failed
         HTTP_500_KO  // internal server error
     };
