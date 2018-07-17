@@ -378,20 +378,38 @@ void UpnpService::actionFinished()
         QVariantMap data;
         QDomDocument xml_doc;
         xml_doc.setContent(xml_data, true);
-        QDomNode root = xml_doc.firstChild();
+        QDomElement root = xml_doc.firstChildElement("Envelope");
         if (!root.isNull())
         {
-            QDomNode body = root.firstChild();
+            QDomElement body = root.firstChildElement("Body");
             if (!body.isNull())
             {
                 QDomElement answer = body.firstChildElement();
-                QDomElement child = answer.firstChildElement();
-                while (!child.isNull())
+                if (!answer.isNull())
                 {
-                    data[child.tagName()] = child.firstChild().toText().data();
-                    child = child.nextSiblingElement();
+                    QDomElement child = answer.firstChildElement();
+                    while (!child.isNull())
+                    {
+                        data[child.tagName()] = child.firstChild().toText().data();
+                        child = child.nextSiblingElement();
+                    }
+                }
+                else
+                {
+                    qCritical() << xml_data;
+                    qCritical() << "invalid content in body for action response";
                 }
             }
+            else
+            {
+                qCritical() << xml_data;
+                qCritical() << "invalid body in action response";
+            }
+        }
+        else
+        {
+            qCritical() << xml_data;
+            qCritical() << "invalid root in action response";
         }
 
         emit actionAnswer(actionName, data);
