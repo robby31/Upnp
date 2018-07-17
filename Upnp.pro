@@ -9,4 +9,5 @@ SUBDIRS += \
     tst_upnpservice \
     tst_upnpdevice \
     tst_upnpserviceconnectionmanager \
-    tst_upnprootdevice
+    tst_upnprootdevice \
+    upnp_servicecontentdirectory

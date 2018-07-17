@@ -150,7 +150,8 @@ DISTFILES += \
     xml schema/upnp_control.xsd \
     xml schema/upnp_error.xsd \
     xml schema/upnp_event.xsd \
-    xml schema/upnp_control_service_connection_manager.xsd
+    xml schema/upnp_control_service_connection_manager.xsd \
+    xml schema/upnp_service_connection_manager.xsd
 
 installPath = $$(MYLIBRARY)/$$QT_VERSION
 target.path = $$installPath
