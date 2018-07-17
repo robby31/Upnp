@@ -14,9 +14,11 @@ public:
 
 private Q_SLOTS:
     void actionXmlAnswer(const QString &data);
+    void errorRaised(const UpnpError &error);
     void initTestCase();
     void cleanupTestCase();
 
+    void test_invalid_action();
     void test_get_service_description();
     void test_get_protocolInfo();
     void test_get_currentConnectionIds();
@@ -31,9 +33,11 @@ private:
     QNetworkAccessManager nam;
     UpnpControlPoint *m_upnp = Q_NULLPTR;
     UpnpRootDevice *m_root = Q_NULLPTR;
+    ServiceConnectionManager *m_connectionManager = Q_NULLPTR;
     int UPNP_PORT = -1;
     int EVENT_PORT = -1;
     QString m_XmlActionAnswer;
+    UpnpError m_error;
 };
 
 UpnpserviceconnectionmanagerTest::UpnpserviceconnectionmanagerTest()
@@ -146,15 +150,26 @@ QStringList UpnpserviceconnectionmanagerTest::format()
     res << "http-get:*:image/*:*";
     return res;
 }
+
 void UpnpserviceconnectionmanagerTest::initConnectionManager()
 {
     if (m_root)
     {
-        ServiceConnectionManager *connection_manager = new ServiceConnectionManager(m_root);
+        if (!m_connectionManager)
+        {
+            m_connectionManager = new ServiceConnectionManager(m_root);
 
-        connection_manager->updateStateVariable("SourceProtocolInfo", format().join(","));
+            connect(m_connectionManager, SIGNAL(actionXmlAnswer(QString)), this, SLOT(actionXmlAnswer(QString)));
+            connect(m_connectionManager, SIGNAL(errorOccured(UpnpError)), this, SLOT(errorRaised(UpnpError)));
 
-        m_root->addService(connection_manager);
+            m_connectionManager->updateStateVariable("SourceProtocolInfo", format().join(","));
+
+            m_root->addService(m_connectionManager);
+        }
+        else
+        {
+            qCritical() << "connection manager already initialized.";
+        }
     }
     else
     {
@@ -165,6 +180,42 @@ void UpnpserviceconnectionmanagerTest::initConnectionManager()
 void UpnpserviceconnectionmanagerTest::actionXmlAnswer(const QString &data)
 {
     m_XmlActionAnswer = data;
+}
+
+void UpnpserviceconnectionmanagerTest::errorRaised(const UpnpError &error)
+{
+    m_error = error;
+}
+
+void UpnpserviceconnectionmanagerTest::test_invalid_action()
+{
+    QString actionName = "GetProtocol";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_connectionManager != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    SoapAction action(m_connectionManager->serviceType(), actionName);
+    m_connectionManager->runAction(action);
+
+    int timeout = 10;
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+    {
+        timeout--;
+        QTest::qWait(1000);
+    }
+
+    QVERIFY(m_XmlActionAnswer.size() == 0);
+
+    QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+    QCOMPARE(m_error.code(), 401);
+    QCOMPARE(m_error.description(), "Invalid Action");
+    QCOMPARE(m_error.faultCode(), "s:Client");
+    QCOMPARE(m_error.faultString(), "UPnPError");
 }
 
 void UpnpserviceconnectionmanagerTest::test_get_service_description()
@@ -206,15 +257,14 @@ void UpnpserviceconnectionmanagerTest::test_get_protocolInfo()
     QVERIFY(m_upnp != Q_NULLPTR);
     QVERIFY(m_root != Q_NULLPTR);
 
-    ServiceConnectionManager *service = (ServiceConnectionManager*)m_root->getService("urn:upnp-org:serviceId:ConnectionManager");
-    connect(service, SIGNAL(actionXmlAnswer(QString)), this, SLOT(actionXmlAnswer(QString)));
-    QVERIFY(service != Q_NULLPTR);
+    QVERIFY(m_connectionManager != Q_NULLPTR);
 
     m_XmlActionAnswer.clear();
-    service->runAction(actionName);
+    m_error = UpnpError();
+    m_connectionManager->runAction(actionName);
 
     int timeout = 10;
-    while (timeout>0 && m_XmlActionAnswer.size()==0)
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
     {
         timeout--;
         QTest::qWait(1000);
@@ -225,12 +275,18 @@ void UpnpserviceconnectionmanagerTest::test_get_protocolInfo()
     SoapActionResponse answer(m_XmlActionAnswer.toUtf8());
     QCOMPARE(answer.isValid(), true);
     QCOMPARE(answer.actionName(), actionName);
-    QCOMPARE(answer.serviceType(), service->serviceType());
+    QCOMPARE(answer.serviceType(), m_connectionManager->serviceType());
     QCOMPARE(answer.arguments().size(), 2);
     QCOMPARE(answer.arguments().at(0), "Source");
     QCOMPARE(answer.value("Source"), format().join(","));
     QCOMPARE(answer.arguments().at(1), "Sink");
     QCOMPARE(answer.value("Sink"), "");
+
+    QCOMPARE(m_error.netError(), QNetworkReply::NoError);
+    QCOMPARE(m_error.code(), -5);
+    QCOMPARE(m_error.description(), "");
+    QCOMPARE(m_error.faultCode(), "");
+    QCOMPARE(m_error.faultString(), "");
 }
 
 void UpnpserviceconnectionmanagerTest::test_get_currentConnectionIds()
@@ -240,15 +296,14 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionIds()
     QVERIFY(m_upnp != Q_NULLPTR);
     QVERIFY(m_root != Q_NULLPTR);
 
-    ServiceConnectionManager *service = (ServiceConnectionManager*)m_root->getService("urn:upnp-org:serviceId:ConnectionManager");
-    connect(service, SIGNAL(actionXmlAnswer(QString)), this, SLOT(actionXmlAnswer(QString)));
-    QVERIFY(service != Q_NULLPTR);
+    QVERIFY(m_connectionManager != Q_NULLPTR);
 
     m_XmlActionAnswer.clear();
-    service->runAction(actionName);
+    m_error = UpnpError();
+    m_connectionManager->runAction(actionName);
 
     int timeout = 10;
-    while (timeout>0 && m_XmlActionAnswer.size()==0)
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
     {
         timeout--;
         QTest::qWait(1000);
@@ -259,10 +314,16 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionIds()
     SoapActionResponse answer(m_XmlActionAnswer.toUtf8());
     QCOMPARE(answer.isValid(), true);
     QCOMPARE(answer.actionName(), actionName);
-    QCOMPARE(answer.serviceType(), service->serviceType());
+    QCOMPARE(answer.serviceType(), m_connectionManager->serviceType());
     QCOMPARE(answer.arguments().size(), 1);
     QCOMPARE(answer.arguments().at(0), "ConnectionIDs");
     QCOMPARE(answer.value("ConnectionIDs"), "0");
+
+    QCOMPARE(m_error.netError(), QNetworkReply::NoError);
+    QCOMPARE(m_error.code(), -5);
+    QCOMPARE(m_error.description(), "");
+    QCOMPARE(m_error.faultCode(), "");
+    QCOMPARE(m_error.faultString(), "");
 }
 
 void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo()
@@ -274,15 +335,14 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo()
     QVERIFY(m_upnp != Q_NULLPTR);
     QVERIFY(m_root != Q_NULLPTR);
 
-    ServiceConnectionManager *service = (ServiceConnectionManager*)m_root->getService("urn:upnp-org:serviceId:ConnectionManager");
-    connect(service, SIGNAL(actionXmlAnswer(QString)), this, SLOT(actionXmlAnswer(QString)));
-    QVERIFY(service != Q_NULLPTR);
+    QVERIFY(m_connectionManager != Q_NULLPTR);
 
     m_XmlActionAnswer.clear();
-    service->runAction(actionName, arguments);
+    m_error = UpnpError();
+    m_connectionManager->runAction(actionName, arguments);
 
     int timeout = 10;
-    while (timeout>0 && m_XmlActionAnswer.size()==0)
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
     {
         timeout--;
         QTest::qWait(1000);
@@ -293,7 +353,7 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo()
     SoapActionResponse answer(m_XmlActionAnswer.toUtf8());
     QCOMPARE(answer.isValid(), true);
     QCOMPARE(answer.actionName(), actionName );
-    QCOMPARE(answer.serviceType(), service->serviceType());
+    QCOMPARE(answer.serviceType(), m_connectionManager->serviceType());
     QCOMPARE(answer.arguments().size(), 7);
     QCOMPARE(answer.arguments().at(0), "RcsID");
     QCOMPARE(answer.value("RcsID"), "0");
@@ -309,6 +369,12 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo()
     QCOMPARE(answer.value("Direction"), "Input");
     QCOMPARE(answer.arguments().at(6), "Status");
     QCOMPARE(answer.value("Status"), "OK");
+
+    QCOMPARE(m_error.netError(), QNetworkReply::NoError);
+    QCOMPARE(m_error.code(), -5);
+    QCOMPARE(m_error.description(), "");
+    QCOMPARE(m_error.faultCode(), "");
+    QCOMPARE(m_error.faultString(), "");
 }
 
 QTEST_MAIN(UpnpserviceconnectionmanagerTest)
