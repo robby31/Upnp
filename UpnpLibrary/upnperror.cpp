@@ -1,7 +1,14 @@
 #include "upnperror.h"
 
-UpnpError::UpnpError(QNetworkReply::NetworkError netError, QByteArray data, QObject *parent) :
-    QObject(parent),
+UpnpError::UpnpError() :
+    m_netError(QNetworkReply::NoError)
+{
+    m_data.clear();
+    m_fault.clear();
+    m_detail.clear();
+}
+
+UpnpError::UpnpError(QNetworkReply::NetworkError netError, QByteArray data) :
     m_netError(netError)
 {
     m_data.setContent(data, true);
@@ -44,8 +51,7 @@ UpnpError::UpnpError(QNetworkReply::NetworkError netError, QByteArray data, QObj
         qCritical() << "invalid faultString" << faultString();
 }
 
-UpnpError::UpnpError(ErrorTypes type, QObject *parent):
-    QObject(parent),
+UpnpError::UpnpError(ErrorTypes type):
     m_netError(QNetworkReply::InternalServerError)
 {
     m_data.appendChild(m_data.createProcessingInstruction("xml", "version=\"1.0\""));

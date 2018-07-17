@@ -1,14 +1,12 @@
 #ifndef UPNPERROR_H
 #define UPNPERROR_H
 
-#include <QObject>
 #include <QDebug>
 #include <QDomDocument>
 #include <QNetworkReply>
 
-class UpnpError : public QObject
+class UpnpError
 {
-    Q_OBJECT
 
 public:
     enum ErrorTypes { BAD_REQUEST = 400,    // If the NT or NTS header is missing, the subscriber must respond with HTTP error 400 Bad Request.
@@ -40,8 +38,9 @@ public:
                                                  // This could be because the device has expired a session, in which case the control point needs to open a new one.
                     };
 
-    explicit UpnpError(QNetworkReply::NetworkError netError, QByteArray data, QObject *parent = 0);
-    explicit UpnpError(ErrorTypes type, QObject *parent = 0);
+    explicit UpnpError();
+    explicit UpnpError(QNetworkReply::NetworkError netError, QByteArray data);
+    explicit UpnpError(ErrorTypes type);
 
     QNetworkReply::NetworkError netError() const;
 
@@ -52,10 +51,6 @@ public:
     QString description() const;
 
     QByteArray toByteArray(const int indent = -1) const;
-
-signals:
-
-public slots:
 
 private:
     QNetworkReply::NetworkError m_netError;

@@ -25,8 +25,6 @@ UpnpControlPoint::UpnpControlPoint(qint16 eventPort, QObject *parent):
     m_eventCheckSubscription(-1),
     m_servername(QString("%1/%2 UPnP/%3 CTP/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(UPNP_VERSION)),
     m_hostAddress(),
-    udpSocketMulticast(this),
-    udpSocketUnicast(this),
     m_bootid(0),
     m_configid(0),
     m_remoteRootDevice(0),

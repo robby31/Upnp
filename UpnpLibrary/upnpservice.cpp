@@ -225,6 +225,13 @@ QDomNode UpnpService::getAction(const QString &actionName)
     return QDomNode();
 }
 
+void UpnpService::runAction(const SoapAction &action)
+{
+    QNetworkReply *reply = sendAction(action);
+    connect(reply, SIGNAL(finished()), this, SLOT(actionFinished()));
+    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
+}
+
 void UpnpService::runAction(const QString &actionName, QVariantMap args)
 {
     QDomNode actionDefinition = getAction(actionName);
@@ -263,9 +270,7 @@ void UpnpService::runAction(const QString &actionName, QVariantMap args)
 
         if (!error)
         {
-            QNetworkReply *reply = sendAction(action);
-            connect(reply, SIGNAL(finished()), this, SLOT(actionFinished()));
-            connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
+            runAction(action);
         }
         else
         {
@@ -324,10 +329,7 @@ void UpnpService::runAction(const int &index)
                     if (in.isEmpty())
                     {
                         SoapAction action(serviceType(), name);
-
-                        QNetworkReply *reply = sendAction(action);
-                        connect(reply, SIGNAL(finished()), this, SLOT(actionFinished()));
-                        connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
+                        runAction(action);
                     }
                 }
             }
@@ -427,6 +429,7 @@ void UpnpService::networkError(QNetworkReply::NetworkError error)
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
 
     UpnpError upnpError(error, reply->readAll());
+    emit errorOccured(upnpError);
 
     qCritical() << "Network Error" << upnpError.netError() << reply->request().url() << upnpError.code() << upnpError.description();
 

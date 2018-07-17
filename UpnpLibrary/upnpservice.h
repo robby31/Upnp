@@ -91,6 +91,7 @@ signals:
     void subscribeEventingSignal(const QNetworkRequest &request, const QString &serviceId);
     void actionXmlAnswer(const QString &xml);
     void actionAnswer(const QString &name, const QVariantMap &data);
+    void errorOccured(const UpnpError &error);
 
 public slots:
     void requestDescription();
@@ -98,6 +99,7 @@ public slots:
     void sendByeBye(const QString &uuid);
     void runAction(const int &index);
     void runAction(const QString &actionName, QVariantMap args = QVariantMap());
+    void runAction(const SoapAction &action);
     void subscribeEventing();
 
 private slots:
