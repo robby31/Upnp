@@ -36,6 +36,8 @@ public:
                       INVALID_CONTROL_URL,       // The controlURL within the <freshness> element does not match the controlURL of the action actually invoked (or the controlURL in the HTTP header).
                       NO_SUCH_SESSION,           // The session key reference is to a non-existent session.
                                                  // This could be because the device has expired a session, in which case the control point needs to open a new one.
+
+                      INVALID_CONNECTION = 706
                     };
 
     explicit UpnpError();
