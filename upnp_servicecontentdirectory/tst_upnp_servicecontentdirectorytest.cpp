@@ -20,9 +20,16 @@ private Q_SLOTS:
 
     void test_invalid_action();
     void test_get_service_description();
+
     void test_get_searchCapabilities();
+    void test_get_searchCapabilities_InvalidArgs();
+
     void test_get_sortCapabilities();
+    void test_get_sortCapabilities_InvalidArgs();
+
     void test_get_systemUpdateId();
+    void test_get_systemUpdateId_InvalidArgs();
+
     void test_browse();
 
 private:
@@ -247,6 +254,38 @@ void Upnp_servicecontentdirectoryTest::test_get_searchCapabilities()
     QCOMPARE(m_error.faultString(), "");
 }
 
+void Upnp_servicecontentdirectoryTest::test_get_searchCapabilities_InvalidArgs()
+{
+    QString actionName = "GetSearchCapabilities";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_contentDirectory != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    SoapAction action(m_contentDirectory->serviceType(), actionName);
+    action.addArgument("args", "invalid");
+    m_contentDirectory->runAction(action);
+
+    int timeout = 10;
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+    {
+        timeout--;
+        QTest::qWait(1000);
+    }
+
+    QVERIFY(m_XmlActionAnswer.size() == 0);
+
+    QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+    QCOMPARE(m_error.code(), 402);
+    QCOMPARE(m_error.description(), "Invalid Args");
+    QCOMPARE(m_error.faultCode(), "s:Client");
+    QCOMPARE(m_error.faultString(), "UPnPError");
+}
+
 void Upnp_servicecontentdirectoryTest::test_get_sortCapabilities()
 {
     QString actionName = "GetSortCapabilities";
@@ -282,6 +321,38 @@ void Upnp_servicecontentdirectoryTest::test_get_sortCapabilities()
     QCOMPARE(m_error.description(), "");
     QCOMPARE(m_error.faultCode(), "");
     QCOMPARE(m_error.faultString(), "");
+}
+
+void Upnp_servicecontentdirectoryTest::test_get_sortCapabilities_InvalidArgs()
+{
+    QString actionName = "GetSortCapabilities";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_contentDirectory != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    SoapAction action(m_contentDirectory->serviceType(), actionName);
+    action.addArgument("args", "invalid");
+    m_contentDirectory->runAction(action);
+
+    int timeout = 10;
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+    {
+        timeout--;
+        QTest::qWait(1000);
+    }
+
+    QVERIFY(m_XmlActionAnswer.size() == 0);
+
+    QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+    QCOMPARE(m_error.code(), 402);
+    QCOMPARE(m_error.description(), "Invalid Args");
+    QCOMPARE(m_error.faultCode(), "s:Client");
+    QCOMPARE(m_error.faultString(), "UPnPError");
 }
 
 void Upnp_servicecontentdirectoryTest::test_get_systemUpdateId()
@@ -320,6 +391,39 @@ void Upnp_servicecontentdirectoryTest::test_get_systemUpdateId()
     QCOMPARE(m_error.faultCode(), "");
     QCOMPARE(m_error.faultString(), "");
 }
+
+void Upnp_servicecontentdirectoryTest::test_get_systemUpdateId_InvalidArgs()
+{
+    QString actionName = "GetSystemUpdateID";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_contentDirectory != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    SoapAction action(m_contentDirectory->serviceType(), actionName);
+    action.addArgument("args", "invalid");
+    m_contentDirectory->runAction(action);
+
+    int timeout = 10;
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+    {
+        timeout--;
+        QTest::qWait(1000);
+    }
+
+    QVERIFY(m_XmlActionAnswer.size() == 0);
+
+    QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+    QCOMPARE(m_error.code(), 402);
+    QCOMPARE(m_error.description(), "Invalid Args");
+    QCOMPARE(m_error.faultCode(), "s:Client");
+    QCOMPARE(m_error.faultString(), "UPnPError");
+}
+
 
 void Upnp_servicecontentdirectoryTest::test_browse()
 {

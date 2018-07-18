@@ -318,23 +318,13 @@ void UpnpserviceconnectionmanagerTest::test_get_protocolInfo_InvalidArgs()
         QTest::qWait(1000);
     }
 
-    QVERIFY(m_XmlActionAnswer.size() > 0);
+    QVERIFY(m_XmlActionAnswer.size() == 0);
 
-    SoapActionResponse answer(m_XmlActionAnswer.toUtf8());
-    QCOMPARE(answer.isValid(), true);
-    QCOMPARE(answer.actionName(), actionName);
-    QCOMPARE(answer.serviceType(), m_connectionManager->serviceType());
-    QCOMPARE(answer.arguments().size(), 2);
-    QCOMPARE(answer.arguments().at(0), "Source");
-    QCOMPARE(answer.value("Source"), format().join(","));
-    QCOMPARE(answer.arguments().at(1), "Sink");
-    QCOMPARE(answer.value("Sink"), "");
-
-    QCOMPARE(m_error.netError(), QNetworkReply::NoError);
-    QCOMPARE(m_error.code(), -5);
-    QCOMPARE(m_error.description(), "");
-    QCOMPARE(m_error.faultCode(), "");
-    QCOMPARE(m_error.faultString(), "");
+    QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+    QCOMPARE(m_error.code(), 402);
+    QCOMPARE(m_error.description(), "Invalid Args");
+    QCOMPARE(m_error.faultCode(), "s:Client");
+    QCOMPARE(m_error.faultString(), "UPnPError");
 }
 
 
@@ -398,21 +388,13 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionIds_InvalidArgs
         QTest::qWait(1000);
     }
 
-    QVERIFY(m_XmlActionAnswer.size() > 0);
+    QVERIFY(m_XmlActionAnswer.size() == 0);
 
-    SoapActionResponse answer(m_XmlActionAnswer.toUtf8());
-    QCOMPARE(answer.isValid(), true);
-    QCOMPARE(answer.actionName(), actionName);
-    QCOMPARE(answer.serviceType(), m_connectionManager->serviceType());
-    QCOMPARE(answer.arguments().size(), 1);
-    QCOMPARE(answer.arguments().at(0), "ConnectionIDs");
-    QCOMPARE(answer.value("ConnectionIDs"), "0");
-
-    QCOMPARE(m_error.netError(), QNetworkReply::NoError);
-    QCOMPARE(m_error.code(), -5);
-    QCOMPARE(m_error.description(), "");
-    QCOMPARE(m_error.faultCode(), "");
-    QCOMPARE(m_error.faultString(), "");
+    QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+    QCOMPARE(m_error.code(), 402);
+    QCOMPARE(m_error.description(), "Invalid Args");
+    QCOMPARE(m_error.faultCode(), "s:Client");
+    QCOMPARE(m_error.faultString(), "UPnPError");
 }
 
 void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo()
