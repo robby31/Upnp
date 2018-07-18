@@ -98,6 +98,20 @@ QString SoapAction::argumentValue(const QString &param) const
         return QString();
 }
 
+QStringList SoapAction::arguments() const
+{
+    QStringList res;
+
+    QDomNode elt = m_xmlAction.firstChild();
+    while (!elt.isNull())
+    {
+        res << elt.toElement().tagName();
+        elt = elt.nextSibling();
+    }
+
+    return res;
+}
+
 QByteArray SoapAction::toByteArray() const
 {
     return m_xml.toByteArray(-1);
