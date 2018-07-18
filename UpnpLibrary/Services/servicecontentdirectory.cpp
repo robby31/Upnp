@@ -114,7 +114,13 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
     if (action.actionName() == "GetSearchCapabilities")
     {
         StateVariableItem *searchCaps = findStateVariableByName("SearchCapabilities");
-        if (searchCaps)
+
+        if (action.arguments().size() != 0)
+        {
+            UpnpError error(UpnpError::INVALID_ARGS);
+            request->replyError(error);
+        }
+        else if (searchCaps)
         {
             SoapActionResponse response(action.serviceType(), action.actionName());
 
@@ -124,7 +130,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
         else
         {
             qCritical() << "invalid state variable SearchCapabilities";
-            UpnpError error(UpnpError::INVALID_ARGS);
+            UpnpError error(UpnpError::ACTION_FAILED);
             request->replyError(error);
         }
 
@@ -133,7 +139,13 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
     else if (action.actionName() == "GetSortCapabilities")
     {
         StateVariableItem *sortCaps = findStateVariableByName("SortCapabilities");
-        if (sortCaps)
+
+        if (action.arguments().size() != 0)
+        {
+            UpnpError error(UpnpError::INVALID_ARGS);
+            request->replyError(error);
+        }
+        else if (sortCaps)
         {
             SoapActionResponse response(action.serviceType(), action.actionName());
 
@@ -143,7 +155,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
         else
         {
             qCritical() << "invalid state variable SortCapabilities";
-            UpnpError error(UpnpError::INVALID_ARGS);
+            UpnpError error(UpnpError::ACTION_FAILED);
             request->replyError(error);
         }
 
@@ -152,7 +164,13 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
     else if (action.actionName() == "GetSystemUpdateID")
     {
         StateVariableItem *sysUpdateId = findStateVariableByName("SystemUpdateID");
-        if (sysUpdateId)
+
+        if (action.arguments().size() != 0)
+        {
+            UpnpError error(UpnpError::INVALID_ARGS);
+            request->replyError(error);
+        }
+        else if (sysUpdateId)
         {
             SoapActionResponse response(action.serviceType(), action.actionName());
 
@@ -162,7 +180,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
         else
         {
             qCritical() << "invalid state variable SystemUpdateID";
-            UpnpError error(UpnpError::INVALID_ARGS);
+            UpnpError error(UpnpError::ACTION_FAILED);
             request->replyError(error);
         }
 

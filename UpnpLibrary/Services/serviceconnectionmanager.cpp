@@ -115,7 +115,12 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
     {
         StateVariableItem *sourceProtocal = findStateVariableByName("SourceProtocolInfo");
         StateVariableItem *sinkProtocal = findStateVariableByName("SinkProtocolInfo");
-        if (sourceProtocal && sinkProtocal)
+        if (action.arguments().size() != 0)
+        {
+            UpnpError error(UpnpError::INVALID_ARGS);
+            request->replyError(error);
+        }
+        else if (sourceProtocal && sinkProtocal)
         {
             SoapActionResponse response(action.serviceType(), action.actionName());
 
@@ -126,7 +131,7 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
         else
         {
             qCritical() << "invalid state variable SourceProtocolInfo or SinkProtocolInfo";
-            UpnpError error(UpnpError::INVALID_ARGS);
+            UpnpError error(UpnpError::ACTION_FAILED);
             request->replyError(error);
         }
 
@@ -135,6 +140,11 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
     else if (action.actionName() == "GetCurrentConnectionIDs")
     {
         StateVariableItem *currentConnection = findStateVariableByName("CurrentConnectionIDs");
+        if (action.arguments().size() != 0)
+        {
+            UpnpError error(UpnpError::INVALID_ARGS);
+            request->replyError(error);
+        }
         if (currentConnection)
         {
             SoapActionResponse response(action.serviceType(), action.actionName());
@@ -145,7 +155,7 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
         else
         {
             qCritical() << "invalid state variable CurrentConnectionIDs";
-            UpnpError error(UpnpError::INVALID_ARGS);
+            UpnpError error(UpnpError::ACTION_FAILED);
             request->replyError(error);
         }
 
