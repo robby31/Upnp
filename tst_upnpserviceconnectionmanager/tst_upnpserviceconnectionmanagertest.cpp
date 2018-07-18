@@ -20,9 +20,15 @@ private Q_SLOTS:
 
     void test_invalid_action();
     void test_get_service_description();
+
     void test_get_protocolInfo();
+    void test_get_protocolInfo_InvalidArgs();
+
     void test_get_currentConnectionIds();
+    void test_get_currentConnectionIds_InvalidArgs();
+
     void test_get_currentConnectionInfo();
+    void test_get_currentConnectionInfo_InvalidArgs();
 
 private:
     void initRootDevice();
@@ -289,6 +295,49 @@ void UpnpserviceconnectionmanagerTest::test_get_protocolInfo()
     QCOMPARE(m_error.faultString(), "");
 }
 
+void UpnpserviceconnectionmanagerTest::test_get_protocolInfo_InvalidArgs()
+{
+    QString actionName = "GetProtocolInfo";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_connectionManager != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    SoapAction action(m_connectionManager->serviceType(), actionName);
+    action.addArgument("args", "invalid");
+    m_connectionManager->runAction(action);
+
+    int timeout = 10;
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+    {
+        timeout--;
+        QTest::qWait(1000);
+    }
+
+    QVERIFY(m_XmlActionAnswer.size() > 0);
+
+    SoapActionResponse answer(m_XmlActionAnswer.toUtf8());
+    QCOMPARE(answer.isValid(), true);
+    QCOMPARE(answer.actionName(), actionName);
+    QCOMPARE(answer.serviceType(), m_connectionManager->serviceType());
+    QCOMPARE(answer.arguments().size(), 2);
+    QCOMPARE(answer.arguments().at(0), "Source");
+    QCOMPARE(answer.value("Source"), format().join(","));
+    QCOMPARE(answer.arguments().at(1), "Sink");
+    QCOMPARE(answer.value("Sink"), "");
+
+    QCOMPARE(m_error.netError(), QNetworkReply::NoError);
+    QCOMPARE(m_error.code(), -5);
+    QCOMPARE(m_error.description(), "");
+    QCOMPARE(m_error.faultCode(), "");
+    QCOMPARE(m_error.faultString(), "");
+}
+
+
 void UpnpserviceconnectionmanagerTest::test_get_currentConnectionIds()
 {
     QString actionName = "GetCurrentConnectionIDs";
@@ -301,6 +350,46 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionIds()
     m_XmlActionAnswer.clear();
     m_error = UpnpError();
     m_connectionManager->runAction(actionName);
+
+    int timeout = 10;
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+    {
+        timeout--;
+        QTest::qWait(1000);
+    }
+
+    QVERIFY(m_XmlActionAnswer.size() > 0);
+
+    SoapActionResponse answer(m_XmlActionAnswer.toUtf8());
+    QCOMPARE(answer.isValid(), true);
+    QCOMPARE(answer.actionName(), actionName);
+    QCOMPARE(answer.serviceType(), m_connectionManager->serviceType());
+    QCOMPARE(answer.arguments().size(), 1);
+    QCOMPARE(answer.arguments().at(0), "ConnectionIDs");
+    QCOMPARE(answer.value("ConnectionIDs"), "0");
+
+    QCOMPARE(m_error.netError(), QNetworkReply::NoError);
+    QCOMPARE(m_error.code(), -5);
+    QCOMPARE(m_error.description(), "");
+    QCOMPARE(m_error.faultCode(), "");
+    QCOMPARE(m_error.faultString(), "");
+}
+
+void UpnpserviceconnectionmanagerTest::test_get_currentConnectionIds_InvalidArgs()
+{
+    QString actionName = "GetCurrentConnectionIDs";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_connectionManager != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    SoapAction action(m_connectionManager->serviceType(), actionName);
+    action.addArgument("args", "invalid");
+    m_connectionManager->runAction(action);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -375,6 +464,116 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo()
     QCOMPARE(m_error.description(), "");
     QCOMPARE(m_error.faultCode(), "");
     QCOMPARE(m_error.faultString(), "");
+}
+
+void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo_InvalidArgs()
+{
+    QString actionName = "GetCurrentConnectionInfo";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_connectionManager != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    // not enough arguments
+    {
+        SoapAction action(m_connectionManager->serviceType(), actionName);
+        m_connectionManager->runAction(action);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    // invalid argument name
+    {
+        SoapAction action(m_connectionManager->serviceType(), actionName);
+        action.addArgument("Connection", "0");
+        m_connectionManager->runAction(action);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    // too many argument
+    {
+        SoapAction action(m_connectionManager->serviceType(), actionName);
+        action.addArgument("ConnectionID", "0");
+        action.addArgument("arg", "too many");
+        m_connectionManager->runAction(action);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    // invalid connection id
+    {
+        SoapAction action(m_connectionManager->serviceType(), actionName);
+        action.addArgument("ConnectionID", "");
+        m_connectionManager->runAction(action);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 706);
+        QCOMPARE(m_error.description(), "Invalid connection reference");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
 }
 
 QTEST_MAIN(UpnpserviceconnectionmanagerTest)
