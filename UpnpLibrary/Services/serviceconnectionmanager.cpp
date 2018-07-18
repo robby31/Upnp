@@ -155,7 +155,17 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
     {
         QString connectionID = action.argumentValue("ConnectionID");
 
-        if (connectionID == "0")
+        if (action.arguments().size() != 1 or !action.arguments().contains("ConnectionID"))
+        {
+            UpnpError error(UpnpError::INVALID_ARGS);
+            request->replyError(error);
+        }
+        else if (connectionID != "0")
+        {
+            UpnpError error(UpnpError::INVALID_CONNECTION);
+            request->replyError(error);
+        }
+        else
         {
             SoapActionResponse response(action.serviceType(), action.actionName());
 
@@ -176,11 +186,6 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
                 response.addArgument("Status", "Unknown");
 
             request->replyAction(response);
-        }
-        else
-        {
-            UpnpError error(UpnpError::INVALID_ARGS);
-            request->replyError(error);
         }
 
         return true;
