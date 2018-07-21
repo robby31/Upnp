@@ -6,5 +6,8 @@
         <file>xml schema/upnp_control.xsd</file>
         <file>xml schema/upnp_event.xsd</file>
         <file>xml schema/upnp_service_connection_manager.xml</file>
+        <file>xml schema/didl-Lite.xsd</file>
+        <file>xml schema/simpledc20020312.xsd</file>
+        <file>xml schema/upnp.xsd</file>
     </qresource>
 </RCC>

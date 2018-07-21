@@ -98,7 +98,7 @@
 			<xsd:element name="programPreserved" type="upnp:programPreserved.Type"/>
 			<xsd:element name="preservedTimeRange" type="upnp:preservedTimeRange.Type"/>
 			<xsd:element name="programList" type="upnp:programList.Type"/>
-			<xsd:element name="recommendationID" type="av:recommendationID.type"/>
+                        <!--xsd:element name="recommendationID" type="av:recommendationID.type"/-->
 			<!--=============================-=============================-->
 			<!--          User Channel and EPG Related Properties          -->
 			<!--=============================-=============================-->
