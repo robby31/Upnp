@@ -51,6 +51,8 @@ public:
 
     virtual QHostAddress host() const;
 
+    virtual int port() const;
+
     virtual QString serverName() const;
 
     virtual QUrl url() const;

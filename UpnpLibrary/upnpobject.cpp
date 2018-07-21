@@ -185,6 +185,14 @@ QHostAddress UpnpObject::host() const
         return QHostAddress();
 }
 
+int UpnpObject::port() const
+{
+    if (m_upnpParent)
+        return m_upnpParent->port();
+    else
+        return -1;
+}
+
 QString UpnpObject::serverName() const
 {
     if (m_upnpParent)

@@ -37,7 +37,7 @@ public:
 
     int bootId() const;
     virtual QHostAddress host() const Q_DECL_OVERRIDE;
-    int port() const;
+    virtual int port() const Q_DECL_OVERRIDE;
 
     QString configId() const;
 
