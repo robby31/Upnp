@@ -110,7 +110,7 @@ void UpnpServiceTest::testUpnpServiceConnectionManager()
 
 void UpnpServiceTest::testUpnpServiceContentDirectory()
 {
-    ServiceContentDirectory service;
+    ServiceContentDirectory service(Q_NULLPTR, Q_NULLPTR);
     QCOMPARE(service.serviceType(), QString("urn:schemas-upnp-org:service:ContentDirectory:1"));
     QCOMPARE(service.data(UpnpService::ServiceTypeRole), QString("urn:schemas-upnp-org:service:ContentDirectory:1"));
     QCOMPARE(service.id(), QString("urn:upnp-org:serviceId:ContentDirectory"));

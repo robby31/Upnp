@@ -203,7 +203,7 @@ void UpnpDeviceTest::testUpnpDeviceFromDescription()
     QCOMPARE(device_descr->services().size(), 1);
 
 
-    ServiceContentDirectory *service_contentdirectory = new ServiceContentDirectory();
+    ServiceContentDirectory *service_contentdirectory = new ServiceContentDirectory(Q_NULLPTR, Q_NULLPTR);
     QCOMPARE(service_contentdirectory->serviceType(), "urn:schemas-upnp-org:service:ContentDirectory:1");
 
     QCOMPARE(device.addService(service_contentdirectory), true);
