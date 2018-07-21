@@ -4,8 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       -= gui
-QT       += network xml
+QT       += network xml qml sql
 
 TARGET = UpnpLibrary
 TARGET = $$qtLibraryTarget($$TARGET)
@@ -21,6 +20,18 @@ CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Youtube
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(youtube)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/multimedia
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
+
+INCLUDEPATH += /opt/local/include
+LIBS += -L/opt/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
+
+DEFINES += USE_AVRESAMPLE
+LIBS += -L/opt/local/lib -lavresample
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
@@ -59,7 +70,27 @@ SOURCES += \
     Services/serviceconnectionmanager.cpp \
     Services/servicecontentdirectory.cpp \
     Services/abstractservice.cpp \
-    xmlevent.cpp
+    xmlevent.cpp \
+    dlna/dlnamusictrackfile.cpp \
+    dlna/dlnaitem.cpp \
+    dlna/dlnamusictrack.cpp \
+    dlna/dlnavideoitem.cpp \
+    dlna/dlnayoutubevideo.cpp \
+    dlna/dlnavideofile.cpp \
+    dlna/dlnaresource.cpp \
+    dlna/dlnastoragefolder.cpp \
+    dlna/dlnafolder.cpp \
+    dlna/dlnarootfolder.cpp \
+    dlna/cached/dlnacachedmusictrack.cpp \
+    dlna/cached/dlnacachednetworkvideo.cpp \
+    dlna/cached/dlnacachedvideo.cpp \
+    dlna/cached/dlnacachedrootfolder.cpp \
+    dlna/cached/dlnacachedgroupedfoldermetadata.cpp \
+    dlna/cached/dlnacachedfoldermetadata.cpp \
+    dlna/cached/dlnacachedfolder.cpp \
+    dlna/cached/medialibrary.cpp \
+    Devices/mediarenderer.cpp \
+    Devices/mediarenderermodel.cpp
 
 HEADERS += \
     upnpcontrolpoint.h \
@@ -87,7 +118,27 @@ HEADERS += \
     Services/serviceconnectionmanager.h \
     Services/servicecontentdirectory.h \
     Services/abstractservice.h \
-    xmlevent.h
+    xmlevent.h \
+    dlna/dlnaitem.h \
+    dlna/dlnamusictrackfile.h \
+    dlna/dlnavideoitem.h \
+    dlna/dlnamusictrack.h \
+    dlna/dlnayoutubevideo.h \
+    dlna/dlnavideofile.h \
+    dlna/dlnaresource.h \
+    dlna/dlnastoragefolder.h \
+    dlna/dlnarootfolder.h \
+    dlna/dlnafolder.h \
+    dlna/cached/dlnacachedmusictrack.h \
+    dlna/cached/dlnacachedrootfolder.h \
+    dlna/cached/dlnacachednetworkvideo.h \
+    dlna/cached/dlnacachedvideo.h \
+    dlna/cached/dlnacachedgroupedfoldermetadata.h \
+    dlna/cached/dlnacachedfoldermetadata.h \
+    dlna/cached/dlnacachedfolder.h \
+    dlna/cached/medialibrary.h \
+    Devices/mediarenderer.h \
+    Devices/mediarenderermodel.h
 
 DISTFILES += \
     doc/AVTransport/UPnP-av-AVTransport-v1-Service-20020625.pdf \
@@ -151,7 +202,8 @@ DISTFILES += \
     xml schema/upnp_error.xsd \
     xml schema/upnp_event.xsd \
     xml schema/upnp_control_service_connection_manager.xsd \
-    xml schema/upnp_service_connection_manager.xsd
+    xml schema/upnp_service_connection_manager.xsd \
+    xml schema/didl-Lite.xsd
 
 installPath = $$(MYLIBRARY)/$$QT_VERSION
 target.path = $$installPath
@@ -170,6 +222,18 @@ INSTALLS += http
 services.files = Services/*.h
 services.path = $$installIncludePath/Services
 INSTALLS += services
+
+devices.files = Devices/*.h
+devices.path = $$installIncludePath/Devices
+INSTALLS += devices
+
+dlna.files = Dlna/*.h
+dlna.path = $$installIncludePath/dlna
+INSTALLS += dlna
+
+dlna_cached.files = Dlna/Cached/*.h
+dlna_cached.path = $$installIncludePath/dlna/cached
+INSTALLS += dlna_cached
 
 RESOURCES += \
     schema.qrc
