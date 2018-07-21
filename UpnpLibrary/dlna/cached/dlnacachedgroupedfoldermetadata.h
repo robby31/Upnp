@@ -1,7 +1,7 @@
 #ifndef DLNACACHEDGROUPEDFOLDERMETADATA_H
 #define DLNACACHEDGROUPEDFOLDERMETADATA_H
 
-#include "dlnastoragefolder.h"
+#include "../dlnastoragefolder.h"
 #include "dlnacachedfoldermetadata.h"
 
 #include "medialibrary.h"
@@ -11,7 +11,7 @@ class DlnaCachedGroupedFolderMetaData : public DlnaStorageFolder
     Q_OBJECT
 
 public:
-    DlnaCachedGroupedFolderMetaData(MediaLibrary* library, QString host, int port, QString name, QObject *parent = 0);
+    DlnaCachedGroupedFolderMetaData(MediaLibrary* library, QString name, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
     virtual int getChildrenSize() const { return children.size(); }

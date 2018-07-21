@@ -10,8 +10,8 @@ const QString DlnaMusicTrack::AUDIO_OGG_TYPEMIME = "audio/x-ogg";
 const QString DlnaMusicTrack::AUDIO_LPCM_TYPEMIME = "audio/L16";
 const QString DlnaMusicTrack::AUDIO_TRANSCODE = "audio/transcode";
 
-DlnaMusicTrack::DlnaMusicTrack(QString host, int port, QObject *parent):
-    DlnaItem(host, port, parent)
+DlnaMusicTrack::DlnaMusicTrack(QObject *parent):
+    DlnaItem(parent)
 {
 }
 
@@ -145,7 +145,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
             QDomElement upnpAlbumArtURI = xml->createElement("upnp:albumArtURI");
             upnpAlbumArtURI.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
             upnpAlbumArtURI.setAttribute("dlna:profileID", "JPEG_TN");
-            upnpAlbumArtURI.appendChild(xml->createTextNode(QString("http://%1:%2/get/%3/thumbnail0000%4&").arg(host).arg(port).arg(getResourceId()).arg(getDisplayName().toUtf8().toPercentEncoding().constData())));
+            upnpAlbumArtURI.appendChild(xml->createTextNode(QString("http://%1:%2/get/%3/thumbnail0000%4&").arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getResourceId()).arg(getDisplayName().toUtf8().toPercentEncoding().constData())));
             xml_obj.appendChild(upnpAlbumArtURI);
         }
     }
@@ -182,7 +182,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(host).arg(port).arg(getName().toUtf8().toPercentEncoding().constData())));
+    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getName().toUtf8().toPercentEncoding().constData())));
 
     xml_obj.appendChild(res);
 

@@ -2,8 +2,8 @@
 
 qint64 DlnaFolder::objectCounter = 0;
 
-DlnaFolder::DlnaFolder(QString filename, QString host, int port, QObject *parent):
-    DlnaStorageFolder(host, port, parent),
+DlnaFolder::DlnaFolder(QString filename, QObject *parent):
+    DlnaStorageFolder(parent),
     fileinfo(filename),
     children()
 {
@@ -47,15 +47,15 @@ DlnaResource *DlnaFolder::getChild(int index, QObject *parent)  {
         QMimeDatabase mimeDb;
 
         if (fileinfo.isDir()) {
-            child = new DlnaFolder(fileinfo.absoluteFilePath(), host, port,
+            child = new DlnaFolder(fileinfo.absoluteFilePath(),
                                    parent != 0 ? parent : this);
         }
         else if (mimeDb.mimeTypeForFile(fileinfo).name().startsWith("audio/")) {
-            child = new DlnaMusicTrackFile(fileinfo.absoluteFilePath(), host, port,
+            child = new DlnaMusicTrackFile(fileinfo.absoluteFilePath(),
                                            parent != 0 ? parent : this);
         }
         else if (mimeDb.mimeTypeForFile(fileinfo).name().startsWith("video/")) {
-            child = new DlnaVideoFile(fileinfo.absoluteFilePath(), host, port,
+            child = new DlnaVideoFile(fileinfo.absoluteFilePath(),
                                       parent != 0 ? parent : this);
         }
         else {

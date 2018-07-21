@@ -8,7 +8,7 @@ class DlnaStorageFolder : public DlnaResource
     Q_OBJECT
 
 public:
-    explicit DlnaStorageFolder(QString host, int port, QObject *parent = 0);
+    explicit DlnaStorageFolder(QObject *parent = 0);
 
     // Return upnp class
     virtual QString getUpnpClass() const { return QString("object.container.storageFolder"); }
@@ -20,14 +20,6 @@ public:
 
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() const { return QImage(); }
-
-    void setHost(const QString &hostname) { host = hostname; }
-    QString getHost()               const { return host; }
-    int getPort()                   const { return port; }
-
-protected:
-    QString host;
-    int port;
 };
 
 #endif // DLNASTORAGEFOLDER_H

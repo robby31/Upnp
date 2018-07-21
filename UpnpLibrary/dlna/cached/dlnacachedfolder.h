@@ -1,7 +1,7 @@
 #ifndef DLNACACHEDFOLDER_H
 #define DLNACACHEDFOLDER_H
 
-#include "dlnastoragefolder.h"
+#include "../dlnastoragefolder.h"
 #include "dlnacachedvideo.h"
 #include "dlnacachednetworkvideo.h"
 #include "dlnacachedmusictrack.h"
@@ -17,7 +17,7 @@ class DlnaCachedFolder : public DlnaStorageFolder
 public:
     explicit DlnaCachedFolder(MediaLibrary* library,
                               QSqlQuery query,
-                              QString name, QString host, int port, bool cacheEnabled = false, int maxSize = -1, QObject *parent = 0);
+                              QString name, bool cacheEnabled = false, int maxSize = -1, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
     virtual int getChildrenSize() const { return nbChildren; }

@@ -2,8 +2,8 @@
 
 qint64 DlnaMusicTrackFile::objectCounter = 0;
 
-DlnaMusicTrackFile::DlnaMusicTrackFile(QString filename, QString host, int port, QObject *parent):
-    DlnaMusicTrack(host, port, parent),
+DlnaMusicTrackFile::DlnaMusicTrackFile(QString filename, QObject *parent):
+    DlnaMusicTrack(parent),
     fileinfo(filename)
 {
     ++objectCounter;

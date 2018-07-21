@@ -2,8 +2,8 @@
 
 qint64 DlnaRootFolder::objectCounter = 0;
 
-DlnaRootFolder::DlnaRootFolder(QString host, int port, QObject *parent):
-    DlnaStorageFolder(host, port, parent),
+DlnaRootFolder::DlnaRootFolder(QObject *parent):
+    DlnaStorageFolder(parent),
     children()
 {
     ++objectCounter;
@@ -44,7 +44,7 @@ void DlnaRootFolder::addChildSlot(DlnaResource *child) {
 bool DlnaRootFolder::addFolderSlot(QString folder) {
 
     if (QFileInfo(folder).isDir()) {
-        DlnaFolder* child = new DlnaFolder(folder, host, port, this);
+        DlnaFolder* child = new DlnaFolder(folder, this);
         addChild(child);
         return true;
     }

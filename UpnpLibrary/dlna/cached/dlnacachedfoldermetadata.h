@@ -1,7 +1,7 @@
 #ifndef DLNACACHEDFOLDERMETADATA_H
 #define DLNACACHEDFOLDERMETADATA_H
 
-#include "dlnastoragefolder.h"
+#include "../dlnastoragefolder.h"
 #include "dlnacachedfolder.h"
 
 #include "medialibrary.h"
@@ -14,7 +14,7 @@ public:
     explicit DlnaCachedFolderMetaData(MediaLibrary* library,
                                       QString stringQuery,
                                       QString stringQueryForChild,
-                                      QString name, QString host, int port,
+                                      QString name,
                                       QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);

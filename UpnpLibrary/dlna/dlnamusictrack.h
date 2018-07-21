@@ -9,7 +9,7 @@ class DlnaMusicTrack : public DlnaItem
     Q_OBJECT
 
 public:
-    DlnaMusicTrack(QString host, int port, QObject *parent = 0);
+    DlnaMusicTrack(QObject *parent = 0);
 
     // Return upnp class
     virtual QString getUpnpClass() const Q_DECL_OVERRIDE { return QString("object.item.audioItem.musicTrack"); }

@@ -1,7 +1,7 @@
 #include "dlnacachednetworkvideo.h"
 
-DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent):
-    DlnaCachedVideo(library, idMedia, host, port, parent),
+DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QObject *parent):
+    DlnaCachedVideo(library, idMedia, parent),
     m_nam(manager),
     m_streamUrl()
 {
@@ -26,7 +26,8 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
             transcodeProcess = new FfmpegTranscoding();
 
             // request from Youtube url for streaming
-            DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(host, port, transcodeProcess);
+            DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(transcodeProcess);
+            movie->setDlnaParent(this);
             connect(movie, SIGNAL(streamUrlDefined(QString)), transcodeProcess, SLOT(setUrl(QString)));
             connect(movie, SIGNAL(videoUrlErrorSignal(QString)), transcodeProcess, SLOT(urlError(QString)));
             movie->setAnalyzeStream(false);

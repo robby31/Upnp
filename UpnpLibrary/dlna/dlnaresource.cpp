@@ -167,3 +167,21 @@ void DlnaResource::requestDlnaResources(QObject *sender, QString objectId, bool 
 
     emit dlnaResources(sender, res);
 }
+
+QUrl DlnaResource::getHostUrl() const
+{
+    if (!m_hostUrl.isEmpty())
+        return m_hostUrl;
+    else if (dlnaParent)
+        return dlnaParent->getHostUrl();
+    else
+        qCritical() << "invalid host url" << m_hostUrl << this;
+
+    return QString();
+}
+
+void DlnaResource::setHostUrl(const QUrl &url)
+{
+    m_hostUrl = url;
+}
+

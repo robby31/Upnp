@@ -9,8 +9,8 @@ const QString DlnaVideoItem::ASF_TYPEMIME = "video/x-ms-asf";
 const QString DlnaVideoItem::MATROSKA_TYPEMIME = "video/x-matroska";
 const QString DlnaVideoItem::VIDEO_TRANSCODE = "video/transcode";
 
-DlnaVideoItem::DlnaVideoItem(QString host, int port, QObject *parent):
-    DlnaItem(host, port, parent)
+DlnaVideoItem::DlnaVideoItem(QObject *parent):
+    DlnaItem(parent)
 {
     setTranscodeFormat(H264_AC3);   // default transcode format
 }
@@ -109,7 +109,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(host).arg(port).arg(getName().toUtf8().toPercentEncoding().constData())));
+    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getName().toUtf8().toPercentEncoding().constData())));
 
     xml_obj.appendChild(res);
 

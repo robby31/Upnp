@@ -1,10 +1,10 @@
 #include "dlnacachedrootfolder.h"
 
-DlnaCachedRootFolder::DlnaCachedRootFolder(QString host, int port, QObject *parent):
-    DlnaRootFolder(host, port, parent),
+DlnaCachedRootFolder::DlnaCachedRootFolder(QObject *parent):
+    DlnaRootFolder(parent),
     library(this),
     mimeDb(),
-    rootFolder(host, port, this),
+    rootFolder(this),
     recentlyPlayedChild(0),
     resumeChild(0),
     favoritesChild(0),
@@ -14,22 +14,26 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(QString host, int port, QObject *pare
 {
     recentlyPlayedChild = new DlnaCachedFolder(&library,
                                                library.getMedia("last_played is not null", "last_played", "DESC"),
-                                               "Recently Played", host, port, true, 200, this);
+                                               "Recently Played", true, 200, this);
+    recentlyPlayedChild->setDlnaParent(this);
     addChild(recentlyPlayedChild);
 
     resumeChild = new DlnaCachedFolder(&library,
                                        library.getMedia("progress_played>0", "last_played", "DESC"),
-                                       "Resume", host, port, true, 200, this);
+                                       "Resume", true, 200, this);
+    resumeChild->setDlnaParent(this);
     addChild(resumeChild);
 
     lastAddedChild = new DlnaCachedFolder(&library,
                                           library.getMedia("addedDate is not null", "addedDate", "DESC"),
-                                          "Last Added", host, port, true, 200, this);
+                                          "Last Added", true, 200, this);
+    lastAddedChild->setDlnaParent(this);
     addChild(lastAddedChild);
 
     favoritesChild = new DlnaCachedFolder(&library,
                                           library.getMedia("counter_played>0", "counter_played", "DESC"),
-                                          "Favorites", host, port, true, 200, this);
+                                          "Favorites", true, 200, this);
+    favoritesChild->setDlnaParent(this);
     addChild(favoritesChild);
 
     QSqlQuery query = library.getMediaType();
@@ -40,8 +44,8 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(QString host, int port, QObject *pare
         if (typeMedia == "video")
         {
             QString where = QString("media.type=%1 and is_reachable=1 and filename like '%youtube%'").arg(id_type);
-            youtube = new DlnaCachedGroupedFolderMetaData(&library, host, port,
-                                                          "YOUTUBE", this);
+            youtube = new DlnaCachedGroupedFolderMetaData(&library, "YOUTUBE", this);
+            youtube->setDlnaParent(this);
             youtube->addFolder("SELECT DISTINCT artist.id, artist.name FROM media LEFT OUTER JOIN artist ON media.artist=artist.id WHERE " + where + " ORDER BY artist.name",
                                "SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played "
                                "from media "
@@ -69,8 +73,8 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(QString host, int port, QObject *pare
         if (typeMedia == "audio")
         {
             DlnaCachedGroupedFolderMetaData* child;
-            child = new DlnaCachedGroupedFolderMetaData(&library, host, port,
-                                                        "Music", this);
+            child = new DlnaCachedGroupedFolderMetaData(&library, "Music", this);
+            child->setDlnaParent(this);
             QString where = QString("media.type=%1 and is_reachable=1").arg(id_type);
 
             child->addFolder("SELECT DISTINCT artist.id, artist.name FROM media LEFT OUTER JOIN artist ON media.artist=artist.id WHERE " + where + " ORDER BY artist.name",
@@ -110,7 +114,8 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(QString host, int port, QObject *pare
         } else {
             DlnaCachedFolder* child = new DlnaCachedFolder(&library,
                                                            library.getMedia(QString("type='%1'").arg(id_type), "title", "ASC"),
-                                                           typeMedia, host, port, false, -1, this);
+                                                           typeMedia, false, -1, this);
+            child->setDlnaParent(this);
             addChild(child);
         }
     }
@@ -142,7 +147,8 @@ void DlnaCachedRootFolder::addNetworkLink(const QString &url)
 
 void DlnaCachedRootFolder::addResource(QUrl url)
 {
-    DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(host, port, this);
+    DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(this);
+    movie->setDlnaParent(this);
     connect(movie, SIGNAL(streamUrlDefined(QString)), this, SLOT(networkLinkAnalyzed(QString)));
     movie->setNetworkAccessManager(m_nam);
     movie->setUrl(url.toString());
@@ -247,7 +253,8 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
 
         if (mime_type.startsWith("audio/"))
         {
-            DlnaMusicTrackFile track(fileinfo.absoluteFilePath(), host, port);
+            DlnaMusicTrackFile track(fileinfo.absoluteFilePath());
+            track.setDlnaParent(this);
 
             data.insert("title", track.metaDataTitle());
             data.insert("genre", track.metaDataGenre());
@@ -278,7 +285,8 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
         }
         else if (mime_type.startsWith("video/"))
         {
-            DlnaVideoFile movie(fileinfo.absoluteFilePath(), host, port);
+            DlnaVideoFile movie(fileinfo.absoluteFilePath());
+            movie.setDlnaParent(this);
 
             data.insert("duration", movie.metaDataDuration());
             data.insert("resolution", movie.resolution());

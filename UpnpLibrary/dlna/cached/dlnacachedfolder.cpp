@@ -1,7 +1,7 @@
 #include "dlnacachedfolder.h"
 
-DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, QSqlQuery query, QString name, QString host, int port, bool cacheEnabled, int maxSize, QObject *parent):
-    DlnaStorageFolder(host, port, parent),
+DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, QSqlQuery query, QString name, bool cacheEnabled, int maxSize, QObject *parent):
+    DlnaStorageFolder(parent),
     library(library),
     name(name),
     query(query),
@@ -72,17 +72,21 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
 
     if (type_media == "audio")
     {
-        child = new DlnaCachedMusicTrack(library, id_media, host, port,
+        child = new DlnaCachedMusicTrack(library, id_media,
                                          parent != 0 ? parent : this);
 
     } else if (type_media == "video")
     {
         if (filename.startsWith("http"))
-            child = new DlnaCachedNetworkVideo(m_nam, library, id_media, host, port,
-                                               parent != 0 ? parent : this);
+        {
+            child= new DlnaCachedNetworkVideo(m_nam, library, id_media,
+                                              parent != 0 ? parent : this);
+        }
         else
-            child = new DlnaCachedVideo(library, id_media, host, port,
+        {
+            child = new DlnaCachedVideo(library, id_media,
                                         parent != 0 ? parent : this);
+        }
 
     } else {
         qWarning() << QString("Unkwown format %1: %2").arg(type_media).arg(filename);

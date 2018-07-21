@@ -1,24 +1,24 @@
 #ifndef DLNACACHEDROOTFOLDER_H
 #define DLNACACHEDROOTFOLDER_H
 
-#include "dlnarootfolder.h"
+#include "../dlnarootfolder.h"
 
 #include <qmimedatabase.h>
 #include "medialibrary.h"
 
-#include "dlnamusictrackfile.h"
-#include "dlnavideofile.h"
+#include "../dlnamusictrackfile.h"
+#include "../dlnavideofile.h"
 #include "dlnacachedfolder.h"
 #include "dlnacachedgroupedfoldermetadata.h"
-#include "dlnarootfolder.h"
-#include "dlnayoutubevideo.h"
+#include "../dlnarootfolder.h"
+#include "../dlnayoutubevideo.h"
 
 class DlnaCachedRootFolder : public DlnaRootFolder
 {
     Q_OBJECT
 
 public:
-    explicit DlnaCachedRootFolder(QString host, int port, QObject *parent = 0);
+    explicit DlnaCachedRootFolder(QObject *parent = 0);
 
     QSqlQuery getAllNetworkLinks() { return library.getAllNetworkLinks(); }
 

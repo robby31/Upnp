@@ -18,6 +18,9 @@ public:
     explicit DlnaResource(QObject *parent = 0);
     virtual ~DlnaResource();
 
+    void setHostUrl(const QUrl &url);
+    QUrl getHostUrl() const;
+
     QString getId() const { return id; }
     void setId(QString id) { this->id = id; }
 
@@ -102,6 +105,8 @@ private:
     // update counter for this resource.
     // When the resource needs to be refreshed, its counter should be updated.
     int updateId;
+
+    QUrl m_hostUrl;
 
 public:
     static qint64 objectCounter;

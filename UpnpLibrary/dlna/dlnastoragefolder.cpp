@@ -1,9 +1,7 @@
 #include "dlnastoragefolder.h"
 
-DlnaStorageFolder::DlnaStorageFolder(QString host, int port, QObject *parent):
-    DlnaResource(parent),
-    host(host),
-    port(port)
+DlnaStorageFolder::DlnaStorageFolder(QObject *parent):
+    DlnaResource(parent)
 {
 }
 

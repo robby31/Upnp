@@ -2,8 +2,8 @@
 
 qint64 DlnaVideoFile::objectCounter = 0;
 
-DlnaVideoFile::DlnaVideoFile(QString filename, QString host, int port, QObject *parent):
-    DlnaVideoItem(host, port, parent),
+DlnaVideoFile::DlnaVideoFile(QString filename, QObject *parent):
+    DlnaVideoItem(parent),
     fileinfo(filename)
 {
     ++objectCounter;

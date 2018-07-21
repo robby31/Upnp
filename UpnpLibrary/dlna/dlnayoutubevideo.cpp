@@ -2,8 +2,8 @@
 
 qint64 DlnaYouTubeVideo::objectCounter = 0;
 
-DlnaYouTubeVideo::DlnaYouTubeVideo(QString host, int port, QObject *parent) :
-    DlnaVideoItem(host, port, parent),
+DlnaYouTubeVideo::DlnaYouTubeVideo(QObject *parent) :
+    DlnaVideoItem(parent),
     m_url(),
     m_analyzeStream(true),
     m_videoUrlInProgress(false),

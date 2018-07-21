@@ -10,7 +10,7 @@ class DlnaRootFolder : public DlnaStorageFolder
     Q_OBJECT
 
 public:
-    explicit DlnaRootFolder(QString host, int port, QObject *parent = 0);
+    explicit DlnaRootFolder(QObject *parent = 0);
     virtual ~DlnaRootFolder();
 
     // Any resource needs to represent the container or item with a String.

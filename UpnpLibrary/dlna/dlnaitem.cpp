@@ -1,9 +1,7 @@
 #include "dlnaitem.h"
 
-DlnaItem::DlnaItem(QString host, int port, QObject *parent) :
+DlnaItem::DlnaItem(QObject *parent) :
     DlnaResource(parent),
-    host(host),
-    port(port),
     transcodeFormat(UNKNOWN),  // default transcode format
     dlnaOrgOpFlags("01"),      // seek by byte (exclusive)
     dlnaOrgPN(),

@@ -3,14 +3,14 @@
 
 #include "dlnacachedvideo.h"
 #include "ffmpegtranscoding.h"
-#include "dlnayoutubevideo.h"
+#include "../dlnayoutubevideo.h"
 
 class DlnaCachedNetworkVideo : public DlnaCachedVideo
 {
     Q_OBJECT
 
 public:
-    explicit DlnaCachedNetworkVideo(QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
+    explicit DlnaCachedNetworkVideo(QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QObject *parent = 0);
 
     //returns the size of the source
     virtual qint64 sourceSize() const { return (double)metaDataDuration()*(double)metaDataBitrate()/8000.0; }

@@ -12,7 +12,7 @@ class DlnaItem : public DlnaResource
     Q_OBJECT
 
 public:
-    explicit DlnaItem(QString host, int port, QObject *parent = 0);
+    explicit DlnaItem(QObject *parent = 0);
     virtual ~DlnaItem();
 
     // Returns the DisplayName that is shown to the Renderer.
@@ -113,9 +113,6 @@ private slots:
     void streamDestroyed(QObject *obj);
 
 protected:
-    QString host;
-    int port;
-
     TranscodeFormatAvailable transcodeFormat;
 
     /*

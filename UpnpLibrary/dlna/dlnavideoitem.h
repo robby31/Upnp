@@ -8,7 +8,7 @@ class DlnaVideoItem : public DlnaItem
     Q_OBJECT
 
 public:
-    DlnaVideoItem(QString host, int port, QObject *parent = 0);
+    DlnaVideoItem(QObject *parent = 0);
 
     // Return upnp class
     virtual QString getUpnpClass() const Q_DECL_OVERRIDE { return QString("object.item.videoItem"); }

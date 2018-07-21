@@ -1,7 +1,7 @@
 #include "dlnacachedvideo.h"
 
-DlnaCachedVideo::DlnaCachedVideo(MediaLibrary* library, int idMedia, QString host, int port, QObject *parent):
-    DlnaVideoItem(host, port, parent),
+DlnaCachedVideo::DlnaCachedVideo(MediaLibrary* library, int idMedia, QObject *parent):
+    DlnaVideoItem(parent),
     library(library),
     idMedia(idMedia)
 {
