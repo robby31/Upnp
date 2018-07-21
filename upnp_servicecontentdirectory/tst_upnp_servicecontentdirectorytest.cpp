@@ -31,6 +31,7 @@ private Q_SLOTS:
     void test_get_systemUpdateId_InvalidArgs();
 
     void test_browse();
+    void test_browse_2();
 
 private:
     void initRootDevice();
@@ -125,7 +126,7 @@ void Upnp_servicecontentdirectoryTest::initContentDirectory()
     {
         if (!m_contentDirectory)
         {
-            m_contentDirectory = new ServiceContentDirectory(m_root);
+            m_contentDirectory = new ServiceContentDirectory(Q_NULLPTR, m_root);
 
             connect(m_contentDirectory, SIGNAL(actionXmlAnswer(QString)), this, SLOT(actionXmlAnswer(QString)));
             connect(m_contentDirectory, SIGNAL(errorOccured(UpnpError)), this, SLOT(errorRaised(UpnpError)));
@@ -434,16 +435,17 @@ void Upnp_servicecontentdirectoryTest::test_browse()
 
     QVERIFY(m_contentDirectory != Q_NULLPTR);
 
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
     QVariantMap arguments;
     arguments["ObjectID"] = "0";
-    arguments["BrowseFlag"] = "";
-    arguments["Filter"] = "";
+    arguments["BrowseFlag"] = "BrowseMetadata";
+    arguments["Filter"] = "*";
     arguments["StartingIndex"] = "0";
     arguments["RequestedCount"] = "0";
     arguments["SortCriteria"] = "";
 
-    m_XmlActionAnswer.clear();
-    m_error = UpnpError();
     m_contentDirectory->runAction(actionName, arguments);
 
     int timeout = 10;
@@ -459,9 +461,203 @@ void Upnp_servicecontentdirectoryTest::test_browse()
     QCOMPARE(answer.isValid(), true);
     QCOMPARE(answer.actionName(), actionName);
     QCOMPARE(answer.serviceType(), m_contentDirectory->serviceType());
-    QCOMPARE(answer.arguments().size(), 1);
-    QCOMPARE(answer.arguments().at(0), "Id");
-    QCOMPARE(answer.value("Id"), "");
+    QCOMPARE(answer.arguments().size(), 4);
+    QCOMPARE(answer.arguments().at(0), "Result");
+
+    qWarning() << answer.value("Result");
+
+//    QXmlSchema schema;
+//    QFile fd("/Users/doudou/workspaceQT/Upnp/UpnpLibrary/xml schema/didl-Lite.xsd");
+
+//    QCOMPARE(fd.open(QFile::ReadOnly), true);
+//    QCOMPARE(schema.load(fd.readAll()), true);
+//    fd.close();
+
+//    QXmlSchemaValidator validator(schema);
+//    QCOMPARE(validator.validate(answer.value("Result").toUtf8()), true);
+
+    QDomDocument result;
+    QCOMPARE(result.setContent(answer.value("Result"), true), true);
+    QCOMPARE(result.isNull(), false);
+
+    QDomElement rootResult = result.firstChildElement();
+    QCOMPARE(rootResult.isNull(), false);
+    QCOMPARE(rootResult.childNodes().size(), 1);
+    QCOMPARE(rootResult.toElement().tagName(), "DIDL-Lite");
+
+    QDomElement container = rootResult.firstChildElement();
+    QCOMPARE(container.tagName(), "container");
+
+    QCOMPARE(container.attributes().size(), 4);
+    QCOMPARE(container.attribute("id"), "0");
+    QCOMPARE(container.attribute("childCount"), "5");
+    QCOMPARE(container.attribute("parentID"), "-1");
+    QCOMPARE(container.attribute("restricted"), "true");
+
+    QCOMPARE(container.childNodes().size(), 2);
+    QCOMPARE(container.childNodes().at(0).toElement().tagName(), "title");
+    QCOMPARE(container.childNodes().at(0).toElement().firstChild().toText().data(), "root");
+    QCOMPARE(container.childNodes().at(1).toElement().tagName(), "class");
+    QCOMPARE(container.childNodes().at(1).toElement().firstChild().toText().data(), "object.container.storageFolder");
+
+    QCOMPARE(answer.arguments().at(1), "NumberReturned");
+    QCOMPARE(answer.value("NumberReturned"), "1");
+    QCOMPARE(answer.arguments().at(2), "TotalMatches");
+    QCOMPARE(answer.value("TotalMatches"), "1");
+    QCOMPARE(answer.arguments().at(3), "UpdateID");
+    QCOMPARE(answer.value("UpdateID"), "1");
+
+
+    QCOMPARE(m_error.netError(), QNetworkReply::NoError);
+    QCOMPARE(m_error.code(), -5);
+    QCOMPARE(m_error.description(), "");
+    QCOMPARE(m_error.faultCode(), "");
+    QCOMPARE(m_error.faultString(), "");
+}
+
+void Upnp_servicecontentdirectoryTest::test_browse_2()
+{
+    QString actionName = "Browse";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_contentDirectory != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    QVariantMap arguments;
+    arguments["ObjectID"] = "0";
+    arguments["BrowseFlag"] = "BrowseDirectChildren";
+    arguments["Filter"] = "*";
+    arguments["StartingIndex"] = "0";
+    arguments["RequestedCount"] = "0";
+    arguments["SortCriteria"] = "";
+
+    m_contentDirectory->runAction(actionName, arguments);
+
+    int timeout = 10;
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+    {
+        timeout--;
+        QTest::qWait(1000);
+    }
+
+    QVERIFY(m_XmlActionAnswer.size() > 0);
+
+    SoapActionResponse answer(m_XmlActionAnswer.toUtf8());
+    QCOMPARE(answer.isValid(), true);
+    QCOMPARE(answer.actionName(), actionName);
+    QCOMPARE(answer.serviceType(), m_contentDirectory->serviceType());
+    QCOMPARE(answer.arguments().size(), 4);
+    QCOMPARE(answer.arguments().at(0), "Result");
+
+    qWarning() << answer.value("Result");
+
+//    QXmlSchema schema;
+//    QFile fd("/Users/doudou/workspaceQT/Upnp/UpnpLibrary/xml schema/didl-Lite.xsd");
+
+//    QCOMPARE(fd.open(QFile::ReadOnly), true);
+//    QCOMPARE(schema.load(fd.readAll()), true);
+//    fd.close();
+
+//    QXmlSchemaValidator validator(schema);
+//    QCOMPARE(validator.validate(answer.value("Result").toUtf8()), true);
+
+    QDomDocument result;
+    QCOMPARE(result.setContent(answer.value("Result"), true), true);
+    QCOMPARE(result.isNull(), false);
+
+    QDomElement rootResult = result.firstChildElement();
+    QCOMPARE(rootResult.isNull(), false);
+    QCOMPARE(rootResult.childNodes().size(), 5);
+    QCOMPARE(rootResult.toElement().tagName(), "DIDL-Lite");
+
+    QDomElement container = rootResult.firstChildElement();
+    QCOMPARE(container.tagName(), "container");
+
+    QCOMPARE(container.attributes().size(), 4);
+    QCOMPARE(container.attribute("id"), "0$1");
+    QCOMPARE(container.attribute("childCount"), "-1");
+    QCOMPARE(container.attribute("parentID"), "0");
+    QCOMPARE(container.attribute("restricted"), "true");
+
+    QCOMPARE(container.childNodes().size(), 2);
+    QCOMPARE(container.childNodes().at(0).toElement().tagName(), "title");
+    QCOMPARE(container.childNodes().at(0).toElement().firstChild().toText().data(), "Recently Played");
+    QCOMPARE(container.childNodes().at(1).toElement().tagName(), "class");
+    QCOMPARE(container.childNodes().at(1).toElement().firstChild().toText().data(), "object.container.storageFolder");
+
+    container = container.nextSiblingElement();
+    QCOMPARE(container.tagName(), "container");
+
+    QCOMPARE(container.attributes().size(), 4);
+    QCOMPARE(container.attribute("id"), "0$2");
+    QCOMPARE(container.attribute("childCount"), "-1");
+    QCOMPARE(container.attribute("parentID"), "0");
+    QCOMPARE(container.attribute("restricted"), "true");
+
+    QCOMPARE(container.childNodes().size(), 2);
+    QCOMPARE(container.childNodes().at(0).toElement().tagName(), "title");
+    QCOMPARE(container.childNodes().at(0).toElement().firstChild().toText().data(), "Resume");
+    QCOMPARE(container.childNodes().at(1).toElement().tagName(), "class");
+    QCOMPARE(container.childNodes().at(1).toElement().firstChild().toText().data(), "object.container.storageFolder");
+
+    container = container.nextSiblingElement();
+    QCOMPARE(container.tagName(), "container");
+
+    QCOMPARE(container.attributes().size(), 4);
+    QCOMPARE(container.attribute("id"), "0$3");
+    QCOMPARE(container.attribute("childCount"), "-1");
+    QCOMPARE(container.attribute("parentID"), "0");
+    QCOMPARE(container.attribute("restricted"), "true");
+
+    QCOMPARE(container.childNodes().size(), 2);
+    QCOMPARE(container.childNodes().at(0).toElement().tagName(), "title");
+    QCOMPARE(container.childNodes().at(0).toElement().firstChild().toText().data(), "Last Added");
+    QCOMPARE(container.childNodes().at(1).toElement().tagName(), "class");
+    QCOMPARE(container.childNodes().at(1).toElement().firstChild().toText().data(), "object.container.storageFolder");
+
+    container = container.nextSiblingElement();
+    QCOMPARE(container.tagName(), "container");
+
+    QCOMPARE(container.attributes().size(), 4);
+    QCOMPARE(container.attribute("id"), "0$4");
+    QCOMPARE(container.attribute("childCount"), "-1");
+    QCOMPARE(container.attribute("parentID"), "0");
+    QCOMPARE(container.attribute("restricted"), "true");
+
+    QCOMPARE(container.childNodes().size(), 2);
+    QCOMPARE(container.childNodes().at(0).toElement().tagName(), "title");
+    QCOMPARE(container.childNodes().at(0).toElement().firstChild().toText().data(), "Favorites");
+    QCOMPARE(container.childNodes().at(1).toElement().tagName(), "class");
+    QCOMPARE(container.childNodes().at(1).toElement().firstChild().toText().data(), "object.container.storageFolder");
+
+    container = container.nextSiblingElement();
+    QCOMPARE(container.tagName(), "container");
+
+    QCOMPARE(container.attributes().size(), 4);
+    QCOMPARE(container.attribute("id"), "0$5");
+    QCOMPARE(container.attribute("childCount"), "0");
+    QCOMPARE(container.attribute("parentID"), "0");
+    QCOMPARE(container.attribute("restricted"), "true");
+
+    QCOMPARE(container.childNodes().size(), 2);
+    QCOMPARE(container.childNodes().at(0).toElement().tagName(), "title");
+    QCOMPARE(container.childNodes().at(0).toElement().firstChild().toText().data(), "root");
+    QCOMPARE(container.childNodes().at(1).toElement().tagName(), "class");
+    QCOMPARE(container.childNodes().at(1).toElement().firstChild().toText().data(), "object.container.storageFolder");
+
+    container = container.nextSiblingElement();
+    QCOMPARE(container.isNull(), true);
+
+    QCOMPARE(answer.arguments().at(1), "NumberReturned");
+    QCOMPARE(answer.value("NumberReturned"), "5");
+    QCOMPARE(answer.arguments().at(2), "TotalMatches");
+    QCOMPARE(answer.value("TotalMatches"), "5");
+    QCOMPARE(answer.arguments().at(3), "UpdateID");
+    QCOMPARE(answer.value("UpdateID"), "1");
 
     QCOMPARE(m_error.netError(), QNetworkReply::NoError);
     QCOMPARE(m_error.code(), -5);

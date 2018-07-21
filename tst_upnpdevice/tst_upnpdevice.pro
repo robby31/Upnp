@@ -4,9 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += testlib network xml
-
-QT       -= gui
+QT       += testlib network xml qml sql
 
 TARGET = tst_upnpdevicetest
 CONFIG   += console
@@ -30,6 +28,18 @@ LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Youtube
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(youtube)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/multimedia
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
+
+INCLUDEPATH += /opt/local/include
+LIBS += -L/opt/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
+
+DEFINES += USE_AVRESAMPLE
+LIBS += -L/opt/local/lib -lavresample
 
 SOURCES += \
         tst_upnpdevicetest.cpp
