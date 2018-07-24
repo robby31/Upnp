@@ -16,6 +16,7 @@
 #include <chrono>
 #include "eventresponse.h"
 #include <QRandomGenerator>
+#include"Devices/devicesmodel.h"
 
 typedef struct {
     QString deviceUuid;
@@ -35,7 +36,7 @@ class UpnpControlPoint : public QObject
 
     Q_PROPERTY(QString serverName READ serverName NOTIFY serverNameChanged)
     Q_PROPERTY(ListModel *localRootDevices READ localRootDevices NOTIFY localRootDevicesChanged)
-    Q_PROPERTY(ListModel *remoteRootDevices READ remoteRootDevices NOTIFY remoteRootDevicesChanged)
+    Q_PROPERTY(DevicesModel *remoteRootDevices READ remoteRootDevices NOTIFY remoteRootDevicesChanged)
 
 public:
     explicit UpnpControlPoint(QObject *parent = 0);
@@ -51,7 +52,7 @@ public:
     void setNetworkManager(QNetworkAccessManager *nam);
 
     ListModel *localRootDevices() const;
-    ListModel *remoteRootDevices() const;
+    DevicesModel *remoteRootDevices() const;
 
     UpnpRootDevice *addLocalRootDevice(UpnpRootDeviceDescription *description, int port, QString url);
     bool addLocalRootDevice(UpnpRootDevice *device);
@@ -64,15 +65,6 @@ protected:
 
 private:
     void initializeHostAdress();
-
-    void addRootDevice(SsdpMessage message);
-    UpnpRootDevice *getRootDeviceFromUuid(const QString &uuid);
-
-    UpnpObject *getUpnpObjectFromUSN(const QString &usn);
-
-    UpnpService *getService(const QString &deviceUuid, const QString &serviceId);
-
-    void removeSidEventFromUuid(const QString &deviceUuid);
 
     // return sid event subscribed
     QString eventSubscribed(const QString &uuid, const QString &serviceId);
@@ -102,20 +94,19 @@ private slots:
 
     void _processSsdpMessageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
 
-    void _rootDeviceStatusChanged();
-    void _rootDeviceAvailableChanged();
-
     void subscribeEventing(QNetworkRequest request, const QString &uuid, const QString &serviceId);
     void subscribeEventingFinished();
     void requestEventReceived(HttpRequest *request);
 
+    void removeSidEventFromUuid(const QString &deviceUuid);
+
 private:
-    QNetworkAccessManager *netManager;
+    QNetworkAccessManager *netManager = Q_NULLPTR;
 
     HttpServer eventServer;
     qint16 m_eventPort;
     QHash<QString, T_EVENT> m_sidEvent;
-    int m_eventCheckSubscription;
+    int m_eventCheckSubscription = -1;
     QHash<int, T_SEARCH_ANSWER> m_searchAnswer;
 
     QString m_servername;
@@ -128,13 +119,10 @@ private:
     int m_bootid;
     int m_configid;
 
-    ListModel *m_remoteRootDevice;
-    ListModel *m_localRootDevice;
+    DevicesModel *m_remoteRootDevice = Q_NULLPTR;
+    ListModel *m_localRootDevice = Q_NULLPTR;
 
     static const QString UPNP_VERSION;
-    static const QString ALIVE;
-    static const QString BYEBYE;
-    static const QString DISCOVER;
 
     /*
      * IPv4 Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).

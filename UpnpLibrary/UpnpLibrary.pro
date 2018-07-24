@@ -90,7 +90,8 @@ SOURCES += \
     dlna/cached/dlnacachedfolder.cpp \
     dlna/cached/medialibrary.cpp \
     Devices/mediarenderer.cpp \
-    Devices/mediarenderermodel.cpp
+    Devices/mediarenderermodel.cpp \
+    Devices/devicesmodel.cpp
 
 HEADERS += \
     upnpcontrolpoint.h \
@@ -138,7 +139,8 @@ HEADERS += \
     dlna/cached/dlnacachedfolder.h \
     dlna/cached/medialibrary.h \
     Devices/mediarenderer.h \
-    Devices/mediarenderermodel.h
+    Devices/mediarenderermodel.h \
+    Devices/devicesmodel.h
 
 DISTFILES += \
     doc/AVTransport/UPnP-av-AVTransport-v1-Service-20020625.pdf \

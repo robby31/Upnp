@@ -2,6 +2,12 @@
 
 const QString SsdpMessage::CRLF = "\r\n";
 
+const QString SsdpMessage::ALIVE = "ssdp:alive";
+
+const QString SsdpMessage::BYEBYE = "ssdp:byebye";
+
+const QString SsdpMessage::DISCOVER = "\"ssdp:discover\"";
+
 SsdpMessage::SsdpMessage()
 {
 

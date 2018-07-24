@@ -32,6 +32,10 @@ public:
     // Carriage return and line feed.
     static const QString CRLF;
 
+    static const QString ALIVE;
+    static const QString BYEBYE;
+    static const QString DISCOVER;
+
 private:
     bool addRawHeader(const QString &data);
 
