@@ -338,7 +338,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
             {
                 MediaRenderer* renderer = Q_NULLPTR;
                 if (m_renderersModel)
-                    m_renderersModel->rendererFromIp(request->peerAddress().toString());
+                    renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
 
                 if (renderer)
                     dlna->setSinkProtocol(renderer->sinkProtocols());
