@@ -108,6 +108,9 @@ void ServiceContentDirectory::initStateVariables()
         stateVariable = serviceDescription->addStateVariable("A_ARG_TYPE_Result", false, false, "string");
 
         stateVariable = serviceDescription->addStateVariable("A_ARG_TYPE_BrowseFlag", false, false, "string");
+        QStringList l_values;
+        l_values << "BrowseMetadata" << "BrowseDirectChildren";
+        serviceDescription->addAllowedValueList(stateVariable, l_values);
 
         stateVariable = serviceDescription->addStateVariable("A_ARG_TYPE_Filter", false, false, "string");
 
@@ -214,6 +217,13 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
         if (m_renderersModel)
             renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
 
+        if (!action.arguments().contains("ObjectID") or action.arguments().size()!=6)
+        {
+            UpnpError error(UpnpError::INVALID_ARGS);
+            request->replyError(error);
+            return false;
+        }
+
         QString objectID = action.argumentValue("ObjectID");
         if (!objectID.isEmpty())
         {
@@ -223,9 +233,36 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
             QString filter = action.argumentValue("Filter");
             QString sortCriteria = action.argumentValue("SortCriteria");
 
+            if (!sortCriteria.isEmpty())
+                qWarning() << "SORT CRITERIA" << sortCriteria;
+
             if (!browseFlag.isEmpty() && !startingIndex.isEmpty() && !requestedCount.isEmpty() && !filter.isEmpty())
             {
                 qDebug() << "Browse" << objectID << startingIndex << requestedCount << browseFlag << filter << sortCriteria;
+
+                if (startingIndex.toInt() < 0)
+                {
+                    qCritical() << "invalid startingIndex" << startingIndex.toInt();
+                    UpnpError error(UpnpError::INVALID_ARGS);
+                    request->replyError(error);
+                    return false;
+                }
+
+                if (requestedCount.toInt() < 0)
+                {
+                    qCritical() << "invalid requestedCount" << requestedCount.toInt();
+                    UpnpError error(UpnpError::INVALID_ARGS);
+                    request->replyError(error);
+                    return false;
+                }
+
+                if (browseFlag == "BrowseMetadata" && startingIndex.toInt() != 0)
+                {
+                    qCritical() << "invalid startingIndex" << startingIndex.toInt() << "when browseFlag is" << browseFlag;
+                    UpnpError error(UpnpError::INVALID_ARGS);
+                    request->replyError(error);
+                    return false;
+                }
 
                 QObject context;
                 QList<DlnaResource*> l_dlna = rootFolder.getDLNAResources(objectID,
@@ -243,9 +280,25 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                     if (l_dlna.size() > 0)
                         object_requested = l_dlna.at(0)->getDlnaParent();
                 }
-                else if (l_dlna.size() == 1)
+                else if (browseFlag == "BrowseMetadata")
                 {
-                    object_requested = l_dlna.at(0);
+                    if (l_dlna.size() == 1)
+                        object_requested = l_dlna.at(0);
+                }
+                else
+                {
+                    qCritical() << "invalid browseFlag" << browseFlag;
+                    UpnpError error(UpnpError::INVALID_ARGS);
+                    request->replyError(error);
+                    return false;
+                }
+
+                if (object_requested == Q_NULLPTR)
+                {
+                    qCritical() << "invalid object" << objectID << object_requested;
+                    UpnpError error(UpnpError::INVALID_OBJECT);
+                    request->replyError(error);
+                    return false;
                 }
 
                 DidlLite didlDoc;
@@ -265,11 +318,11 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 response.addArgument("Result", didlDoc.toString(-1));
                 response.addArgument("NumberReturned", QString("%1").arg(l_dlna.size()));
 
-                if (browseFlag == "BrowseMetaData")
+                if (browseFlag == "BrowseMetadata")
                 {
                     response.addArgument("TotalMatches", QString("1"));
                 }
-                else
+                else if (browseFlag == "BrowseDirectChildren")
                 {
                     DlnaResource *parent = 0;
                     if (l_dlna.size() > 0)
@@ -279,10 +332,23 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                     {
                         response.addArgument("TotalMatches", QString("%1").arg(parent->getChildrenSize()));
                     }
+                    else if (l_dlna.size() != 0)
+                    {
+                        response.addArgument("TotalMatches", "0");
+                    }
                     else
                     {
-                        response.addArgument("TotalMatches", QString("%1").arg(l_dlna.size()));
+                        UpnpError error(UpnpError::INVALID_PROCESS_REQUEST);
+                        request->replyError(error);
+                        return false;
                     }
+                }
+                else
+                {
+                    qCritical() << "invalid browseFlag" << browseFlag;
+                    UpnpError error(UpnpError::INVALID_ARGS);
+                    request->replyError(error);
+                    return false;
                 }
 
                 if (object_requested)
@@ -304,7 +370,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
         }
         else
         {
-            UpnpError error(UpnpError::INVALID_ARGS);
+            UpnpError error(UpnpError::INVALID_OBJECT);
             request->replyError(error);
             return false;
         }
