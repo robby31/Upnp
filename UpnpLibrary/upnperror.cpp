@@ -157,9 +157,17 @@ UpnpError::UpnpError(ErrorTypes type):
     {
         errorDescription.appendChild(m_data.createTextNode("No such session"));
     }
+    else if (type == INVALID_OBJECT)
+    {
+        errorDescription.appendChild(m_data.createTextNode("No such object"));
+    }
     else if (type == INVALID_CONNECTION)
     {
         errorDescription.appendChild(m_data.createTextNode("Invalid connection reference"));
+    }
+    else if (type == INVALID_PROCESS_REQUEST)
+    {
+        errorDescription.appendChild(m_data.createTextNode("Cannot process the request"));
     }
     else
     {

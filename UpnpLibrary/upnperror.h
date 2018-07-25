@@ -37,7 +37,9 @@ public:
                       NO_SUCH_SESSION,           // The session key reference is to a non-existent session.
                                                  // This could be because the device has expired a session, in which case the control point needs to open a new one.
 
-                      INVALID_CONNECTION = 706
+                      INVALID_OBJECT = 701,
+                      INVALID_CONNECTION = 706,
+                      INVALID_PROCESS_REQUEST = 720
                     };
 
     explicit UpnpError();
