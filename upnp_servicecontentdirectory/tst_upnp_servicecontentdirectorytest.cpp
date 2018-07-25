@@ -30,8 +30,14 @@ private Q_SLOTS:
     void test_get_systemUpdateId();
     void test_get_systemUpdateId_InvalidArgs();
 
-    void test_browse();
-    void test_browse_2();
+    void test_browse_Root_MetaData();
+    void test_browse_Root_DirectChildren();
+    void test_browse_InvalidArgs();
+    void test_browse_Invalid_objectID();
+    void test_browse_Invalid_browseFlag();
+    void test_browse_Invalid_filter();
+    void test_browse_Invalid_startingIndex();
+    void test_browse_Invalid_requestedCount();
 
 private:
     void initRootDevice();
@@ -426,8 +432,10 @@ void Upnp_servicecontentdirectoryTest::test_get_systemUpdateId_InvalidArgs()
 }
 
 
-void Upnp_servicecontentdirectoryTest::test_browse()
+void Upnp_servicecontentdirectoryTest::test_browse_Root_MetaData()
 {
+    // BrowseMetadata of root object
+
     QString actionName = "Browse";
 
     QVERIFY(m_upnp != Q_NULLPTR);
@@ -515,8 +523,10 @@ void Upnp_servicecontentdirectoryTest::test_browse()
     QCOMPARE(m_error.faultString(), "");
 }
 
-void Upnp_servicecontentdirectoryTest::test_browse_2()
+void Upnp_servicecontentdirectoryTest::test_browse_Root_DirectChildren()
 {
+    // Browse direct children of root object
+
     QString actionName = "Browse";
 
     QVERIFY(m_upnp != Q_NULLPTR);
@@ -664,6 +674,430 @@ void Upnp_servicecontentdirectoryTest::test_browse_2()
     QCOMPARE(m_error.description(), "");
     QCOMPARE(m_error.faultCode(), "");
     QCOMPARE(m_error.faultString(), "");
+}
+
+void Upnp_servicecontentdirectoryTest::test_browse_InvalidArgs()
+{
+    QString actionName = "Browse";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_contentDirectory != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    {
+        SoapAction action(m_contentDirectory->serviceType(), actionName);
+        action.addArgument("ObjectId", "0");
+        action.addArgument("BrowseFlag", "BrowseMetadata");
+        action.addArgument("Filter", "*");
+        action.addArgument("StartingIndex", "0");
+        action.addArgument("RequestedCount", "0");
+        action.addArgument("SortCriteria", "");
+
+        m_contentDirectory->runAction(action);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    {
+        SoapAction action(m_contentDirectory->serviceType(), actionName);
+        action.addArgument("ObjectID", "0");
+        action.addArgument("BrowseFlag", "BrowseMetadata");
+        action.addArgument("Filter", "*");
+        action.addArgument("StartingIndex", "0");
+        action.addArgument("RequestedCount", "0");
+
+        m_contentDirectory->runAction(action);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    {
+        SoapAction action(m_contentDirectory->serviceType(), actionName);
+        action.addArgument("ObjectID", "0");
+        action.addArgument("BrowseFlag", "BrowseMetadata");
+        action.addArgument("Filter", "*");
+        action.addArgument("StartingIndex", "0");
+        action.addArgument("RequestedCount", "0");
+        action.addArgument("SortCriteria", "");
+        action.addArgument("Args", "Invalid");
+
+        m_contentDirectory->runAction(action);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+}
+
+void Upnp_servicecontentdirectoryTest::test_browse_Invalid_objectID()
+{
+    QString actionName = "Browse";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_contentDirectory != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    QVariantMap arguments;
+    arguments["ObjectID"] = "";
+    arguments["BrowseFlag"] = "BrowseMetadata";
+    arguments["Filter"] = "*";
+    arguments["StartingIndex"] = "0";
+    arguments["RequestedCount"] = "0";
+    arguments["SortCriteria"] = "";
+
+    m_contentDirectory->runAction(actionName, arguments);
+
+    int timeout = 10;
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+    {
+        timeout--;
+        QTest::qWait(1000);
+    }
+
+    QVERIFY(m_XmlActionAnswer.size() == 0);
+
+    QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+    QCOMPARE(m_error.code(), 701);
+    QCOMPARE(m_error.description(), "No such object");
+    QCOMPARE(m_error.faultCode(), "s:Client");
+    QCOMPARE(m_error.faultString(), "UPnPError");
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    arguments.clear();
+    arguments["ObjectID"] = "39";
+    arguments["BrowseFlag"] = "BrowseMetadata";
+    arguments["Filter"] = "*";
+    arguments["StartingIndex"] = "0";
+    arguments["RequestedCount"] = "0";
+    arguments["SortCriteria"] = "";
+
+    m_contentDirectory->runAction(actionName, arguments);
+
+    timeout = 10;
+    while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+    {
+        timeout--;
+        QTest::qWait(1000);
+    }
+
+    QVERIFY(m_XmlActionAnswer.size() == 0);
+
+    QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+    QCOMPARE(m_error.code(), 701);
+    QCOMPARE(m_error.description(), "No such object");
+    QCOMPARE(m_error.faultCode(), "s:Client");
+    QCOMPARE(m_error.faultString(), "UPnPError");
+}
+
+void Upnp_servicecontentdirectoryTest::test_browse_Invalid_browseFlag()
+{
+    // BrowseMetadata of root object
+
+    QString actionName = "Browse";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_contentDirectory != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    {
+        QVariantMap arguments;
+        arguments["ObjectID"] = "0";
+        arguments["BrowseFlag"] = "BrowseMetaData";
+        arguments["Filter"] = "*";
+        arguments["StartingIndex"] = "0";
+        arguments["RequestedCount"] = "0";
+        arguments["SortCriteria"] = "";
+
+        m_contentDirectory->runAction(actionName, arguments);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    {
+        QVariantMap arguments;
+        arguments["ObjectID"] = "0";
+        arguments["BrowseFlag"] = "";
+        arguments["Filter"] = "*";
+        arguments["StartingIndex"] = "0";
+        arguments["RequestedCount"] = "0";
+        arguments["SortCriteria"] = "";
+
+        m_contentDirectory->runAction(actionName, arguments);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+}
+
+void Upnp_servicecontentdirectoryTest::test_browse_Invalid_filter()
+{
+    // BrowseMetadata of root object
+
+    QString actionName = "Browse";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_contentDirectory != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    {
+        QVariantMap arguments;
+        arguments["ObjectID"] = "0";
+        arguments["BrowseFlag"] = "BrowseMetadata";
+        arguments["Filter"] = "";
+        arguments["StartingIndex"] = "0";
+        arguments["RequestedCount"] = "0";
+        arguments["SortCriteria"] = "";
+
+        m_contentDirectory->runAction(actionName, arguments);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+}
+
+void Upnp_servicecontentdirectoryTest::test_browse_Invalid_startingIndex()
+{
+    // BrowseMetadata of root object
+
+    QString actionName = "Browse";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_contentDirectory != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    {
+        QVariantMap arguments;
+        arguments["ObjectID"] = "0";
+        arguments["BrowseFlag"] = "BrowseMetadata";
+        arguments["Filter"] = "*";
+        arguments["StartingIndex"] = "-1";
+        arguments["RequestedCount"] = "0";
+        arguments["SortCriteria"] = "";
+
+        m_contentDirectory->runAction(actionName, arguments);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    {
+        QVariantMap arguments;
+        arguments["ObjectID"] = "0";
+        arguments["BrowseFlag"] = "BrowseMetadata";
+        arguments["Filter"] = "*";
+        arguments["StartingIndex"] = "1";
+        arguments["RequestedCount"] = "0";
+        arguments["SortCriteria"] = "";
+
+        m_contentDirectory->runAction(actionName, arguments);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    {
+        QVariantMap arguments;
+        arguments["ObjectID"] = "0";
+        arguments["BrowseFlag"] = "BrowseDirectChildren";
+        arguments["Filter"] = "*";
+        arguments["StartingIndex"] = "-1";
+        arguments["RequestedCount"] = "0";
+        arguments["SortCriteria"] = "";
+
+        m_contentDirectory->runAction(actionName, arguments);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
+}
+
+void Upnp_servicecontentdirectoryTest::test_browse_Invalid_requestedCount()
+{
+    // BrowseMetadata of root object
+
+    QString actionName = "Browse";
+
+    QVERIFY(m_upnp != Q_NULLPTR);
+    QVERIFY(m_root != Q_NULLPTR);
+
+    QVERIFY(m_contentDirectory != Q_NULLPTR);
+
+    m_XmlActionAnswer.clear();
+    m_error = UpnpError();
+
+    {
+        QVariantMap arguments;
+        arguments["ObjectID"] = "0";
+        arguments["BrowseFlag"] = "BrowseMetadata";
+        arguments["Filter"] = "*";
+        arguments["StartingIndex"] = "0";
+        arguments["RequestedCount"] = "-1";
+        arguments["SortCriteria"] = "";
+
+        m_contentDirectory->runAction(actionName, arguments);
+
+        int timeout = 10;
+        while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
+        {
+            timeout--;
+            QTest::qWait(1000);
+        }
+
+        QVERIFY(m_XmlActionAnswer.size() == 0);
+
+        QCOMPARE(m_error.netError(), QNetworkReply::InternalServerError);
+        QCOMPARE(m_error.code(), 402);
+        QCOMPARE(m_error.description(), "Invalid Args");
+        QCOMPARE(m_error.faultCode(), "s:Client");
+        QCOMPARE(m_error.faultString(), "UPnPError");
+    }
 }
 
 QTEST_MAIN(Upnp_servicecontentdirectoryTest)
