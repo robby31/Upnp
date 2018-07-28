@@ -669,6 +669,17 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
         killTimer(event->timerId());
         m_searchAnswer.remove(event->timerId());
     }
+    else if (m_discover.contains(event->timerId()))
+    {
+        m_discover[event->timerId()].counter--;
+        sendDiscover(m_discover[event->timerId()].searchTarget);
+
+        if (m_discover[event->timerId()].counter < 1)
+        {
+            m_discover.remove(event->timerId());
+            killTimer(event->timerId());
+        }
+    }
     else
     {
         qCritical() << "invalid timer event" << event->timerId();
@@ -692,4 +703,28 @@ void UpnpControlPoint::removeSidEventFromUuid(const QString &deviceUuid)
 QString UpnpControlPoint::macAddress() const
 {
     return m_macAddress;
+}
+
+void UpnpControlPoint::startDiscover(const QString &searchTarget)
+{
+    if (searchTarget.isEmpty())
+    {
+        qCritical() << "invalid search target to discover" << searchTarget;
+    }
+    else
+    {
+        // start event for discovering, emit 3 times
+        int eventDiscover = startTimer(2000);
+        if (eventDiscover > 0)
+        {
+            T_DISCOVER data;
+            data.counter = 3;
+            data.searchTarget = searchTarget;
+            m_discover[eventDiscover] = data;
+        }
+        else
+        {
+            qCritical() << "unable to start discover event";
+        }
+    }
 }

@@ -30,6 +30,11 @@ typedef struct {
     QString st;
 } T_SEARCH_ANSWER;
 
+typedef struct {
+    QString searchTarget;
+    int counter;
+} T_DISCOVER;
+
 class UpnpControlPoint : public QObject
 {
     Q_OBJECT
@@ -57,14 +62,15 @@ public:
     UpnpRootDevice *addLocalRootDevice(UpnpRootDeviceDescription *description, int port, QString url);
     bool addLocalRootDevice(UpnpRootDevice *device);
 
-    void sendDiscover(const QString &search_target);
-
+    void startDiscover(const QString &searchTarget);
 
 protected:
     virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 
 private:
     void initializeHostAdress();
+
+    void sendDiscover(const QString &search_target);
 
     // return sid event subscribed
     QString eventSubscribed(const QString &uuid, const QString &serviceId);
@@ -108,6 +114,7 @@ private:
     QHash<QString, T_EVENT> m_sidEvent;
     int m_eventCheckSubscription = -1;
     QHash<int, T_SEARCH_ANSWER> m_searchAnswer;
+    QHash<int, T_DISCOVER> m_discover;
 
     QString m_servername;
     QHostAddress m_hostAddress;
