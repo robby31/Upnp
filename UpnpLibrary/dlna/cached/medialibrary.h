@@ -19,14 +19,15 @@ public:
 
     bool isValid();
 
-    QString databaseName() const { return GET_DATABASE("MEDIA_DATABASE").databaseName(); }
+    QSqlDatabase database() const;
+    QString databaseName() const;
 
-    QSqlQuery getMediaType() const { return QSqlQuery("SELECT DISTINCT id, name FROM type", GET_DATABASE("MEDIA_DATABASE")); }
+    QSqlQuery getMediaType() const { return QSqlQuery("SELECT DISTINCT id, name FROM type", database()); }
 
     QSqlQuery getMedia(const QString &where, const QString &orderParam="media.id", const QString &sortOption="ASC") const;
     int countMedia(const QString &where) const;
 
-    QSqlQuery getAllNetworkLinks() { return QSqlQuery("SELECT id, filename, title, artist, is_reachable from media WHERE filename like 'http%'", GET_DATABASE("MEDIA_DATABASE")); }
+    QSqlQuery getAllNetworkLinks() { return QSqlQuery("SELECT id, filename, title, artist, is_reachable from media WHERE filename like 'http%'", database()); }
 
     QSqlQuery getDistinctMetaData(const int &typeMedia, const QString &tagName, const QString &where = QString()) const;
     int countDistinctMetaData(const int &typeMedia, const QString &tagName) const;

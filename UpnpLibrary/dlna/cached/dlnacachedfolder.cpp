@@ -18,9 +18,9 @@ void DlnaCachedFolder::refreshContent()
 {
     cache.clear();
 
-    if (query.isSelect() && query.isActive())
+    if (query.isSelect() && query.isActive() && library)
     {
-        query = QSqlQuery(query.executedQuery(), GET_DATABASE("MEDIA_DATABASE"));
+        query = QSqlQuery(query.executedQuery(), library->database());
 
         if (cacheEnabled) {
             nbChildren = 0;

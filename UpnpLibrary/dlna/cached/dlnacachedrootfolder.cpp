@@ -410,7 +410,7 @@ void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
 {
     // save network media
     QList<QString> networkMedia;
-    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
+    QSqlQuery query(library.database());
     if (query.exec("SELECT filename from media WHERE filename like 'http%' and is_reachable=1")) {
         while (query.next())
             networkMedia.append(query.value("filename").toString());

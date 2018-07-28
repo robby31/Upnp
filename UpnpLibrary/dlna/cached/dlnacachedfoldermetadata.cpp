@@ -4,7 +4,7 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(MediaLibrary *library, QStrin
     DlnaStorageFolder(parent),
     library(library),
     m_name(name),
-    query(stringQuery, GET_DATABASE("MEDIA_DATABASE")),
+    query(stringQuery, library ? library->database() : QSqlDatabase()),
     stringQueryForChild(stringQueryForChild),
     nbChildren(-1),
     m_nam(0)
@@ -21,7 +21,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
 {
     DlnaCachedFolder *child = 0;
 
-    if (query.seek(index)) {
+    if (library && query.seek(index)) {
         QString name = query.value(0).toString();
         if (query.record().count()==2)
             name = query.value(1).toString();
@@ -42,7 +42,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
         }
 
         child = new DlnaCachedFolder(library,
-                                     QSqlQuery(childQuery,  GET_DATABASE("MEDIA_DATABASE")),
+                                     QSqlQuery(childQuery,  library->database()),
                                      childName,
                                      false, -1,
                                      parent != 0 ? parent : this);

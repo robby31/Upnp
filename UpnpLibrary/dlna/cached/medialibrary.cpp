@@ -9,16 +9,26 @@ MediaLibrary::MediaLibrary(QObject *parent) :
     initialize();
 }
 
+QSqlDatabase MediaLibrary::database() const
+{
+    return GET_DATABASE("MEDIA_DATABASE");
+}
+
+QString MediaLibrary::databaseName() const
+{
+    return database().databaseName();
+}
+
 bool MediaLibrary::isValid()
 {
-    return GET_DATABASE("MEDIA_DATABASE").isValid();
+    return database().isValid();
 }
 
 bool MediaLibrary::initialize()
 {
     qDebug() << QThread::currentThread() << QString("Initialize MediaLibrary %1").arg(databaseName());
 
-    QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
+    QSqlDatabase db = database();
 
     if (db.isValid())
     {
@@ -265,13 +275,13 @@ QSqlQuery MediaLibrary::getMedia(const QString &where, const QString &orderParam
                              "from media "
                              "LEFT OUTER JOIN type ON media.type=type.id "
                              "WHERE %1 and is_reachable=1 "
-                             "ORDER BY %2 %3").arg(where).arg(orderParam).arg(sortOption), GET_DATABASE("MEDIA_DATABASE"));
+                             "ORDER BY %2 %3").arg(where).arg(orderParam).arg(sortOption), database());
 
 }
 
 QVariant MediaLibrary::getmetaDataAlbum(const QString &tagName, const int &idMedia) const
 {
-    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
+    QSqlQuery query(database());
     query.prepare("SELECT album.name AS album_name, artist.name AS artist_name, album.year AS year FROM media LEFT OUTER JOIN album ON media.album=album.id LEFT OUTER JOIN artist ON album.artist=artist.id WHERE media.id=:idMedia");
     query.bindValue(":idMedia", idMedia);
     query.exec();
@@ -292,7 +302,7 @@ QVariant MediaLibrary::getmetaDataAlbum(const QString &tagName, const int &idMed
 
 QVariant MediaLibrary::getmetaDataArtist(const QString &tagName, const int &idMedia) const
 {
-    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
+    QSqlQuery query(database());
     query.prepare("SELECT artist.name AS artist_name, artist.sortname AS artist_sort FROM media LEFT OUTER JOIN artist ON media.artist=artist.id WHERE media.id=:idMedia");
     query.bindValue(":idMedia", idMedia);
     query.exec();
@@ -312,7 +322,7 @@ QVariant MediaLibrary::getmetaDataArtist(const QString &tagName, const int &idMe
 }
 
 QVariant MediaLibrary::getmetaData(const QString &tagName, const int &idMedia) const {
-    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
+    QSqlQuery query(database());
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
@@ -339,7 +349,7 @@ QHash<QString, double> MediaLibrary::volumeInfo(const int &idMedia)
 {
     QHash<QString, double> result;
 
-    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
+    QSqlQuery query(database());
 
     query.prepare("SELECT param_name.name, param_value.value from param_value LEFT OUTER JOIN param_name ON param_value.name=param_name.id WHERE param_value.media=:idmedia and param_name.name LIKE '%_volume'");
     query.bindValue(":idmedia", idMedia);
@@ -361,7 +371,7 @@ QHash<QString, double> MediaLibrary::volumeInfo(const int &idMedia)
 
 bool MediaLibrary::setVolumeInfo(const int idMedia, const QHash<QString, double> info)
 {
-    QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
+    QSqlDatabase db = database();
 
     QSqlQuery query(db);
 
@@ -445,7 +455,7 @@ QSqlQuery MediaLibrary::getDistinctMetaData(const int &typeMedia, const QString 
     if (!where.isEmpty())
         whereQuery = "and " + where;
 
-    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
+    QSqlQuery query(database());
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
@@ -458,7 +468,7 @@ QSqlQuery MediaLibrary::getDistinctMetaData(const int &typeMedia, const QString 
 }
 
 int MediaLibrary::countDistinctMetaData(const int &typeMedia, const QString &tagName) const {
-    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
+    QSqlQuery query(database());
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
@@ -475,7 +485,7 @@ int MediaLibrary::countDistinctMetaData(const int &typeMedia, const QString &tag
 }
 
 int MediaLibrary::countMedia(const QString &where) const {
-    QSqlQuery query(QString("SELECT count(id) FROM media WHERE %1 and is_reachable=1").arg(where), GET_DATABASE("MEDIA_DATABASE"));
+    QSqlQuery query(QString("SELECT count(id) FROM media WHERE %1 and is_reachable=1").arg(where), database());
     if (query.next()) {
         return query.value(0).toInt();
     } else {
@@ -484,7 +494,7 @@ int MediaLibrary::countMedia(const QString &where) const {
 }
 
 bool MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &data) {
-    QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
+    QSqlDatabase db = database();
 
     QSqlQuery query(db);
 
@@ -550,7 +560,7 @@ bool MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &
 
 int MediaLibrary::insertForeignKey(const QString &table, const QString &parameter, const QVariant &value)
 {
-    QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
+    QSqlDatabase db = database();
     QSqlField field(parameter, value.type());
     field.setValue(value);
 
@@ -579,7 +589,7 @@ int MediaLibrary::insertForeignKey(const QString &table, const QString &paramete
 
 bool MediaLibrary::update(const QString &table, const int &id, const QHash<QString, QVariant> &data)
 {
-    QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
+    QSqlDatabase db = database();
     QSqlRecord record;
 
     {
@@ -669,7 +679,7 @@ bool MediaLibrary::updateFromFilename(const QString &filename, const QHash<QStri
     int id = -1;
 
     {
-        QSqlQuery query = QSqlQuery(QString("SELECT id from media WHERE filename=\"%1\"").arg(filename), GET_DATABASE("MEDIA_DATABASE"));
+        QSqlQuery query = QSqlQuery(QString("SELECT id from media WHERE filename=\"%1\"").arg(filename), database());
         if (query.next())
             id = query.value("id").toInt();
     }
@@ -710,7 +720,7 @@ int MediaLibrary::add_album(QHash<QString, QVariant> data_album)
     int id_album = -1;
     if (data_album.contains("name") && !data_album["name"].toString().isEmpty() && data_album.contains("artist"))
     {
-        QSqlQuery queryAlbum(GET_DATABASE("MEDIA_DATABASE"));
+        QSqlQuery queryAlbum(database());
         if (!data_album["artist"].toString().isEmpty())
         {
             queryAlbum.prepare("SELECT album.id, artist.name from album LEFT OUTER JOIN artist ON artist.id=album.artist WHERE album.name=:name and artist.name=:artist");
@@ -755,7 +765,7 @@ int MediaLibrary::add_artist(QHash<QString, QVariant> data_artist)
     int id_artist = -1;
     if (data_artist.contains("name") && !data_artist["name"].toString().isEmpty())
     {
-        QSqlQuery queryArtist(GET_DATABASE("MEDIA_DATABASE"));
+        QSqlQuery queryArtist(database());
         queryArtist.prepare("SELECT artist.id from artist WHERE artist.name=:name");
         queryArtist.bindValue(":name", data_artist["name"]);
 
@@ -796,7 +806,7 @@ bool MediaLibrary::add_media(QHash<QString, QVariant> data, QHash<QString, QVari
     if (id_artist != -1)
         data["artist"] = id_artist;
 
-    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
+    QSqlQuery query(database());
     query.prepare("SELECT id, last_modified FROM media WHERE filename=:filename");
     query.bindValue(":filename", data["filename"]);
 
@@ -870,7 +880,7 @@ MediaLibrary::StateType *MediaLibrary::exportMediaState() const
     attributesToExport << "addedDate";
     attributesToExport << "artist";
 
-    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
+    QSqlQuery query(database());
     if (query.exec(QString("SELECT id, filename from media")))
     {
         res = new StateType();
@@ -905,7 +915,7 @@ bool MediaLibrary::resetLibrary(const QString &pathname)
 
     if (libraryState) {
         // close current database
-        QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
+        QSqlDatabase db = database();
         db.close();
 
         // open new database
