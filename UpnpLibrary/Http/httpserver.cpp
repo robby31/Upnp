@@ -25,7 +25,7 @@ void HttpServer::newConnectionSlot()
 
 void HttpServer::incomingData()
 {
-    HttpRequest *request = 0;
+    HttpRequest *request = Q_NULLPTR;
 
     QTcpSocket *clientConnection = qobject_cast<QTcpSocket*>(sender());
 

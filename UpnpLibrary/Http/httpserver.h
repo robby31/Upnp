@@ -10,7 +10,7 @@ class HttpServer : public QTcpServer
     Q_OBJECT
 
 public:
-    explicit HttpServer(QObject *parent = 0);
+    explicit HttpServer(QObject *parent = Q_NULLPTR);
     virtual ~HttpServer() Q_DECL_OVERRIDE;
 
     QString serverName() const;

@@ -10,9 +10,9 @@ class DevicesModel : public ListModel
     Q_OBJECT
 
 public:
-    explicit DevicesModel(ListItem* prototype, QObject* parent = 0);
-    explicit DevicesModel(QObject *parent = nullptr);
-    virtual ~DevicesModel() Q_DECL_OVERRIDE;
+    explicit DevicesModel(ListItem* prototype, QObject* parent = Q_NULLPTR);
+    explicit DevicesModel(QObject *parent = Q_NULLPTR);
+    virtual ~DevicesModel() = default;
 
     void setNetworkManager(QNetworkAccessManager *nam);
     void setMacAddress(const QString &m_address);
@@ -22,7 +22,7 @@ public:
     UpnpService *getService(const QString &deviceUuid, const QString &serviceId);
 
 private:
-    void addRootDevice(SsdpMessage message);
+    void addRootDevice(const SsdpMessage &message);
     UpnpRootDevice *getRootDeviceFromUuid(const QString &uuid);
 
 signals:
@@ -39,7 +39,7 @@ public slots:
     void _rootDeviceAvailableChanged();
 
 private:
-    QNetworkAccessManager *m_nam;
+    QNetworkAccessManager *m_nam = Q_NULLPTR;
     QString m_macAddress;
 };
 

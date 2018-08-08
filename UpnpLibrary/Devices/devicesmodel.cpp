@@ -12,32 +12,28 @@ DevicesModel::DevicesModel(ListItem *prototype, QObject *parent) :
 
 }
 
-DevicesModel::~DevicesModel()
-{
-}
-
 UpnpObject *DevicesModel::getUpnpObjectFromUSN(const QString &usn)
 {
     for (int i=0;i<rowCount();++i)
     {
         UpnpObject *object = qobject_cast<UpnpRootDevice*>(at(i))->getUpnpObjectFromUSN(usn);
-        if (object != 0)
+        if (object)
             return object;
     }
 
-    return 0;
+    return Q_NULLPTR;
 }
 
 UpnpService *DevicesModel::getService(const QString &deviceUuid, const QString &serviceId)
 {
-    UpnpDevice *device = qobject_cast<UpnpDevice*>(getUpnpObjectFromUSN(QString("uuid:%1").arg(deviceUuid)));
+    auto device = qobject_cast<UpnpDevice*>(getUpnpObjectFromUSN(QString("uuid:%1").arg(deviceUuid)));
     if (device)
         return device->getService(serviceId);
     else
         return Q_NULLPTR;
 }
 
-void DevicesModel::addRootDevice(SsdpMessage message)
+void DevicesModel::addRootDevice(const SsdpMessage &message)
 {
     // read uuid
     QString uuid = message.getUuidFromUsn();
@@ -46,7 +42,7 @@ void DevicesModel::addRootDevice(SsdpMessage message)
     {
         UpnpRootDevice *device = getRootDeviceFromUuid(uuid);
 
-        if (device == 0)
+        if (device == Q_NULLPTR)
         {
             device = new UpnpRootDevice(m_nam, m_macAddress, uuid, this);
             connect(device, &UpnpRootDevice::availableChanged, this, &DevicesModel::_rootDeviceAvailableChanged);
@@ -74,11 +70,11 @@ UpnpRootDevice *DevicesModel::getRootDeviceFromUuid(const QString &uuid)
 {
     if (!uuid.isEmpty())
     {
-        UpnpRootDevice *device = qobject_cast<UpnpRootDevice*>(find(uuid));
+        auto device = qobject_cast<UpnpRootDevice*>(find(uuid));
         return device;
     }
 
-    return 0;
+    return Q_NULLPTR;
 }
 
 void DevicesModel::ssdpMessageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message)
@@ -103,7 +99,7 @@ void DevicesModel::ssdpMessageReceived(const QHostAddress &host, const int &port
                     if (device->status() == UpnpObject::Ready)
                     {
                         UpnpObject *object = getUpnpObjectFromUSN(message.getHeader("USN"));
-                        if (object != 0)
+                        if (object)
                             object->update(message);
                         else
                             qCritical() << "unable to find" << host << port << nt;
@@ -120,7 +116,7 @@ void DevicesModel::ssdpMessageReceived(const QHostAddress &host, const int &port
             if (nt == UpnpRootDevice::UPNP_ROOTDEVICE)
             {
                 UpnpRootDevice *device = getRootDeviceFromUuid(message.getUuidFromUsn());
-                if (device != 0)
+                if (device)
                 {
                     device->setAvailable(false);
                     emit removeSidEventFromUuid(device->uuid());
@@ -129,11 +125,11 @@ void DevicesModel::ssdpMessageReceived(const QHostAddress &host, const int &port
             else
             {
                 UpnpObject *object = getUpnpObjectFromUSN(message.getHeader("USN"));
-                if (object != 0)
+                if (object)
                 {
                     if (object->type() == UpnpObject::T_Device)
                     {
-                        UpnpDevice *device = (UpnpDevice*) object;
+                        auto device = qobject_cast<UpnpDevice*>(object);
                         device->setAvailable(false);
                         emit removeSidEventFromUuid(device->uuid());
                     }
@@ -178,9 +174,9 @@ void DevicesModel::setMacAddress(const QString &m_address)
 
 void DevicesModel::_rootDeviceAvailableChanged()
 {
-    UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(sender());
+    auto root = qobject_cast<UpnpRootDevice*>(sender());
 
-    if (root->available() == false)
+    if (!root->available())
     {
         QModelIndex index = indexFromItem(root);
         if (index.isValid())
@@ -191,7 +187,7 @@ void DevicesModel::_rootDeviceAvailableChanged()
 
 void DevicesModel::_rootDeviceStatusChanged()
 {
-    UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(sender());
+    auto root = qobject_cast<UpnpRootDevice*>(sender());
 
     if (root->status() == UpnpObject::Ready)
         emit newRootDevice(root);

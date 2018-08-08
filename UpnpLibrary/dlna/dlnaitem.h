@@ -12,14 +12,14 @@ class DlnaItem : public DlnaResource
     Q_OBJECT
 
 public:
-    explicit DlnaItem(QObject *parent = 0);
+    explicit DlnaItem(QObject *parent = Q_NULLPTR);
     virtual ~DlnaItem();
 
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName() const;
 
     virtual bool isFolder() const { return false; }
-    virtual DlnaResource* getChild(int index, QObject *parent = 0) { Q_UNUSED(index) Q_UNUSED(parent) return 0; }
+    virtual DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) { Q_UNUSED(index) Q_UNUSED(parent) return Q_NULLPTR; }
     virtual int getChildrenSize() const { return 0; }
 
     // Returns the time where the media has been stopped during last play
