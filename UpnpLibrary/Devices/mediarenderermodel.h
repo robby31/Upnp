@@ -11,7 +11,7 @@ class MediaRendererModel : public ListModel
     Q_OBJECT
 
 public:
-    explicit MediaRendererModel(QObject *parent = 0);
+    explicit MediaRendererModel(QObject *parent = Q_NULLPTR);
 
     MediaRenderer *rendererFromIp(const QString &ip);
 
@@ -20,7 +20,6 @@ signals:
 
 public slots:
     void addMediaRenderer(UpnpRootDevice *device);
-    void rendererDestroyed(QObject *object);
     void removeRenderer();
 
     // the renderer is serving a new media

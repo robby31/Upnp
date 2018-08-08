@@ -12,22 +12,8 @@ void MediaRendererModel::addMediaRenderer(UpnpRootDevice *device)
     if (!renderer)
     {
         renderer = new MediaRenderer(device, this);
-        connect(renderer, SIGNAL(destroyed(QObject*)), this, SLOT(rendererDestroyed(QObject*)));
         connect(renderer, SIGNAL(removeRenderer()), this, SLOT(removeRenderer()));
         appendRow(renderer);
-    }
-}
-
-void MediaRendererModel::rendererDestroyed(QObject *object)
-{
-    MediaRenderer *renderer = qobject_cast<MediaRenderer*>(object);
-
-    QModelIndex index = indexFromItem(renderer);
-
-    if (index.isValid())
-    {
-        removeRow(index.row());
-        emit mediaRendererDestroyed(renderer->netWorkAddress());
     }
 }
 
@@ -69,5 +55,5 @@ MediaRenderer *MediaRendererModel::rendererFromIp(const QString &ip)
             return renderer;
     }
 
-    return 0;
+    return Q_NULLPTR;
 }
