@@ -10,15 +10,17 @@ class MediaRenderer : public ListItem
     Q_OBJECT
 
 public:
-    explicit MediaRenderer(QObject *parent = 0);
-    explicit MediaRenderer(UpnpRootDevice *device, QObject *parent = 0);
+    explicit MediaRenderer(QObject *parent = Q_NULLPTR);
+    explicit MediaRenderer(UpnpRootDevice *device, QObject *parent = Q_NULLPTR);
+    virtual ~MediaRenderer() = default;
 
     enum Roles {
         statusRole = Qt::UserRole+1,
         nameRole,
         networkAddressRole,
         iconUrlRole,
-        availableRole
+        availableRole,
+        sinkProtocolRole
     };
 
     virtual QString id() const Q_DECL_OVERRIDE;
@@ -35,7 +37,7 @@ signals:
     void removeRenderer();
 
 private slots:
-    void deviceItemChanged(QVector<int> roles);
+    void deviceItemChanged(const QVector<int> &roles);
     void deviceDestroyed(QObject *obj);
 
     void serviceStatusChanged();

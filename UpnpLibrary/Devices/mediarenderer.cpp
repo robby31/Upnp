@@ -2,7 +2,6 @@
 
 MediaRenderer::MediaRenderer(QObject *parent) :
     ListItem(parent),
-    m_roles(),
     m_device(Q_NULLPTR),
     status("standby")
 {
@@ -11,15 +10,15 @@ MediaRenderer::MediaRenderer(QObject *parent) :
     m_roles[networkAddressRole] = "networkAddress";
     m_roles[iconUrlRole] = "iconurl";
     m_roles[availableRole] = "available";
+    m_roles[sinkProtocolRole] = "sinkProtocol";
 }
 
 MediaRenderer::MediaRenderer(UpnpRootDevice *device, QObject *parent) :
     ListItem(parent),
-    m_roles(),
     m_device(device),
     status("standby")
 {
-    UpnpService *service = qobject_cast<UpnpService*>(device->getService("urn:upnp-org:serviceId:ConnectionManager"));
+    auto service = qobject_cast<UpnpService*>(device->getService("urn:upnp-org:serviceId:ConnectionManager"));
     if (service)
     {
         connect(service, SIGNAL(statusChanged()), this, SLOT(serviceStatusChanged()));
@@ -84,13 +83,17 @@ QVariant MediaRenderer::data(int role) const
         else
             return false;
     }
+
+    case sinkProtocolRole:
+    {
+        return sinkProtocols();
+    }
+
     default:
     {
         return QVariant::Invalid;
     }
     }
-
-    return QVariant::Invalid;
 }
 
 bool MediaRenderer::setData(const QVariant &value, const int &role)
@@ -118,11 +121,11 @@ bool MediaRenderer::setData(const QVariant &value, const int &role)
     }
 }
 
-void MediaRenderer::deviceItemChanged(QVector<int> roles)
+void MediaRenderer::deviceItemChanged(const QVector<int> &roles)
 {
     emit itemChanged();
 
-    if (roles.contains(UpnpRootDevice::AvailableRole) && m_device->available() == false)
+    if (roles.contains(UpnpRootDevice::AvailableRole) && !m_device->available())
         emit removeRenderer();
 }
 
@@ -142,7 +145,7 @@ void MediaRenderer::deviceDestroyed(QObject *obj)
 
 void MediaRenderer::serviceStatusChanged()
 {
-    UpnpService *service = qobject_cast<UpnpService*>(sender());
+    auto service = qobject_cast<UpnpService*>(sender());
     if (service->status() == UpnpService::Ready)
         service->subscribeEventing();
 }
@@ -152,9 +155,9 @@ void MediaRenderer::stateVarChanged(const QModelIndex &topLeft, const QModelInde
     Q_UNUSED(bottomRight)
     Q_UNUSED(roles)
 
-    ListModel* model = qobject_cast<ListModel*>(sender());
+    auto model = qobject_cast<ListModel*>(sender());
 
-    StateVariableItem *item = qobject_cast<StateVariableItem*>(model->at(topLeft.row()));
+    auto item = qobject_cast<StateVariableItem*>(model->at(topLeft.row()));
     if (item)
     {
         QString name = item->data(StateVariableItem::NameRole).toString();
@@ -167,6 +170,10 @@ void MediaRenderer::stateVarChanged(const QModelIndex &topLeft, const QModelInde
             QStringList l_protocol = value.split(",");
             foreach (QString protocol, l_protocol)
                 m_sinkProtocol << protocol;
+
+            QVector<int> roles;
+            roles << sinkProtocolRole;
+            emit itemChanged(roles);
         }
     }
 }
