@@ -13,7 +13,7 @@ public:
     Upnp_servicecontentdirectoryTest();
 
 private Q_SLOTS:
-    void actionXmlAnswer(const QString &data);
+    void actionFinished();
     void errorRaised(const UpnpError &error);
     void initTestCase();
     void cleanupTestCase();
@@ -134,9 +134,6 @@ void Upnp_servicecontentdirectoryTest::initContentDirectory()
         {
             m_contentDirectory = new ServiceContentDirectory(Q_NULLPTR, m_root);
 
-            connect(m_contentDirectory, SIGNAL(actionXmlAnswer(QString)), this, SLOT(actionXmlAnswer(QString)));
-            connect(m_contentDirectory, SIGNAL(errorOccured(UpnpError)), this, SLOT(errorRaised(UpnpError)));
-
             m_root->addService(m_contentDirectory);
         }
         else
@@ -150,9 +147,11 @@ void Upnp_servicecontentdirectoryTest::initContentDirectory()
     }
 }
 
-void Upnp_servicecontentdirectoryTest::actionXmlAnswer(const QString &data)
+void Upnp_servicecontentdirectoryTest::actionFinished()
 {
-    m_XmlActionAnswer = data;
+    UpnpActionReply *reply = (UpnpActionReply *)(sender());
+    if (reply)
+        m_XmlActionAnswer = reply->data();
 }
 
 void Upnp_servicecontentdirectoryTest::errorRaised(const UpnpError &error)
@@ -173,7 +172,10 @@ void Upnp_servicecontentdirectoryTest::test_invalid_action()
     m_error = UpnpError();
 
     SoapAction action(m_contentDirectory->serviceType(), actionName);
-    m_contentDirectory->runAction(action);
+    UpnpActionReply *reply = m_contentDirectory->runAction(action);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -235,7 +237,11 @@ void Upnp_servicecontentdirectoryTest::test_get_searchCapabilities()
 
     m_XmlActionAnswer.clear();
     m_error = UpnpError();
-    m_contentDirectory->runAction(actionName);
+
+    UpnpActionReply *reply = m_contentDirectory->runAction(actionName);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -275,7 +281,10 @@ void Upnp_servicecontentdirectoryTest::test_get_searchCapabilities_InvalidArgs()
 
     SoapAction action(m_contentDirectory->serviceType(), actionName);
     action.addArgument("args", "invalid");
-    m_contentDirectory->runAction(action);
+    UpnpActionReply *reply = m_contentDirectory->runAction(action);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -304,7 +313,11 @@ void Upnp_servicecontentdirectoryTest::test_get_sortCapabilities()
 
     m_XmlActionAnswer.clear();
     m_error = UpnpError();
-    m_contentDirectory->runAction(actionName);
+
+    UpnpActionReply *reply = m_contentDirectory->runAction(actionName);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -344,7 +357,10 @@ void Upnp_servicecontentdirectoryTest::test_get_sortCapabilities_InvalidArgs()
 
     SoapAction action(m_contentDirectory->serviceType(), actionName);
     action.addArgument("args", "invalid");
-    m_contentDirectory->runAction(action);
+    UpnpActionReply *reply = m_contentDirectory->runAction(action);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -373,7 +389,11 @@ void Upnp_servicecontentdirectoryTest::test_get_systemUpdateId()
 
     m_XmlActionAnswer.clear();
     m_error = UpnpError();
-    m_contentDirectory->runAction(actionName);
+
+    UpnpActionReply *reply = m_contentDirectory->runAction(actionName);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -413,7 +433,10 @@ void Upnp_servicecontentdirectoryTest::test_get_systemUpdateId_InvalidArgs()
 
     SoapAction action(m_contentDirectory->serviceType(), actionName);
     action.addArgument("args", "invalid");
-    m_contentDirectory->runAction(action);
+    UpnpActionReply *reply = m_contentDirectory->runAction(action);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -454,7 +477,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Root_MetaData()
     arguments["RequestedCount"] = "0";
     arguments["SortCriteria"] = "";
 
-    m_contentDirectory->runAction(actionName, arguments);
+    UpnpActionReply *reply = m_contentDirectory->runAction(actionName, arguments);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -545,7 +571,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Root_DirectChildren()
     arguments["RequestedCount"] = "0";
     arguments["SortCriteria"] = "";
 
-    m_contentDirectory->runAction(actionName, arguments);
+    UpnpActionReply *reply = m_contentDirectory->runAction(actionName, arguments);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -697,7 +726,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_InvalidArgs()
         action.addArgument("RequestedCount", "0");
         action.addArgument("SortCriteria", "");
 
-        m_contentDirectory->runAction(action);
+        UpnpActionReply *reply = m_contentDirectory->runAction(action);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -726,7 +758,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_InvalidArgs()
         action.addArgument("StartingIndex", "0");
         action.addArgument("RequestedCount", "0");
 
-        m_contentDirectory->runAction(action);
+        UpnpActionReply *reply = m_contentDirectory->runAction(action);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -757,7 +792,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_InvalidArgs()
         action.addArgument("SortCriteria", "");
         action.addArgument("Args", "Invalid");
 
-        m_contentDirectory->runAction(action);
+        UpnpActionReply *reply = m_contentDirectory->runAction(action);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -796,7 +834,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Invalid_objectID()
     arguments["RequestedCount"] = "0";
     arguments["SortCriteria"] = "";
 
-    m_contentDirectory->runAction(actionName, arguments);
+    UpnpActionReply *reply = m_contentDirectory->runAction(actionName, arguments);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -824,7 +865,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Invalid_objectID()
     arguments["RequestedCount"] = "0";
     arguments["SortCriteria"] = "";
 
-    m_contentDirectory->runAction(actionName, arguments);
+    reply = m_contentDirectory->runAction(actionName, arguments);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
     timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -865,7 +909,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Invalid_browseFlag()
         arguments["RequestedCount"] = "0";
         arguments["SortCriteria"] = "";
 
-        m_contentDirectory->runAction(actionName, arguments);
+        UpnpActionReply *reply = m_contentDirectory->runAction(actionName, arguments);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -895,7 +942,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Invalid_browseFlag()
         arguments["RequestedCount"] = "0";
         arguments["SortCriteria"] = "";
 
-        m_contentDirectory->runAction(actionName, arguments);
+        UpnpActionReply *reply = m_contentDirectory->runAction(actionName, arguments);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -937,7 +987,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Invalid_filter()
         arguments["RequestedCount"] = "0";
         arguments["SortCriteria"] = "";
 
-        m_contentDirectory->runAction(actionName, arguments);
+        UpnpActionReply *reply = m_contentDirectory->runAction(actionName, arguments);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -979,7 +1032,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Invalid_startingIndex()
         arguments["RequestedCount"] = "0";
         arguments["SortCriteria"] = "";
 
-        m_contentDirectory->runAction(actionName, arguments);
+        UpnpActionReply *reply = m_contentDirectory->runAction(actionName, arguments);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -1009,7 +1065,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Invalid_startingIndex()
         arguments["RequestedCount"] = "0";
         arguments["SortCriteria"] = "";
 
-        m_contentDirectory->runAction(actionName, arguments);
+        UpnpActionReply *reply = m_contentDirectory->runAction(actionName, arguments);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -1039,7 +1098,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Invalid_startingIndex()
         arguments["RequestedCount"] = "0";
         arguments["SortCriteria"] = "";
 
-        m_contentDirectory->runAction(actionName, arguments);
+        UpnpActionReply *reply = m_contentDirectory->runAction(actionName, arguments);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -1081,7 +1143,10 @@ void Upnp_servicecontentdirectoryTest::test_browse_Invalid_requestedCount()
         arguments["RequestedCount"] = "-1";
         arguments["SortCriteria"] = "";
 
-        m_contentDirectory->runAction(actionName, arguments);
+        UpnpActionReply *reply = m_contentDirectory->runAction(actionName, arguments);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &Upnp_servicecontentdirectoryTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &Upnp_servicecontentdirectoryTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)

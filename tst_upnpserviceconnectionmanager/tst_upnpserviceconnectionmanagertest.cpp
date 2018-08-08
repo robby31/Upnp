@@ -13,7 +13,7 @@ public:
     UpnpserviceconnectionmanagerTest();
 
 private Q_SLOTS:
-    void actionXmlAnswer(const QString &data);
+    void actionFinished();
     void errorRaised(const UpnpError &error);
     void initTestCase();
     void cleanupTestCase();
@@ -165,9 +165,6 @@ void UpnpserviceconnectionmanagerTest::initConnectionManager()
         {
             m_connectionManager = new ServiceConnectionManager(m_root);
 
-            connect(m_connectionManager, SIGNAL(actionXmlAnswer(QString)), this, SLOT(actionXmlAnswer(QString)));
-            connect(m_connectionManager, SIGNAL(errorOccured(UpnpError)), this, SLOT(errorRaised(UpnpError)));
-
             m_connectionManager->updateStateVariable("SourceProtocolInfo", format().join(","));
 
             m_root->addService(m_connectionManager);
@@ -183,9 +180,11 @@ void UpnpserviceconnectionmanagerTest::initConnectionManager()
     }
 }
 
-void UpnpserviceconnectionmanagerTest::actionXmlAnswer(const QString &data)
+void UpnpserviceconnectionmanagerTest::actionFinished()
 {
-    m_XmlActionAnswer = data;
+    UpnpActionReply *reply = (UpnpActionReply *)(sender());
+    if (reply)
+        m_XmlActionAnswer = reply->data();
 }
 
 void UpnpserviceconnectionmanagerTest::errorRaised(const UpnpError &error)
@@ -206,7 +205,10 @@ void UpnpserviceconnectionmanagerTest::test_invalid_action()
     m_error = UpnpError();
 
     SoapAction action(m_connectionManager->serviceType(), actionName);
-    m_connectionManager->runAction(action);
+    UpnpActionReply *reply = m_connectionManager->runAction(action);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &UpnpserviceconnectionmanagerTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &UpnpserviceconnectionmanagerTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -267,7 +269,11 @@ void UpnpserviceconnectionmanagerTest::test_get_protocolInfo()
 
     m_XmlActionAnswer.clear();
     m_error = UpnpError();
-    m_connectionManager->runAction(actionName);
+
+    UpnpActionReply *reply = m_connectionManager->runAction(actionName);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &UpnpserviceconnectionmanagerTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &UpnpserviceconnectionmanagerTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -309,7 +315,10 @@ void UpnpserviceconnectionmanagerTest::test_get_protocolInfo_InvalidArgs()
 
     SoapAction action(m_connectionManager->serviceType(), actionName);
     action.addArgument("args", "invalid");
-    m_connectionManager->runAction(action);
+    UpnpActionReply *reply = m_connectionManager->runAction(action);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &UpnpserviceconnectionmanagerTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &UpnpserviceconnectionmanagerTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -339,7 +348,11 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionIds()
 
     m_XmlActionAnswer.clear();
     m_error = UpnpError();
-    m_connectionManager->runAction(actionName);
+
+    UpnpActionReply *reply = m_connectionManager->runAction(actionName);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &UpnpserviceconnectionmanagerTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &UpnpserviceconnectionmanagerTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -379,7 +392,11 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionIds_InvalidArgs
 
     SoapAction action(m_connectionManager->serviceType(), actionName);
     action.addArgument("args", "invalid");
-    m_connectionManager->runAction(action);
+
+    UpnpActionReply *reply = m_connectionManager->runAction(action);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &UpnpserviceconnectionmanagerTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &UpnpserviceconnectionmanagerTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -410,7 +427,11 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo()
 
     m_XmlActionAnswer.clear();
     m_error = UpnpError();
-    m_connectionManager->runAction(actionName, arguments);
+
+    UpnpActionReply *reply = m_connectionManager->runAction(actionName, arguments);
+    QVERIFY(reply != Q_NULLPTR);
+    connect(reply, &UpnpActionReply::errorOccured, this, &UpnpserviceconnectionmanagerTest::errorRaised);
+    connect(reply, &UpnpActionReply::finished, this, &UpnpserviceconnectionmanagerTest::actionFinished);
 
     int timeout = 10;
     while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -463,7 +484,10 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo_InvalidArg
     // not enough arguments
     {
         SoapAction action(m_connectionManager->serviceType(), actionName);
-        m_connectionManager->runAction(action);
+        UpnpActionReply *reply = m_connectionManager->runAction(action);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &UpnpserviceconnectionmanagerTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &UpnpserviceconnectionmanagerTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -488,7 +512,10 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo_InvalidArg
     {
         SoapAction action(m_connectionManager->serviceType(), actionName);
         action.addArgument("Connection", "0");
-        m_connectionManager->runAction(action);
+        UpnpActionReply *reply = m_connectionManager->runAction(action);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &UpnpserviceconnectionmanagerTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &UpnpserviceconnectionmanagerTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -514,7 +541,10 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo_InvalidArg
         SoapAction action(m_connectionManager->serviceType(), actionName);
         action.addArgument("ConnectionID", "0");
         action.addArgument("arg", "too many");
-        m_connectionManager->runAction(action);
+        UpnpActionReply *reply = m_connectionManager->runAction(action);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &UpnpserviceconnectionmanagerTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &UpnpserviceconnectionmanagerTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
@@ -539,7 +569,10 @@ void UpnpserviceconnectionmanagerTest::test_get_currentConnectionInfo_InvalidArg
     {
         SoapAction action(m_connectionManager->serviceType(), actionName);
         action.addArgument("ConnectionID", "");
-        m_connectionManager->runAction(action);
+        UpnpActionReply *reply = m_connectionManager->runAction(action);
+        QVERIFY(reply != Q_NULLPTR);
+        connect(reply, &UpnpActionReply::errorOccured, this, &UpnpserviceconnectionmanagerTest::errorRaised);
+        connect(reply, &UpnpActionReply::finished, this, &UpnpserviceconnectionmanagerTest::actionFinished);
 
         int timeout = 10;
         while (timeout>0 && m_XmlActionAnswer.size()==0 && m_error.netError()==QNetworkReply::NoError)
