@@ -62,7 +62,7 @@ public:
     UpnpRootDevice *addLocalRootDevice(UpnpRootDeviceDescription *description, int port, QString url);
     bool addLocalRootDevice(UpnpRootDevice *device);
 
-    void startDiscover(const QString &searchTarget);
+    void startDiscover(const QString &searchTarget = QString("ssdp:all"));
 
 protected:
     virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
