@@ -9,6 +9,7 @@
 #include "upnpservicedescription.h"
 #include "Http/httprequest.h"
 #include "xmlevent.h"
+#include "upnpactionreply.h"
 
 typedef struct {
     QStringList urls;
@@ -89,17 +90,15 @@ signals:
     void actionsModelChanged();
     void stateVariablesModelChanged();
     void subscribeEventingSignal(const QNetworkRequest &request, const QString &serviceId);
-    void actionXmlAnswer(const QString &xml);
-    void actionAnswer(const QString &name, const QVariantMap &data);
     void errorOccured(const UpnpError &error);
 
 public slots:
     void requestDescription();
     void sendAlive(const QString &uuid);
     void sendByeBye(const QString &uuid);
-    void runAction(const int &index);
-    void runAction(const QString &actionName, QVariantMap args = QVariantMap());
-    void runAction(const SoapAction &action);
+    UpnpActionReply *runAction(const int &index);
+    UpnpActionReply *runAction(const QString &actionName, QVariantMap args = QVariantMap());
+    UpnpActionReply *runAction(const SoapAction &action);
     void subscribeEventing();
 
 private slots:
@@ -110,7 +109,6 @@ private slots:
     void itemAvailableChanged();
     void networkError(QNetworkReply::NetworkError error);
     void descriptionReceived();
-    void actionFinished();
 
     void sendEventReply();
 

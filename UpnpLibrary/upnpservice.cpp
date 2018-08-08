@@ -225,14 +225,14 @@ QDomNode UpnpService::getAction(const QString &actionName)
     return QDomNode();
 }
 
-void UpnpService::runAction(const SoapAction &action)
+UpnpActionReply *UpnpService::runAction(const SoapAction &action)
 {
     QNetworkReply *reply = sendAction(action);
-    connect(reply, SIGNAL(finished()), this, SLOT(actionFinished()));
-    connect(reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(networkError(QNetworkReply::NetworkError)));
+    UpnpActionReply *actionReply = new UpnpActionReply(reply);
+    return actionReply;
 }
 
-void UpnpService::runAction(const QString &actionName, QVariantMap args)
+UpnpActionReply *UpnpService::runAction(const QString &actionName, QVariantMap args)
 {
     QDomNode actionDefinition = getAction(actionName);
 
@@ -270,7 +270,7 @@ void UpnpService::runAction(const QString &actionName, QVariantMap args)
 
         if (!error)
         {
-            runAction(action);
+            return runAction(action);
         }
         else
         {
@@ -281,9 +281,11 @@ void UpnpService::runAction(const QString &actionName, QVariantMap args)
     {
         qCritical() << "invalid action" << actionName;
     }
+
+    return Q_NULLPTR;
 }
 
-void UpnpService::runAction(const int &index)
+UpnpActionReply *UpnpService::runAction(const int &index)
 {
     QString name;
     QStringList in;
@@ -329,7 +331,7 @@ void UpnpService::runAction(const int &index)
                     if (in.isEmpty())
                     {
                         SoapAction action(serviceType(), name);
-                        runAction(action);
+                        return runAction(action);
                     }
                 }
             }
@@ -343,6 +345,8 @@ void UpnpService::runAction(const int &index)
             qCritical() << host() << serviceType() << "unable to find scpd element";
         }
     }
+
+    return Q_NULLPTR;
 }
 
 void UpnpService::itemAvailableChanged()
@@ -364,64 +368,6 @@ QNetworkReply *UpnpService::sendAction(const SoapAction &action)
     request.setRawHeader(QByteArray("SOAPACTION"), action.soapaction());
 
     return post(request, action.toByteArray());
-}
-
-void UpnpService::actionFinished()
-{
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-
-    if (reply->error() == QNetworkReply::NoError)
-    {
-        qDebug() << "action done" << this << reply->request().rawHeader("SOAPACTION");
-        QString actionName = reply->request().rawHeader("SOAPACTION");
-        QByteArray xml_data = reply->readAll();
-        emit actionXmlAnswer(xml_data);
-
-        QVariantMap data;
-        QDomDocument xml_doc;
-        xml_doc.setContent(xml_data, true);
-        QDomElement root = xml_doc.firstChildElement("Envelope");
-        if (!root.isNull())
-        {
-            QDomElement body = root.firstChildElement("Body");
-            if (!body.isNull())
-            {
-                QDomElement answer = body.firstChildElement();
-                if (!answer.isNull())
-                {
-                    QDomElement child = answer.firstChildElement();
-                    while (!child.isNull())
-                    {
-                        data[child.tagName()] = child.firstChild().toText().data();
-                        child = child.nextSiblingElement();
-                    }
-                }
-                else
-                {
-                    qCritical() << xml_data;
-                    qCritical() << "invalid content in body for action response";
-                }
-            }
-            else
-            {
-                qCritical() << xml_data;
-                qCritical() << "invalid body in action response";
-            }
-        }
-        else
-        {
-            qCritical() << xml_data;
-            qCritical() << "invalid root in action response";
-        }
-
-        emit actionAnswer(actionName, data);
-    }
-    else
-    {
-        qCritical() << reply->errorString();
-    }
-
-    reply->deleteLater();
 }
 
 void UpnpService::networkError(QNetworkReply::NetworkError error)
