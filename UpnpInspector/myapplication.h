@@ -6,6 +6,12 @@
 #include "Models/listmodel.h"
 #include "messageitem.h"
 #include "upnprootdevice.h"
+#include "qmdnsengine/server.h"
+#include "qmdnsengine/cache.h"
+#include "qmdnsengine/browser.h"
+#include "qmdnsengine/service.h"
+#include "qmdnsengine/resolver.h"
+#include "qmdnsengine/mdns.h"
 
 class MyApplication : public Application
 {
@@ -27,12 +33,15 @@ signals:
 private slots:
     void messageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
 
-    virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
+    void mDnsServiceAdded(QMdnsEngine::Service service);
 
 private:
     QNetworkAccessManager netManager;
     UpnpControlPoint *m_upnp;
     ListModel *m_messageModel;
+    QMdnsEngine::Server m_mDnsServer;
+    QMdnsEngine::Cache m_mDnsCache;
+    QMdnsEngine::Browser m_mDnsBrowser;
 };
 
 #endif // MYAPPLICATION_H
