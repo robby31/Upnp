@@ -10,56 +10,56 @@ class DlnaCachedVideo : public DlnaVideoItem
     Q_OBJECT
 
 public:
-    explicit DlnaCachedVideo(MediaLibrary* library, int idMedia, QObject *parent = 0);
+    explicit DlnaCachedVideo(MediaLibrary* library, int idMedia, QObject *parent = Q_NULLPTR);
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
-    virtual QString getName() const { return QString("Media(%1)").arg(idMedia); }
+    QString getName() const Q_DECL_OVERRIDE { return QString("Media(%1)").arg(idMedia); }
 
-    virtual QString getSystemName() const { if (library != 0) return library->getmetaData("filename", idMedia).toString(); else return QString(); }
+    QString getSystemName() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("filename", idMedia).toString(); return QString(); }
 
     //returns the size of the source
-    virtual qint64 sourceSize() const { return (double)metaDataDuration()*(double)metaDataBitrate()/8000.0; }
+    qint64 sourceSize() const Q_DECL_OVERRIDE { return (double)metaDataDuration()*(double)metaDataBitrate()/8000.0; }
 
     // return true if the track shall be transcoded
-    virtual bool toTranscode() const { return true; }
+    bool toTranscode() const Q_DECL_OVERRIDE { return true; }
 
-    virtual qint64 getResumeTime() const;
+    qint64 getResumeTime() const Q_DECL_OVERRIDE;
 
-    virtual int metaDataBitrate()              const { if (library != 0) return library->getmetaData("bitrate", idMedia).toInt(); else return -1; }
-    virtual int metaDataDuration()             const { if (library != 0) return library->getmetaData("duration", idMedia).toInt(); else return -1; }
-    virtual QString metaDataTitle()            const { return QFileInfo(getSystemName()).completeBaseName(); }
-    virtual QString metaDataGenre()            const { return ""; }
-    virtual QString metaDataPerformer()        const { return ""; }
-    virtual QString metaDataPerformerSort()    const { return ""; }
-    virtual QString metaDataAlbum()            const { return ""; }
-    virtual QString metaDataAlbumArtist()      const { return ""; }
-    virtual int metaDataYear()                 const { return -1; }
-    virtual int metaDataTrackPosition()        const { return 0; }
-    virtual int metaDataDisc()                 const { return 0; }
-    virtual QString metaDataFormat()           const { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }
-    virtual QByteArray metaDataPicture()       const { return QByteArray(); }
-    virtual QString metaDataLastModifiedDate() const { if (library != 0) return library->getmetaData("last_modified", idMedia).toString(); else return QString(); }
+    int metaDataBitrate()              const Q_DECL_OVERRIDE { if (library) return library->getmetaData("bitrate", idMedia).toInt(); return -1; }
+    int metaDataDuration()             const Q_DECL_OVERRIDE { if (library) return library->getmetaData("duration", idMedia).toInt(); return -1; }
+    QString metaDataTitle()            const Q_DECL_OVERRIDE { return QFileInfo(getSystemName()).completeBaseName(); }
+    QString metaDataGenre()            const Q_DECL_OVERRIDE { return ""; }
+    QString metaDataPerformer()        const Q_DECL_OVERRIDE { return ""; }
+    QString metaDataPerformerSort()    const Q_DECL_OVERRIDE { return ""; }
+    QString metaDataAlbum()            const Q_DECL_OVERRIDE { return ""; }
+    QString metaDataAlbumArtist()      const Q_DECL_OVERRIDE { return ""; }
+    int metaDataYear()                 const Q_DECL_OVERRIDE { return -1; }
+    int metaDataTrackPosition()        const Q_DECL_OVERRIDE { return 0; }
+    int metaDataDisc()                 const Q_DECL_OVERRIDE { return 0; }
+    QString metaDataFormat()           const Q_DECL_OVERRIDE { if (library) return library->getmetaData("format", idMedia).toString(); return QString(); }
+    QByteArray metaDataPicture()       const Q_DECL_OVERRIDE { return QByteArray(); }
+    QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("last_modified", idMedia).toString(); return QString(); }
 
     // returns the samplerate of the video track
-    virtual int samplerate() const;
+    int samplerate() const Q_DECL_OVERRIDE;
 
     //returns the channel number of the video track
-    virtual int channelCount() const;
+    int channelCount() const Q_DECL_OVERRIDE;
 
-    virtual QHash<QString, double> volumeInfo(const int timeout = 30000);
+    QHash<QString, double> volumeInfo(const int& timeout = 30000) Q_DECL_OVERRIDE;
 
-    virtual QString resolution()            const { if (library != 0) return library->getmetaData("resolution", idMedia).toString(); else return QString(); }
-    virtual QStringList subtitleLanguages() const { if (library != 0) return library->getmetaData("subtitlelanguages", idMedia).toString().split(","); else return QStringList(); }
-    virtual QStringList audioLanguages()    const { if (library != 0) return library->getmetaData("audiolanguages", idMedia).toString().split(","); else return QStringList(); }
-    virtual QString framerate()             const;
+    QString resolution()            const Q_DECL_OVERRIDE { if (library) return library->getmetaData("resolution", idMedia).toString(); return QString(); }
+    QStringList subtitleLanguages() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("subtitlelanguages", idMedia).toString().split(","); return QStringList(); }
+    QStringList audioLanguages()    const Q_DECL_OVERRIDE { if (library) return library->getmetaData("audiolanguages", idMedia).toString().split(","); return QStringList(); }
+    QString framerate()             const Q_DECL_OVERRIDE;
 
 protected:
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess();
+    TranscodeProcess* getTranscodeProcess() Q_DECL_OVERRIDE;
 
     // Returns the process for original streaming
-    virtual Device* getOriginalStreaming();
+    Device* getOriginalStreaming() Q_DECL_OVERRIDE;
 
     MediaLibrary* library;
     int idMedia;

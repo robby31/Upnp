@@ -9,25 +9,25 @@ class DlnaMusicTrack : public DlnaItem
     Q_OBJECT
 
 public:
-    DlnaMusicTrack(QObject *parent = 0);
+    DlnaMusicTrack(QObject *parent = Q_NULLPTR);
 
     // Return upnp class
-    virtual QString getUpnpClass() const Q_DECL_OVERRIDE { return QString("object.item.audioItem.musicTrack"); }
+    QString getUpnpClass() const Q_DECL_OVERRIDE { return QString("object.item.audioItem.musicTrack"); }
 
     // returns the bitrate of the audio track
-    virtual int bitrate() const Q_DECL_OVERRIDE;
+    int bitrate() const Q_DECL_OVERRIDE;
 
     // Returns the mimeType for this DLNA node.
-    virtual QString mimeType() const Q_DECL_OVERRIDE;
+    QString mimeType() const Q_DECL_OVERRIDE;
 
     // Returns the mimeType of the source.
-    virtual QString sourceMimeType() const Q_DECL_OVERRIDE;
+    QString sourceMimeType() const Q_DECL_OVERRIDE;
 
     // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) Q_DECL_OVERRIDE;
+    QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) Q_DECL_OVERRIDE;
 
     // Returns album art in jpeg format
-    virtual QImage getAlbumArt() const Q_DECL_OVERRIDE;
+    QImage getAlbumArt() const Q_DECL_OVERRIDE;
 
     static const QString UNKNOWN_AUDIO_TYPEMIME;
     static const QString AUDIO_MP3_TYPEMIME;
@@ -41,13 +41,13 @@ public:
 
 protected:
     // Returns the process for transcoding
-    virtual QFfmpegTranscoding* getTranscodeProcess() Q_DECL_OVERRIDE;
+    QFfmpegTranscoding* getTranscodeProcess() Q_DECL_OVERRIDE;
 
     // Returns the process for original streaming
-    virtual Device* getOriginalStreaming() Q_DECL_OVERRIDE;
+    Device* getOriginalStreaming() Q_DECL_OVERRIDE;
 
 private:
-    virtual void updateDLNAOrgPn() Q_DECL_OVERRIDE;
+    void updateDLNAOrgPn() Q_DECL_OVERRIDE;
 };
 
 #endif // DLNAMUSICTRACK_H

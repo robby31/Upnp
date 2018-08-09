@@ -12,7 +12,7 @@ class DlnaFolder : public DlnaStorageFolder
     Q_OBJECT
 
 public:
-    explicit DlnaFolder(QString filename, QObject *parent = Q_NULLPTR);
+    explicit DlnaFolder(const QString& filename, QObject *parent = Q_NULLPTR);
     ~DlnaFolder() Q_DECL_OVERRIDE;
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;

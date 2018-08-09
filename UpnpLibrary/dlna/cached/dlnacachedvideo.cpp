@@ -61,7 +61,7 @@ qint64 DlnaCachedVideo::getResumeTime() const
     return 0;
 }
 
-QHash<QString, double> DlnaCachedVideo::volumeInfo(const int timeout)
+QHash<QString, double> DlnaCachedVideo::volumeInfo(const int &timeout)
 {
     Q_UNUSED(timeout)
 

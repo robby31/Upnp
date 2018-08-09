@@ -2,7 +2,7 @@
 
 qint64 DlnaVideoFile::objectCounter = 0;
 
-DlnaVideoFile::DlnaVideoFile(QString filename, QObject *parent):
+DlnaVideoFile::DlnaVideoFile(const QString &filename, QObject *parent):
     DlnaVideoItem(parent),
     fileinfo(filename)
 {
@@ -21,7 +21,7 @@ DlnaVideoFile::~DlnaVideoFile() {
 
 TranscodeProcess *DlnaVideoFile::getTranscodeProcess()
 {
-    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
+    auto transcodeProcess = new FfmpegTranscoding();
     transcodeProcess->setUrl(getSystemName());
     transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
     transcodeProcess->setFormat(transcodeFormat);
@@ -103,7 +103,7 @@ int DlnaVideoFile::samplerate() const
     return ffmpeg.getAudioSamplerate();
 }
 
-QHash<QString, double> DlnaVideoFile::volumeInfo(const int timeout)
+QHash<QString, double> DlnaVideoFile::volumeInfo(const int& timeout)
 {
     return ffmpeg.getVolumeInfo(timeout);
 }

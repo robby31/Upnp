@@ -13,14 +13,14 @@ class DlnaItem : public DlnaResource
 
 public:
     explicit DlnaItem(QObject *parent = Q_NULLPTR);
-    virtual ~DlnaItem();
+    ~DlnaItem() Q_DECL_OVERRIDE = default;
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() const;
+    QString getDisplayName() const Q_DECL_OVERRIDE;
 
-    virtual bool isFolder() const { return false; }
-    virtual DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) { Q_UNUSED(index) Q_UNUSED(parent) return Q_NULLPTR; }
-    virtual int getChildrenSize() const { return 0; }
+    bool isFolder() const Q_DECL_OVERRIDE { return false; }
+    DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE { Q_UNUSED(index) Q_UNUSED(parent) return Q_NULLPTR; }
+    int getChildrenSize() const Q_DECL_OVERRIDE { return 0; }
 
     // Returns the time where the media has been stopped during last play
     virtual qint64 getResumeTime() const { return 0; }
@@ -60,7 +60,7 @@ public:
     virtual int bitrate() const = 0;
 
     // returns volume information
-    virtual QHash<QString, double> volumeInfo(const int timeout = 30000) = 0;
+    virtual QHash<QString, double> volumeInfo(const int& timeout = 30000) = 0;
 
     virtual int metaDataBitrate() const = 0;
     virtual int metaDataDuration() const = 0;
@@ -82,12 +82,12 @@ public:
     QString getDlnaContentFeatures() const;
 
     QString getdlnaOrgOpFlags() const { return dlnaOrgOpFlags; }
-    void setdlnaOrgOpFlags (QString arg) { dlnaOrgOpFlags=arg; }
+    void setdlnaOrgOpFlags (const QString& arg) { dlnaOrgOpFlags=arg; }
 
     QString getdlnaOrgPN() const { return dlnaOrgPN; }
-    void setdlnaOrgPN(QString arg) { dlnaOrgPN=arg; }
+    void setdlnaOrgPN(const QString& arg) { dlnaOrgPN=arg; }
 
-    void setUserAgent(QString userAgent) { m_userAgent = userAgent; emit userAgentChanged(); }
+    void setUserAgent(const QString& userAgent) { m_userAgent = userAgent; emit userAgentChanged(); }
 
     void setStream(Device *stream);
 

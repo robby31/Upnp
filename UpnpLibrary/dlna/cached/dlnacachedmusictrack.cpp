@@ -21,7 +21,7 @@ qint64 DlnaCachedMusicTrack::getResumeTime() const
     return 0;
 }
 
-QHash<QString, double> DlnaCachedMusicTrack::volumeInfo(const int timeout)
+QHash<QString, double> DlnaCachedMusicTrack::volumeInfo(const int& timeout)
 {
     Q_UNUSED(timeout)
 

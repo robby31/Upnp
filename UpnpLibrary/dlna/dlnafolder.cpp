@@ -2,7 +2,7 @@
 
 qint64 DlnaFolder::objectCounter = 0;
 
-DlnaFolder::DlnaFolder(QString filename, QObject *parent):
+DlnaFolder::DlnaFolder(const QString &filename, QObject *parent):
     DlnaStorageFolder(parent),
     fileinfo(filename)
 {

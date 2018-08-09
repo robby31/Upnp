@@ -9,41 +9,41 @@ class DlnaCachedMusicTrack : public DlnaMusicTrack
     Q_OBJECT
 
 public:
-    explicit DlnaCachedMusicTrack(MediaLibrary* library, int idMedia, QObject *parent = 0);
+    explicit DlnaCachedMusicTrack(MediaLibrary* library, int idMedia, QObject *parent = Q_NULLPTR);
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
-    virtual QString getName() const Q_DECL_OVERRIDE { return QString("Media(%1)").arg(idMedia); }
+    QString getName() const Q_DECL_OVERRIDE { return QString("Media(%1)").arg(idMedia); }
 
-    virtual QString getSystemName() const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("filename", idMedia).toString(); else return QString(); }
+    QString getSystemName() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("filename", idMedia).toString(); return QString(); }
 
     //returns the size of the source
-    virtual qint64 sourceSize() const Q_DECL_OVERRIDE { return (double)metaDataDuration()*(double)metaDataBitrate()/8000.0; }
+    qint64 sourceSize() const Q_DECL_OVERRIDE { return (double)metaDataDuration()*(double)metaDataBitrate()/8000.0; }
 
-    virtual qint64 getResumeTime() const Q_DECL_OVERRIDE;
+    qint64 getResumeTime() const Q_DECL_OVERRIDE;
 
-    virtual int metaDataBitrate()              const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("bitrate", idMedia).toInt(); else return -1; }
-    virtual int metaDataDuration()             const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("duration", idMedia).toInt(); else return -1; }
-    virtual QString metaDataTitle()            const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("title", idMedia).toString(); else return QString(); }
-    virtual QString metaDataGenre()            const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("genre", idMedia).toString(); else return QString(); }
-    virtual QString metaDataPerformer()        const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("artist", idMedia).toString(); else return QString(); }
-    virtual QString metaDataPerformerSort()    const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaDataArtist("artist_sort", idMedia).toString(); else return QString(); }
-    virtual QString metaDataAlbum()            const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("album", idMedia).toString(); else return QString(); }
-    virtual QString metaDataAlbumArtist()      const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaDataAlbum("artist_name", idMedia).toString(); else return QString(); }
-    virtual int metaDataYear()                 const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaDataAlbum("year", idMedia).toInt(); else return -1; }
-    virtual int metaDataTrackPosition()        const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("trackposition", idMedia).toInt(); else return 0; }
-    virtual int metaDataDisc()                 const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("disc", idMedia).toInt(); else return 0; }
-    virtual QString metaDataFormat()           const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }
-    virtual QByteArray metaDataPicture()       const Q_DECL_OVERRIDE { if (library != 0) return QByteArray::fromHex(library->getmetaData("picture", idMedia).toByteArray()); else return QByteArray(); }
-    virtual QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("last_modified", idMedia).toDateTime().toString("yyyy-MM-dd"); else return QString(); }
+    int metaDataBitrate()              const Q_DECL_OVERRIDE { if (library) return library->getmetaData("bitrate", idMedia).toInt(); return -1; }
+    int metaDataDuration()             const Q_DECL_OVERRIDE { if (library) return library->getmetaData("duration", idMedia).toInt(); return -1; }
+    QString metaDataTitle()            const Q_DECL_OVERRIDE { if (library) return library->getmetaData("title", idMedia).toString(); return QString(); }
+    QString metaDataGenre()            const Q_DECL_OVERRIDE { if (library) return library->getmetaData("genre", idMedia).toString(); return QString(); }
+    QString metaDataPerformer()        const Q_DECL_OVERRIDE { if (library) return library->getmetaData("artist", idMedia).toString(); return QString(); }
+    QString metaDataPerformerSort()    const Q_DECL_OVERRIDE { if (library) return library->getmetaDataArtist("artist_sort", idMedia).toString(); return QString(); }
+    QString metaDataAlbum()            const Q_DECL_OVERRIDE { if (library) return library->getmetaData("album", idMedia).toString(); return QString(); }
+    QString metaDataAlbumArtist()      const Q_DECL_OVERRIDE { if (library) return library->getmetaDataAlbum("artist_name", idMedia).toString(); return QString(); }
+    int metaDataYear()                 const Q_DECL_OVERRIDE { if (library) return library->getmetaDataAlbum("year", idMedia).toInt(); return -1; }
+    int metaDataTrackPosition()        const Q_DECL_OVERRIDE { if (library) return library->getmetaData("trackposition", idMedia).toInt(); return 0; }
+    int metaDataDisc()                 const Q_DECL_OVERRIDE { if (library) return library->getmetaData("disc", idMedia).toInt(); return 0; }
+    QString metaDataFormat()           const Q_DECL_OVERRIDE { if (library) return library->getmetaData("format", idMedia).toString(); return QString(); }
+    QByteArray metaDataPicture()       const Q_DECL_OVERRIDE { if (library) return QByteArray::fromHex(library->getmetaData("picture", idMedia).toByteArray()); return QByteArray(); }
+    QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("last_modified", idMedia).toDateTime().toString("yyyy-MM-dd"); return QString(); }
 
     // returns the samplerate of the audio track
-    virtual int samplerate() const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("samplerate", idMedia).toInt(); else return -1; }
+    int samplerate() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("samplerate", idMedia).toInt(); return -1; }
 
     //returns the channel number of the audio track
-    virtual int channelCount() const Q_DECL_OVERRIDE { if (library != 0) return library->getmetaData("channelcount", idMedia).toInt(); else return -1; }
+    int channelCount() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("channelcount", idMedia).toInt(); return -1; }
 
-    virtual QHash<QString, double> volumeInfo(const int timeout = 30000) Q_DECL_OVERRIDE;
+    QHash<QString, double> volumeInfo(const int& timeout = 30000) Q_DECL_OVERRIDE;
 
 private:
     MediaLibrary* library;

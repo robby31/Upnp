@@ -2,7 +2,7 @@
 
 qint64 DlnaMusicTrackFile::objectCounter = 0;
 
-DlnaMusicTrackFile::DlnaMusicTrackFile(QString filename, QObject *parent):
+DlnaMusicTrackFile::DlnaMusicTrackFile(const QString &filename, QObject *parent):
     DlnaMusicTrack(parent),
     fileinfo(filename)
 {
@@ -109,14 +109,14 @@ int DlnaMusicTrackFile::samplerate() const {
     return ffmpeg.getAudioSamplerate();
 }
 
-QHash<QString, double> DlnaMusicTrackFile::volumeInfo(const int timeout)
+QHash<QString, double> DlnaMusicTrackFile::volumeInfo(const int& timeout)
 {
     return ffmpeg.getVolumeInfo(timeout);
 }
 
 QFfmpegTranscoding *DlnaMusicTrackFile::getTranscodeProcess()
 {
-    QFfmpegTranscoding* transcodeProcess = new QFfmpegTranscoding();
+    auto transcodeProcess = new QFfmpegTranscoding();
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
 //    transcodeProcess->setVolumeInfo(volumeInfo());

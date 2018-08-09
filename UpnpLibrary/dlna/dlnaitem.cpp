@@ -10,10 +10,6 @@ DlnaItem::DlnaItem(QObject *parent) :
 {
 }
 
-DlnaItem::~DlnaItem()
-{
-}
-
 QString DlnaItem::getDisplayName() const {
     QString title = metaDataTitle();
     if (title.isEmpty())
@@ -30,8 +26,8 @@ int DlnaItem::getLengthInSeconds() const {
 int DlnaItem::getLengthInMilliSeconds() const {
     if (metaDataDuration() > getResumeTime())
         return metaDataDuration() - getResumeTime();
-    else
-        return 0;
+
+    return 0;
 }
 
 void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
@@ -70,14 +66,10 @@ Device *DlnaItem::getStream()
 
         return process;
     }
-    else
-    {
-        Device* tmp = getOriginalStreaming();
 
-        setStream(tmp);
-
-        return tmp;
-    }
+    Device* tmp = getOriginalStreaming();
+    setStream(tmp);
+    return tmp;
 }
 
 QString DlnaItem::getProtocolInfo() const
@@ -87,10 +79,8 @@ QString DlnaItem::getProtocolInfo() const
         qWarning() << getSystemName() << "protocol info is empty";
         return QString("http-get:*:%1:%2").arg(mimeType()).arg(getDlnaContentFeatures());
     }
-    else
-    {
-        return m_protocolInfo;
-    }
+
+    return m_protocolInfo;
 }
 
 QString DlnaItem::getDlnaContentFeatures() const
@@ -98,10 +88,8 @@ QString DlnaItem::getDlnaContentFeatures() const
     if (!m_protocolInfo.isEmpty())
     {
         QStringList l_params = m_protocolInfo.split(":");
-        if (l_params.size() > 0)
-        {
+        if (!l_params.isEmpty())
             return l_params.at(l_params.size()-1);
-        }
     }
 
     // default value
@@ -120,19 +108,18 @@ QString DlnaItem::getDlnaContentFeatures() const
     return result.join(";");
 }
 
-qint64 DlnaItem::size() {
+qint64 DlnaItem::size()
+{
     if (toTranscode())
     {
         Device *stream = getStream();
         if (stream)
             return stream->size();
-        else
-            return -1;
+
+        return -1;
     }
-    else
-    {
-        return sourceSize();
-    }
+
+    return sourceSize();
 }
 
 void DlnaItem::setStream(Device *stream)
