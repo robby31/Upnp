@@ -21,19 +21,19 @@ class UpnpObject : public ListItem
     Q_PROPERTY(bool available READ available WRITE setAvailable NOTIFY availableChanged)
 
 public:
-    enum TypeObject { T_RootDevice, T_Device, T_Service };
+    enum TypeObject { Unknown, T_RootDevice, T_Device, T_Service };
     enum Status { Null, Loading, Ready, Error };
 
-    explicit UpnpObject(QObject *parent = 0);
-    explicit UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent = 0);
+    explicit UpnpObject(QObject *parent = Q_NULLPTR);
+    explicit UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent = Q_NULLPTR);
 
     TypeObject type() const;
     void setType(const TypeObject &type);
 
-    virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
-    virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
+    QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
+    bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
-    void setRoles(QHash<int, QByteArray> roles);
+    void setRoles(const QHash<int, QByteArray>& roles);
 
     UpnpObject *upnpParent() const;
     void setUpnpParent(UpnpObject *parent);
@@ -57,7 +57,7 @@ public:
 
     virtual QUrl url() const;
 
-    QUrl urlFromRelativePath(QString path) const;
+    QUrl urlFromRelativePath(const QString& path) const;
 
     UpnpDescription *description() const;
     QString strDescription() const;
@@ -66,7 +66,7 @@ public:
     QString valueFromDescription(const QString &param) const;
 
     QNetworkReply *get(QNetworkRequest request);
-    QNetworkReply *post(QNetworkRequest request, QByteArray data);
+    QNetworkReply *post(QNetworkRequest request, const QByteArray& data);
 
     virtual QString generateUuid();
 
@@ -95,7 +95,7 @@ private:
     UpnpObject *m_upnpParent = Q_NULLPTR;
     Status m_status = Null;
     QHash<int, QByteArray> m_roles;
-    TypeObject m_type;
+    TypeObject m_type = Unknown;
     QDateTime m_timeout;
     QTimer m_timer;
     bool m_available = false;

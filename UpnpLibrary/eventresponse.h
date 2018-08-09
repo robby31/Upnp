@@ -9,7 +9,7 @@ class EventResponse : public QObject
 {
 
 public:
-    explicit EventResponse(QByteArray data, QObject *parent = 0);
+    explicit EventResponse(const QByteArray& data, QObject *parent = Q_NULLPTR);
 
     bool isValid() const;
 

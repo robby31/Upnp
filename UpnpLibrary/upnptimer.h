@@ -8,8 +8,8 @@ class UpnpTimer : public QTimer
     Q_OBJECT
 
 public:
-    explicit UpnpTimer(QObject *parent = 0);
-    explicit UpnpTimer(const int &max, const int &period, QObject *parent = 0);
+    explicit UpnpTimer(QObject *parent = Q_NULLPTR);
+    explicit UpnpTimer(const int &max, const int &period, QObject *parent = Q_NULLPTR);
 
     void setMaxExecution(const int &max);
     void setPeriod(const int &period);

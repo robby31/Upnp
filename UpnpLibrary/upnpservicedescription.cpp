@@ -32,10 +32,8 @@ QString UpnpServiceDescription::version() const
         qCritical() << "unable to find specVersion";
         return QString("null");
     }
-    else
-    {
-        return QString("%1.%2").arg(m_xml.getParamValue("major", specVersion)).arg(m_xml.getParamValue("minor", specVersion));
-    }
+
+    return QString("%1.%2").arg(m_xml.getParamValue("major", specVersion)).arg(m_xml.getParamValue("minor", specVersion));
 }
 
 void UpnpServiceDescription::setVersion(const int &major, const int &minor)
@@ -93,35 +91,33 @@ QDomElement UpnpServiceDescription::addArgument(const QDomElement &action, const
         qCritical() << "invalid state variable name" << stateVariable;
         return QDomElement();
     }
-    else
-    {
-        QDomElement argumentList = m_xml.getParam("argumentList", action);
-        if (argumentList.isNull())
-            argumentList = m_xml.addParam("argumentList", action);
 
-        QDomElement argument = m_xml.addParam("argument", argumentList);
+    QDomElement argumentList = m_xml.getParam("argumentList", action);
+    if (argumentList.isNull())
+        argumentList = m_xml.addParam("argumentList", action);
 
-        m_xml.addParam("name", argument);
-        m_xml.setParam("name", name, argument);
+    QDomElement argument = m_xml.addParam("argument", argumentList);
 
-        m_xml.addParam("direction", argument);
-        switch (direction) {
-        case IN:
-            m_xml.setParam("direction", "in", argument);
-            break;
-        case OUT:
-            m_xml.setParam("direction", "out", argument);
-            break;
-        default:
-            qCritical() << "invalid direction" << direction;
-            break;
-        }
+    m_xml.addParam("name", argument);
+    m_xml.setParam("name", name, argument);
 
-        m_xml.addParam("relatedStateVariable", argument);
-        m_xml.setParam("relatedStateVariable", stateVariable, argument);
-
-        return argument;
+    m_xml.addParam("direction", argument);
+    switch (direction) {
+    case IN:
+        m_xml.setParam("direction", "in", argument);
+        break;
+    case OUT:
+        m_xml.setParam("direction", "out", argument);
+        break;
+    default:
+        qCritical() << "invalid direction" << direction;
+        break;
     }
+
+    m_xml.addParam("relatedStateVariable", argument);
+    m_xml.setParam("relatedStateVariable", stateVariable, argument);
+
+    return argument;
 }
 
 QDomElement UpnpServiceDescription::addStateVariable(const QString &name, const bool &sendEvents, const bool &multicast, const QString &type, const QString &defaultValue)

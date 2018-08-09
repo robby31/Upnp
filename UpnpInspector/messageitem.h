@@ -11,6 +11,8 @@
 
 class MessageItem : public ListItem
 {
+    Q_OBJECT
+
 public:
     enum Roles {
         HostRole = Qt::UserRole+1,
@@ -24,11 +26,11 @@ public:
         StRole
     };
 
-    explicit MessageItem(QObject* parent = 0);
+    explicit MessageItem(QObject* parent = Q_NULLPTR);
 
-    virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE { return m_roles; }
-    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
-    virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
+    QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE { return m_roles; }
+    QVariant data(int role) const Q_DECL_OVERRIDE;
+    bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
     void setHostAddress(QHostAddress host);
     void setPort(int port);

@@ -14,8 +14,8 @@ class SoapActionResponse : public QObject
     Q_PROPERTY(QStringList arguments READ arguments NOTIFY argumentsChanged)
 
 public:
-    explicit SoapActionResponse(QString serviceType, QString actionName, QObject *parent = Q_NULLPTR);
-    explicit SoapActionResponse(QByteArray data, QObject *parent = Q_NULLPTR);
+    explicit SoapActionResponse(const QString& serviceType, const QString& actionName, QObject *parent = Q_NULLPTR);
+    explicit SoapActionResponse(const QByteArray& data, QObject *parent = Q_NULLPTR);
 
     bool isValid() const;
 

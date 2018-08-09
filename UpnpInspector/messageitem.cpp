@@ -2,11 +2,8 @@
 
 MessageItem::MessageItem(QObject *parent):
     ListItem(parent),
-    m_roles(),
     m_date(QDateTime::currentDateTime()),
-    m_host(),
-    m_port(-1),
-    m_message()
+    m_port(-1)
 {
     m_roles[HostRole] = "host";
     m_roles[PortRole] = "port";

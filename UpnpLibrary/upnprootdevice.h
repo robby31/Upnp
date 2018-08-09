@@ -23,40 +23,40 @@ public:
         VersionRole
     };
 
-    explicit UpnpRootDevice(QObject *parent = 0);
-    explicit UpnpRootDevice(QNetworkAccessManager *nam, QString macAddress, QString uuid, QObject *parent = 0);
+    explicit UpnpRootDevice(QObject *parent = Q_NULLPTR);
+    explicit UpnpRootDevice(QNetworkAccessManager *nam, const QString& macAddress, const QString& uuid, QObject *parent = Q_NULLPTR);
 
-    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
+    QVariant data(int role) const Q_DECL_OVERRIDE;
 
     UpnpRootDeviceDescription *description() const;
 
     QString version() const;
 
-    virtual QNetworkAccessManager *networkManager() const Q_DECL_OVERRIDE;
+    QNetworkAccessManager *networkManager() const Q_DECL_OVERRIDE;
     void setNetworkManager(QNetworkAccessManager *nam);
 
     int bootId() const;
-    virtual QHostAddress host() const Q_DECL_OVERRIDE;
-    virtual int port() const Q_DECL_OVERRIDE;
+    QHostAddress host() const Q_DECL_OVERRIDE;
+    int port() const Q_DECL_OVERRIDE;
 
     QString configId() const;
 
     QString iconUrl() const;
     QStringList iconUrls() const;
 
-    virtual QString serverName() const Q_DECL_OVERRIDE;
+    QString serverName() const Q_DECL_OVERRIDE;
     void setServerName(const QString &name);
 
-    virtual QUrl url() const Q_DECL_OVERRIDE;
-    void setUrl(QUrl url);
+    QUrl url() const Q_DECL_OVERRIDE;
+    void setUrl(const QUrl& url);
 
     void setAdvertise(const bool &flag);
     void startAdvertising();
     void startServer();
 
-    virtual void searchForST(const QHostAddress &host, const int &port, const QString &st) Q_DECL_OVERRIDE;
+    void searchForST(const QHostAddress &host, const int &port, const QString &st) Q_DECL_OVERRIDE;
 
-    virtual QString generateUuid() Q_DECL_OVERRIDE;
+    QString generateUuid() Q_DECL_OVERRIDE;
 
 private:
     void initRoles();
@@ -69,8 +69,8 @@ signals:
     void serverError(const QString &message);
 
 public slots:
-    virtual void sendAlive() Q_DECL_OVERRIDE;
-    virtual void sendByeBye() Q_DECL_OVERRIDE;
+    void sendAlive() Q_DECL_OVERRIDE;
+    void sendByeBye() Q_DECL_OVERRIDE;
 
     void requestDescription();
 
@@ -80,14 +80,14 @@ private slots:
 
     void descriptionReceived();
 
-    virtual void replyRequest(HttpRequest *request) Q_DECL_OVERRIDE;
+    void replyRequest(HttpRequest *request) Q_DECL_OVERRIDE;
     virtual void replyGetIcon(HttpRequest *request);
 
 public:
     static const QString UPNP_ROOTDEVICE;
 
 private:
-    QNetworkAccessManager *netManager;
+    QNetworkAccessManager *netManager = Q_NULLPTR;
     QString m_servername;
     int m_bootId = 0;
     QUrl m_url;
@@ -95,7 +95,7 @@ private:
 
     bool m_advertise;
     UpnpTimer m_advertisingTimer;
-    HttpServer *server;
+    HttpServer *server = Q_NULLPTR;
     QString m_macAddress;
 };
 

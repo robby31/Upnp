@@ -4,7 +4,7 @@ const QString UpnpControlPoint::UPNP_VERSION = "1.1";
 
 const QHostAddress UpnpControlPoint::IPV4_UPNP_HOST = QHostAddress("239.255.255.250");
 
-const int UpnpControlPoint::UPNP_PORT = 1900;
+const quint16 UpnpControlPoint::UPNP_PORT = 1900;
 
 UpnpControlPoint::UpnpControlPoint(QObject *parent):
     UpnpControlPoint(UPNP_PORT, parent)
@@ -12,7 +12,7 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
 
 }
 
-UpnpControlPoint::UpnpControlPoint(qint16 eventPort, QObject *parent):
+UpnpControlPoint::UpnpControlPoint(quint16 eventPort, QObject *parent):
     QObject(parent),
     m_eventPort(eventPort),
     m_servername(QString("%1/%2 UPnP/%3 CTP/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(UPNP_VERSION)),
@@ -93,7 +93,7 @@ void UpnpControlPoint::close()
 
     for (int i=0;i<m_localRootDevice->rowCount();i++)
     {
-        UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(m_localRootDevice->at(i));
+        auto root = qobject_cast<UpnpRootDevice*>(m_localRootDevice->at(i));
         root->sendByeBye();
     }
 
@@ -157,7 +157,7 @@ void UpnpControlPoint::_processPendingMulticastDatagrams()
     }
 }
 
-void UpnpControlPoint::_sendMulticastSsdpMessage(SsdpMessage message)
+void UpnpControlPoint::_sendMulticastSsdpMessage(const SsdpMessage &message)
 {
     udpSocketUnicast.setSocketOption(QUdpSocket::MulticastTtlOption, 2);
 
@@ -165,7 +165,7 @@ void UpnpControlPoint::_sendMulticastSsdpMessage(SsdpMessage message)
         qCritical() << "UPNPControlPoint: Unable to send multicast message.";
 }
 
-void UpnpControlPoint::_sendUnicastSsdpMessage(const QHostAddress &host, const int &port, SsdpMessage message)
+void UpnpControlPoint::_sendUnicastSsdpMessage(const QHostAddress &host, const quint16 &port, const SsdpMessage &message)
 {
     if (udpSocketUnicast.writeDatagram(message.toUtf8(), host, port) == -1)
         qCritical() << "UPNPControlPoint: Unable to send unicast message.";
@@ -173,7 +173,7 @@ void UpnpControlPoint::_sendUnicastSsdpMessage(const QHostAddress &host, const i
 
 void UpnpControlPoint::_sendAliveMessage(const QString &uuid, const QString &nt)
 {
-    UpnpObject *object = qobject_cast<UpnpObject*>(sender());
+    auto object = qobject_cast<UpnpObject*>(sender());
 
     if (object->type() != UpnpObject::T_RootDevice)
     {
@@ -181,7 +181,7 @@ void UpnpControlPoint::_sendAliveMessage(const QString &uuid, const QString &nt)
     }
     else
     {
-        UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(object);
+        auto root = qobject_cast<UpnpRootDevice*>(object);
 
         QString usn;
         if (nt.isEmpty())
@@ -209,7 +209,7 @@ void UpnpControlPoint::_sendAliveMessage(const QString &uuid, const QString &nt)
 
 void UpnpControlPoint::_sendByeByeMessage(const QString &uuid, const QString &nt)
 {
-    UpnpObject *object = qobject_cast<UpnpObject*>(sender());
+    auto object = qobject_cast<UpnpObject*>(sender());
 
     if (object->type() != UpnpObject::T_RootDevice)
     {
@@ -217,7 +217,7 @@ void UpnpControlPoint::_sendByeByeMessage(const QString &uuid, const QString &nt
     }
     else
     {
-        UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(object);
+        auto root = qobject_cast<UpnpRootDevice*>(object);
 
         QString usn;
         if (nt.isEmpty())
@@ -322,7 +322,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
     }
 }
 
-UpnpRootDevice *UpnpControlPoint::addLocalRootDevice(UpnpRootDeviceDescription *description, int port, QString url)
+UpnpRootDevice *UpnpControlPoint::addLocalRootDevice(UpnpRootDeviceDescription *description, int port, const QString &url)
 {
     UpnpRootDevice *device = new UpnpRootDevice(netManager, m_macAddress, QString(), m_localRootDevice);
     connect(device, &UpnpRootDevice::aliveMessage, this, &UpnpControlPoint::_sendAliveMessage);
@@ -357,24 +357,22 @@ bool UpnpControlPoint::addLocalRootDevice(UpnpRootDevice *device)
 
         return true;
     }
-    else
-    {
-        return false;
-    }
+
+    return false;
 }
 
 void UpnpControlPoint::_searchForST(const QHostAddress &host, const int &port, const QString &st)
 {
     for (int i=0;i<m_localRootDevice->rowCount();++i)
     {
-        UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(m_localRootDevice->at(i));
+        auto root = qobject_cast<UpnpRootDevice*>(m_localRootDevice->at(i));
         root->searchForST(host, port, st);
     }
 }
 
-void UpnpControlPoint::_sendSearchResponse(const QHostAddress &host, const int &port, const QString &st, const QString &usn)
+void UpnpControlPoint::_sendSearchResponse(const QHostAddress &host, const quint16 &port, const QString &st, const QString &usn)
 {
-    UpnpObject *object = qobject_cast<UpnpObject*>(sender());
+    auto object = qobject_cast<UpnpObject*>(sender());
 
     if (object->type() != UpnpObject::T_RootDevice)
     {
@@ -382,7 +380,7 @@ void UpnpControlPoint::_sendSearchResponse(const QHostAddress &host, const int &
     }
     else
     {
-        UpnpRootDevice *root = qobject_cast<UpnpRootDevice*>(object);
+        auto root = qobject_cast<UpnpRootDevice*>(object);
 
         QDateTime sdf;
 
@@ -435,7 +433,7 @@ void UpnpControlPoint::subscribeEventing(QNetworkRequest request, const QString 
 
 void UpnpControlPoint::subscribeEventingFinished()
 {
-    QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+    auto reply = qobject_cast<QNetworkReply *>(sender());
 
     if (reply)
     {

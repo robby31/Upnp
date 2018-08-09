@@ -44,9 +44,9 @@ class UpnpControlPoint : public QObject
     Q_PROPERTY(DevicesModel *remoteRootDevices READ remoteRootDevices NOTIFY remoteRootDevicesChanged)
 
 public:
-    explicit UpnpControlPoint(QObject *parent = 0);
-    explicit UpnpControlPoint(qint16 eventPort = UPNP_PORT, QObject *parent = 0);
-    virtual ~UpnpControlPoint();
+    explicit UpnpControlPoint(QObject *parent = Q_NULLPTR);
+    explicit UpnpControlPoint(quint16 eventPort = UPNP_PORT, QObject *parent = Q_NULLPTR);
+    ~UpnpControlPoint() Q_DECL_OVERRIDE;
 
     void close();
 
@@ -59,13 +59,13 @@ public:
     ListModel *localRootDevices() const;
     DevicesModel *remoteRootDevices() const;
 
-    UpnpRootDevice *addLocalRootDevice(UpnpRootDeviceDescription *description, int port, QString url);
+    UpnpRootDevice *addLocalRootDevice(UpnpRootDeviceDescription *description, int port, const QString& url);
     bool addLocalRootDevice(UpnpRootDevice *device);
 
     void startDiscover(const QString &searchTarget = QString("ssdp:all"));
 
 protected:
-    virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
+    void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 
 private:
     void initializeHostAdress();
@@ -85,14 +85,14 @@ signals:
     void newRootDevice(UpnpRootDevice *device);
 
 private slots:
-    void _sendMulticastSsdpMessage(SsdpMessage message);
-    void _sendUnicastSsdpMessage(const QHostAddress &host, const int &port, SsdpMessage message);
+    void _sendMulticastSsdpMessage(const SsdpMessage& message);
+    void _sendUnicastSsdpMessage(const QHostAddress &host, const quint16 &port, const SsdpMessage& message);
 
     void _sendAliveMessage(const QString &uuid, const QString &nt);
     void _sendByeByeMessage(const QString &uuid, const QString &nt);
 
     void _searchForST(const QHostAddress &host, const int &port, const QString &st);
-    void _sendSearchResponse(const QHostAddress &host, const int &port, const QString &st, const QString &usn);
+    void _sendSearchResponse(const QHostAddress &host, const quint16 &port, const QString &st, const QString &usn);
 
     // Function called when a request is received
     void _processPendingMulticastDatagrams();
@@ -110,7 +110,7 @@ private:
     QNetworkAccessManager *netManager = Q_NULLPTR;
 
     HttpServer eventServer;
-    qint16 m_eventPort;
+    quint16 m_eventPort;
     QHash<QString, T_EVENT> m_sidEvent;
     int m_eventCheckSubscription = -1;
     QHash<int, T_SEARCH_ANSWER> m_searchAnswer;
@@ -141,7 +141,7 @@ private:
      * Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
      * MUST be 1900.
      */
-    static const int UPNP_PORT;
+    static const quint16 UPNP_PORT;
 };
 
 #endif // UPNPCONTROLPOINT_H

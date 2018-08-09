@@ -13,7 +13,7 @@ void UpnpActionReply::networkError(QNetworkReply::NetworkError error)
 {
     m_error = error;
 
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    auto reply = qobject_cast<QNetworkReply*>(sender());
 
     UpnpError upnpError(error, reply->readAll());
     emit errorOccured(upnpError);
@@ -27,7 +27,7 @@ void UpnpActionReply::networkError(QNetworkReply::NetworkError error)
 
 void UpnpActionReply::replyReceived()
 {
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    auto reply = qobject_cast<QNetworkReply*>(sender());
 
     m_error = reply->error();
 
@@ -56,8 +56,8 @@ QByteArray UpnpActionReply::data() const
 {
     if (m_response)
         return m_response->toByteArray();
-    else
-        return QByteArray();
+
+    return QByteArray();
 }
 
 SoapActionResponse *UpnpActionReply::response() const

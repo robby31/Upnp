@@ -8,7 +8,7 @@ UpnpError::UpnpError() :
     m_detail.clear();
 }
 
-UpnpError::UpnpError(QNetworkReply::NetworkError netError, QByteArray data) :
+UpnpError::UpnpError(QNetworkReply::NetworkError netError, const QByteArray &data) :
     m_netError(netError)
 {
     m_data.setContent(data, true);
@@ -187,55 +187,39 @@ QString UpnpError::faultCode() const
 {
     QDomElement elt = m_fault.firstChildElement("faultcode");
     if (!elt.isNull())
-    {
         return elt.firstChild().nodeValue();
-    }
-    else
-    {
-        return QString();
-    }
+
+    return QString();
 }
 
 QString UpnpError::faultString() const
 {
     QDomElement elt = m_fault.firstChildElement("faultstring");
     if (!elt.isNull())
-    {
         return elt.firstChild().nodeValue();
-    }
-    else
-    {
-        return QString();
-    }
+
+    return QString();
 }
 
 int UpnpError::code() const
 {
     QDomElement elt = m_detail.firstChildElement("errorCode");
     if (!elt.isNull())
-    {
         return elt.firstChild().nodeValue().toInt();
-    }
-    else
-    {
-        return -5;
-    }
+
+    return -5;
 }
 
 QString UpnpError::description() const
 {
     QDomElement elt = m_detail.firstChildElement("errorDescription");
     if (!elt.isNull())
-    {
         return elt.firstChild().nodeValue();
-    }
-    else
-    {
-        return QString();
-    }
+
+    return QString();
 }
 
-QByteArray UpnpError::toByteArray(const int indent) const
+QByteArray UpnpError::toByteArray(const int &indent) const
 {
     return m_data.toByteArray(indent);
 }

@@ -5,11 +5,12 @@
 
 class UpnpRootDeviceDescription : public UpnpDeviceDescription
 {
+    Q_OBJECT
 
 public:
     UpnpRootDeviceDescription();
 
-    virtual QDomElement device() const Q_DECL_OVERRIDE;
+    QDomElement device() const Q_DECL_OVERRIDE;
 
     QString configId() const;
     void setConfigId(const QString &id);

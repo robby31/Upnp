@@ -12,7 +12,7 @@ enum SsdpFormat { NOTIFY, SEARCH, HTTP, INVALID };
 class SsdpMessage
 {
 public:
-    SsdpMessage();
+    SsdpMessage() = default;
     SsdpMessage(SsdpFormat format);
 
     bool addHeader(const QString &param, const QString &value);

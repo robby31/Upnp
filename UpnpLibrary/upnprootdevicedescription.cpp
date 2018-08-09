@@ -46,10 +46,8 @@ QString UpnpRootDeviceDescription::version() const
         qCritical() << "unable to find specVersion";
         return QString("null");
     }
-    else
-    {
-        return QString("%1.%2").arg(m_xml.getParamValue("major", specVersion)).arg(m_xml.getParamValue("minor", specVersion));
-    }
+
+    return QString("%1.%2").arg(m_xml.getParamValue("major", specVersion)).arg(m_xml.getParamValue("minor", specVersion));
 }
 
 void UpnpRootDeviceDescription::setVersion(const int &major, const int &minor)

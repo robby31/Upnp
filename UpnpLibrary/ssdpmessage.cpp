@@ -8,11 +8,6 @@ const QString SsdpMessage::BYEBYE = "ssdp:byebye";
 
 const QString SsdpMessage::DISCOVER = "\"ssdp:discover\"";
 
-SsdpMessage::SsdpMessage()
-{
-
-}
-
 SsdpMessage::SsdpMessage(SsdpFormat format)
 {
     // initialize start line
@@ -70,7 +65,7 @@ SsdpMessage SsdpMessage::fromByteArray(const QByteArray &input)
 
     SsdpFormat format(INVALID);
 
-    if (l_message.size()>0)
+    if (!l_message.isEmpty())
     {
         if (l_message.at(0) == "NOTIFY * HTTP/1.1")
             format = NOTIFY;
@@ -92,13 +87,15 @@ SsdpMessage SsdpMessage::fromByteArray(const QByteArray &input)
 
 SsdpFormat SsdpMessage::format() const
 {
-    if (m_header.size()>0)
+    if (!m_header.isEmpty())
     {
         if (m_header.at(0) == "NOTIFY * HTTP/1.1")
             return NOTIFY;
-        else if (m_header.at(0) == "M-SEARCH * HTTP/1.1")
+
+        if (m_header.at(0) == "M-SEARCH * HTTP/1.1")
             return SEARCH;
-        else if (m_header.at(0) == "HTTP/1.1 200 OK")
+
+        if (m_header.at(0) == "HTTP/1.1 200 OK")
             return HTTP;
     }
 
@@ -107,14 +104,10 @@ SsdpFormat SsdpMessage::format() const
 
 QString SsdpMessage::startLine() const
 {
-    if (m_header.size()>0)
-    {
+    if (!m_header.isEmpty())
         return m_header.at(0);
-    }
-    else
-    {
-        return QString();
-    }
+
+    return QString();
 }
 
 int SsdpMessage::cacheControl() const
@@ -125,13 +118,9 @@ int SsdpMessage::cacheControl() const
         QRegularExpression pattern("max-age\\s*=\\s*(\\d+)");
         QRegularExpressionMatch match = pattern.match(cacheControl);
         if (match.hasMatch())
-        {
             return match.captured(1).toInt();
-        }
-        else
-        {
-            qCritical() << "Invalid format CACHE-CONTROL" << cacheControl;
-        }
+
+        qCritical() << "Invalid format CACHE-CONTROL" << cacheControl;
     }
     else
     {

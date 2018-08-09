@@ -2,21 +2,15 @@
 
 UpnpObject::UpnpObject(QObject *parent) :
     ListItem(parent),
-    m_upnpParent(0),
-    m_status(Null),
-    m_timeout(QDateTime::currentDateTime()),
-    m_available(false)
+    m_timeout(QDateTime::currentDateTime())
 {
 
 }
 
 UpnpObject::UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent) :
     ListItem(parent),
-    m_upnpParent(0),
-    m_status(Null),
     m_type(type),
-    m_timeout(QDateTime::currentDateTime()),
-    m_available(false)
+    m_timeout(QDateTime::currentDateTime())
 {
     setUpnpParent(upnpParent);
 
@@ -27,7 +21,7 @@ UpnpObject::UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent)
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(timeout()));
 }
 
-void UpnpObject::setRoles(QHash<int, QByteArray> roles)
+void UpnpObject::setRoles(const QHash<int, QByteArray> &roles)
 {
     m_roles = roles;
 }
@@ -39,7 +33,7 @@ UpnpObject *UpnpObject::upnpParent() const
 
 void UpnpObject::setUpnpParent(UpnpObject *parent)
 {
-    if (m_type == T_RootDevice && parent != 0)
+    if (m_type == T_RootDevice && parent != Q_NULLPTR)
     {
         qCritical() << "RootDevice shall not have parent";
     }
@@ -62,8 +56,8 @@ QNetworkAccessManager *UpnpObject::networkManager() const
 {
     if (m_upnpParent)
         return m_upnpParent->networkManager();
-    else
-        return 0;
+
+    return Q_NULLPTR;
 }
 
 UpnpObject::TypeObject UpnpObject::type() const
@@ -140,7 +134,7 @@ QNetworkReply *UpnpObject::get(QNetworkRequest request)
 {
     QNetworkAccessManager *netManager = networkManager();
 
-    if (netManager == 0)
+    if (!netManager)
     {
         qCritical() << "NetManager not initialized.";
     }
@@ -152,14 +146,14 @@ QNetworkReply *UpnpObject::get(QNetworkRequest request)
         return netManager->get(request);
     }
 
-    return 0;
+    return Q_NULLPTR;
 }
 
-QNetworkReply *UpnpObject::post(QNetworkRequest request, QByteArray data)
+QNetworkReply *UpnpObject::post(QNetworkRequest request, const QByteArray &data)
 {
     QNetworkAccessManager *netManager = networkManager();
 
-    if (netManager == 0)
+    if (!netManager)
     {
         qCritical() << "NetManager not initialized.";
     }
@@ -174,31 +168,31 @@ QNetworkReply *UpnpObject::post(QNetworkRequest request, QByteArray data)
         return netManager->post(request, data);
     }
 
-    return 0;
+    return Q_NULLPTR;
 }
 
 QHostAddress UpnpObject::host() const
 {
     if (m_upnpParent)
         return m_upnpParent->host();
-    else
-        return QHostAddress();
+
+    return QHostAddress();
 }
 
 int UpnpObject::port() const
 {
     if (m_upnpParent)
         return m_upnpParent->port();
-    else
-        return -1;
+
+    return -1;
 }
 
 QString UpnpObject::serverName() const
 {
     if (m_upnpParent)
         return m_upnpParent->serverName();
-    else
-        return QString();
+
+    return QString();
 }
 
 UpnpDescription *UpnpObject::description() const
@@ -210,16 +204,16 @@ QString UpnpObject::strDescription() const
 {
     if (m_description)
         return m_description->stringDescription();
-    else
-        return QString();
+
+    return QString();
 }
 
 QString UpnpObject::valueFromDescription(const QString &param) const
 {
     if (m_description)
         return m_description->attribute(param);
-    else
-        return QString();
+
+    return QString();
 }
 
 bool UpnpObject::setDescription(UpnpDescription *descr)
@@ -258,11 +252,11 @@ QUrl UpnpObject::url() const
 {
     if (m_upnpParent)
         return m_upnpParent->url();
-    else
-        return QUrl();
+
+    return QUrl();
 }
 
-QUrl UpnpObject::urlFromRelativePath(QString path) const
+QUrl UpnpObject::urlFromRelativePath(const QString &path) const
 {
     return url().resolved(path);
 }
@@ -270,12 +264,8 @@ QUrl UpnpObject::urlFromRelativePath(QString path) const
 QString UpnpObject::generateUuid()
 {
     if (m_upnpParent)
-    {
         return m_upnpParent->generateUuid();
-    }
-    else
-    {
-        qCritical() << "unable to generate uuid, no upnp parent defined";
-        return QString();
-    }
+
+    qCritical() << "unable to generate uuid, no upnp parent defined";
+    return QString();
 }

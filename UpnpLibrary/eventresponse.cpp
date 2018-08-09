@@ -1,6 +1,6 @@
 #include "eventresponse.h"
 
-EventResponse::EventResponse(QByteArray data, QObject *parent):
+EventResponse::EventResponse(const QByteArray &data, QObject *parent):
     QObject(parent),
     m_valid(false)
 {
@@ -57,6 +57,6 @@ QString EventResponse::value(const QString &name) const
 {
     if (m_variables.contains(name))
         return m_variables[name];
-    else
-        return QString();
+
+    return QString();
 }

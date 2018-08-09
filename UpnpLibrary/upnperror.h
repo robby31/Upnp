@@ -43,7 +43,7 @@ public:
                     };
 
     explicit UpnpError();
-    explicit UpnpError(QNetworkReply::NetworkError netError, QByteArray data);
+    explicit UpnpError(QNetworkReply::NetworkError netError, const QByteArray& data);
     explicit UpnpError(ErrorTypes type);
 
     QNetworkReply::NetworkError netError() const;
@@ -54,7 +54,7 @@ public:
     int code() const;
     QString description() const;
 
-    QByteArray toByteArray(const int indent = -1) const;
+    QByteArray toByteArray(const int& indent = -1) const;
 
 private:
     QNetworkReply::NetworkError m_netError;

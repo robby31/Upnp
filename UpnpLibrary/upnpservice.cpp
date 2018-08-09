@@ -2,7 +2,6 @@
 
 UpnpService::UpnpService(QObject *parent) :
     UpnpObject(T_Service, Q_NULLPTR, parent),
-    m_info(),
     m_stateVariablesModel(new StateVariableItem)
 {
     initRoles();
@@ -12,7 +11,6 @@ UpnpService::UpnpService(QObject *parent) :
 
 UpnpService::UpnpService(UpnpObject *upnpParent, QObject *parent) :
     UpnpObject(T_Service, upnpParent, parent),
-    m_info(),
     m_stateVariablesModel(new StateVariableItem)
 {
     initRoles();
@@ -20,7 +18,7 @@ UpnpService::UpnpService(UpnpObject *upnpParent, QObject *parent) :
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
 }
 
-UpnpService::UpnpService(UpnpObject *upnpParent, QDomNode info, QObject *parent) :
+UpnpService::UpnpService(UpnpObject *upnpParent, const QDomNode &info, QObject *parent) :
     UpnpObject(T_Service, upnpParent, parent),
     m_info(info),
     m_stateVariablesModel(new StateVariableItem)
@@ -30,7 +28,7 @@ UpnpService::UpnpService(UpnpObject *upnpParent, QDomNode info, QObject *parent)
     connect(this, SIGNAL(availableChanged()), this, SLOT(itemAvailableChanged()));
 }
 
-bool UpnpService::setInfo(QDomNode info)
+bool UpnpService::setInfo(const QDomNode &info)
 {
     m_info = info;
     return true;
@@ -65,8 +63,6 @@ QVariant UpnpService::data(int role) const
         return QVariant::Invalid;
     }
     }
-
-    return QVariant::Invalid;
 }
 
 QString UpnpService::serviceType() const
@@ -105,7 +101,7 @@ void UpnpService::requestDescription()
     QNetworkRequest request(scpdUrl());
 
     QNetworkReply *reply = get(request);
-    if (reply == 0)
+    if (!reply)
     {
         qCritical() << "Unable to get description" << this << serviceType() << scpdUrl();
         setStatus(Error);
@@ -120,11 +116,11 @@ void UpnpService::requestDescription()
 
 void UpnpService::descriptionReceived()
 {
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    auto reply = qobject_cast<QNetworkReply*>(sender());
 
     if (reply->error() == QNetworkReply::NoError)
     {
-        UpnpServiceDescription *description = new UpnpServiceDescription();
+        auto description = new UpnpServiceDescription();
         description->setContent(reply->readAll());
         setDescription(description);
 
@@ -143,7 +139,7 @@ void UpnpService::readActions()
 {
     m_actionsModel.clear();
 
-    UpnpServiceDescription *descr = (UpnpServiceDescription*)description();
+    auto descr = qobject_cast<UpnpServiceDescription*>(description());
     if (descr)
         m_actionsModel += descr->actionsName();
 
@@ -154,7 +150,7 @@ void UpnpService::readStateVariables()
 {
     m_stateVariablesModel.clear();
 
-    UpnpServiceDescription *descr = (UpnpServiceDescription*)description();
+    auto descr = qobject_cast<UpnpServiceDescription*>(description());
     if (descr)
     {
         QDomNodeList l_variables = descr->stateVariables().elementsByTagName("stateVariable");
@@ -164,7 +160,7 @@ void UpnpService::readStateVariables()
             QString name = variable.firstChildElement("name").firstChild().nodeValue();
             QDomNamedNodeMap attr = variable.attributes();
 
-            StateVariableItem *item = new StateVariableItem(&m_stateVariablesModel);
+            auto item = new StateVariableItem(&m_stateVariablesModel);
             item->setData(name, StateVariableItem::NameRole);
             if (!attr.namedItem("sendEvents").isNull() && attr.namedItem("sendEvents").nodeValue() == "yes")
                 item->setData(true, StateVariableItem::SendEventsRole);
@@ -228,7 +224,7 @@ QDomNode UpnpService::getAction(const QString &actionName)
 UpnpActionReply *UpnpService::runAction(const SoapAction &action)
 {
     QNetworkReply *reply = sendAction(action);
-    UpnpActionReply *actionReply = new UpnpActionReply(reply);
+    auto actionReply = new UpnpActionReply(reply);
     return actionReply;
 }
 
@@ -269,13 +265,9 @@ UpnpActionReply *UpnpService::runAction(const QString &actionName, QVariantMap a
         }
 
         if (!error)
-        {
             return runAction(action);
-        }
-        else
-        {
-            qCritical() << "unable to run action" << actionName;
-        }
+
+        qCritical() << "unable to run action" << actionName;
     }
     else
     {
@@ -500,7 +492,7 @@ void UpnpService::updateStateVariables(QHash<QString, QString> data)
     }
 }
 
-void UpnpService::updateLastChange(QString data)
+void UpnpService::updateLastChange(const QString &data)
 {
     qDebug() << "update LastChange data" << data;
 
@@ -585,17 +577,20 @@ bool UpnpService::replyRequest(HttpRequest *request)
         request->replyData(description()->stringDescription().toUtf8());
         return true;
     }
-    else if (request->operationString() == "SUBSCRIBE" && requestUrl == eventSubUrl() && !request->header("NT").isEmpty())
+
+    if (request->operationString() == "SUBSCRIBE" && requestUrl == eventSubUrl() && !request->header("NT").isEmpty())
     {
         replyNewSubscription(request);
         return true;
     }
-    else if (request->operationString() == "SUBSCRIBE" && requestUrl == eventSubUrl() && !request->header("SID").isEmpty())
+
+    if (request->operationString() == "SUBSCRIBE" && requestUrl == eventSubUrl() && !request->header("SID").isEmpty())
     {
         replyRenewSubscription(request);
         return true;
     }
-    else if (request->operation() == QNetworkAccessManager::PostOperation && requestUrl == controlUrl())
+
+    if (request->operation() == QNetworkAccessManager::PostOperation && requestUrl == controlUrl())
     {
         SoapAction action(request->requestData());
 
@@ -614,10 +609,8 @@ bool UpnpService::replyRequest(HttpRequest *request)
 
         return true;
     }
-    else
-    {
-        return false;
-    }
+
+    return false;
 }
 
 bool UpnpService::replyNewSubscription(HttpRequest *request)
@@ -748,7 +741,7 @@ bool UpnpService::replyRenewSubscription(HttpRequest *request)
 
 void UpnpService::sendEvent(const QString &uuid)
 {
-    if (m_subscription[uuid].urls.size() > 0)
+    if (!m_subscription[uuid].urls.isEmpty())
     {
         QNetworkRequest request(QUrl(m_subscription[uuid].urls.at(0)));
         request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port(80)).toUtf8());

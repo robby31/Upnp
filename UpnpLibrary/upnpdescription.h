@@ -8,7 +8,7 @@ class UpnpDescription : public QObject
     Q_OBJECT
 
 public:
-    explicit UpnpDescription(QString rootName = "device", QObject *parent = 0);
+    explicit UpnpDescription(const QString& rootName = "device", QObject *parent = Q_NULLPTR);
 
     bool setContent(const QByteArray &data);
     bool setContent(const QDomNode &data);

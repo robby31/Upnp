@@ -5,6 +5,7 @@
 
 class UpnpServiceDescription : public UpnpDescription
 {
+    Q_OBJECT
 
 public:
     enum DIRECTION { IN, OUT };

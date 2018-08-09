@@ -1,6 +1,6 @@
 #include "upnpdescription.h"
 
-UpnpDescription::UpnpDescription(QString rootName, QObject *parent):
+UpnpDescription::UpnpDescription(const QString &rootName, QObject *parent):
     QObject(parent),
     m_xml(rootName)
 {

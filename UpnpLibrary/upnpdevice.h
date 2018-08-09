@@ -24,12 +24,12 @@ public:
         PresentationUrlRole
     };
 
-    explicit UpnpDevice(QObject *parent = 0);
-    explicit UpnpDevice(QString uuid, UpnpObject *upnpParent, QObject *parent = 0);
+    explicit UpnpDevice(QObject *parent = Q_NULLPTR);
+    explicit UpnpDevice(const QString& uuid, UpnpObject *upnpParent, QObject *parent = Q_NULLPTR);
 
-    virtual QString id() const Q_DECL_OVERRIDE;
+    QString id() const Q_DECL_OVERRIDE;
 
-    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
+    QVariant data(int role) const Q_DECL_OVERRIDE;
 
     QString uuid() const;
     void setUuid(const QString &uuid);
@@ -73,14 +73,14 @@ public slots:
 private slots:
     void itemAvailableChanged();
 
-    virtual void parseObject() Q_DECL_OVERRIDE; // parse device to read Device and Services
+    void parseObject() Q_DECL_OVERRIDE; // parse device to read Device and Services
 
     void subscribeEventingSlot(const QNetworkRequest &request, const QString &serviceId);
 
 private:
     QString m_uuid;
-    ListModel *m_services;
-    ListModel *m_devices;
+    ListModel *m_services = Q_NULLPTR;
+    ListModel *m_devices = Q_NULLPTR;
 };
 
 #endif // UPNPDEVICE_H

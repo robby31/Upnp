@@ -18,11 +18,11 @@ public:
         DefaultValueRole
     };
 
-    explicit StateVariableItem(QObject *parent = 0);
+    explicit StateVariableItem(QObject *parent = Q_NULLPTR);
 
-    virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
-    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
-    virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
+    QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
+    QVariant data(int role) const Q_DECL_OVERRIDE;
+    bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
 signals:
 

@@ -4,13 +4,10 @@ const QString UpnpRootDevice::UPNP_ROOTDEVICE = "upnp:rootdevice";
 
 UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     UpnpDevice(parent),
-    netManager(Q_NULLPTR),
     m_servername(),
-    m_url(),
     m_iconUrl(),
     m_advertise(false),
     m_advertisingTimer(this),
-    server(Q_NULLPTR),
     m_macAddress()
 {
     setType(T_RootDevice);
@@ -18,15 +15,12 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     initRoles();   
 }
 
-UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, QString macAddress, QString uuid, QObject *parent) :
-    UpnpDevice(uuid, 0, parent),
-    netManager(Q_NULLPTR),
+UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, const QString& macAddress, const QString &uuid, QObject *parent) :
+    UpnpDevice(uuid, Q_NULLPTR, parent),
     m_servername(),
-    m_url(),
     m_iconUrl(),
     m_advertise(false),
     m_advertisingTimer(3, 600000, this),
-    server(Q_NULLPTR),
     m_macAddress(macAddress)
 {
     setType(T_RootDevice);
@@ -97,8 +91,6 @@ QVariant UpnpRootDevice::data(int role) const
         return QVariant::Invalid;
     }
     }
-
-    return QVariant::Invalid;
 }
 
 QNetworkAccessManager *UpnpRootDevice::networkManager() const
@@ -113,11 +105,11 @@ QString UpnpRootDevice::iconUrl() const
 
 QStringList UpnpRootDevice::iconUrls() const
 {
-    UpnpRootDeviceDescription *descr = (UpnpRootDeviceDescription*)description();
+    auto descr = qobject_cast<UpnpRootDeviceDescription*>(description());
     if (descr)
         return descr->iconUrls();
-    else
-        return QStringList();
+
+    return QStringList();
 }
 
 QHostAddress UpnpRootDevice::host() const
@@ -157,11 +149,11 @@ void UpnpRootDevice::setServerName(const QString &name)
 
 QString UpnpRootDevice::version() const
 {
-    UpnpRootDeviceDescription *descr = (UpnpRootDeviceDescription*)description();
+    auto  descr = qobject_cast<UpnpRootDeviceDescription*>(description());
     if (descr)
         return descr->version();
-    else
-        return QString();
+
+    return QString();
 }
 
 void UpnpRootDevice::requestDescription()
@@ -171,7 +163,7 @@ void UpnpRootDevice::requestDescription()
     QNetworkRequest request(url());
 
     QNetworkReply *reply = get(request);
-    if (reply == 0)
+    if (!reply)
     {
         qCritical() << "Unable to get description" << this << uuid() << url();
         setStatus(Error);
@@ -185,11 +177,11 @@ void UpnpRootDevice::requestDescription()
 
 void UpnpRootDevice::descriptionReceived()
 {
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    auto reply = qobject_cast<QNetworkReply*>(sender());
 
     if (reply->error() == QNetworkReply::NoError)
     {
-        UpnpRootDeviceDescription *descr = new UpnpRootDeviceDescription();
+        auto descr = new UpnpRootDeviceDescription();
         descr->setContent(reply->readAll());
         setDescription(descr);
 
@@ -260,7 +252,7 @@ QUrl UpnpRootDevice::url() const
     return m_url;
 }
 
-void UpnpRootDevice::setUrl(QUrl url)
+void UpnpRootDevice::setUrl(const QUrl &url)
 {
     if (url.isValid())
     {
@@ -387,37 +379,35 @@ QString UpnpRootDevice::generateUuid()
         qCritical() << "unable to generate uuid, invalid mac address.";
         return QString();
     }
-    else
-    {
-        // http://www.ietf.org/rfc/rfc4122.txt
 
-        auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    // http://www.ietf.org/rfc/rfc4122.txt
 
-        QString time_low;
-        time_low.sprintf("%8.8x", (unsigned int)(timestamp & 0xFFFFFFFF));
+    auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
-        QString time_short;
-        time_short.sprintf("%4.4x", (unsigned short)((timestamp >> 32) & 0xFFFF));
+    QString time_low;
+    time_low.sprintf("%8.8x", (unsigned int)(timestamp & 0xFFFFFFFF));
 
-        QString time_hi_and_version;
-        unsigned short tmp = (timestamp >> 48) & 0x0FFF;
-        tmp |= (1 << 12);
-        time_hi_and_version.sprintf("%4.4x", (unsigned short)(tmp));
+    QString time_short;
+    time_short.sprintf("%4.4x", (unsigned short)((timestamp >> 32) & 0xFFFF));
 
-        unsigned short tmp_clock_seq = 0;
-        QString clock_seq_low;
-        clock_seq_low.sprintf("%2.2x", tmp_clock_seq & 0xFF);
+    QString time_hi_and_version;
+    unsigned short tmp = (timestamp >> 48) & 0x0FFF;
+    tmp |= (1 << 12);
+    time_hi_and_version.sprintf("%4.4x", (unsigned short)(tmp));
 
-        unsigned short tmp2 = (tmp_clock_seq & 0x3F00) >> 8;
-        tmp2 |= 0x80;
-        QString clock_seq_hi_and_reserved;
-        clock_seq_hi_and_reserved.sprintf("%2.2x", (unsigned short)(tmp2));
+    unsigned short tmp_clock_seq = 0;
+    QString clock_seq_low;
+    clock_seq_low.sprintf("%2.2x", tmp_clock_seq & 0xFF);
 
-        QString node(m_macAddress);
-        node = node.replace(":", "").toLower();
+    unsigned short tmp2 = (tmp_clock_seq & 0x3F00) >> 8;
+    tmp2 |= 0x80;
+    QString clock_seq_hi_and_reserved;
+    clock_seq_hi_and_reserved.sprintf("%2.2x", (unsigned short)(tmp2));
 
-        return QString("%1-%2-%3-%4%5-%6").arg(time_low).arg(time_short).arg(time_hi_and_version).arg(clock_seq_low).arg(clock_seq_hi_and_reserved).arg(node);
-    }
+    QString node(m_macAddress);
+    node = node.replace(":", "").toLower();
+
+    return QString("%1-%2-%3-%4%5-%6").arg(time_low).arg(time_short).arg(time_hi_and_version).arg(clock_seq_low).arg(clock_seq_hi_and_reserved).arg(node);
 }
 
 void UpnpRootDevice::replyGetIcon(HttpRequest *request)
@@ -433,7 +423,7 @@ int UpnpRootDevice::bootId() const
 
 UpnpRootDeviceDescription *UpnpRootDevice::description() const
 {
-    return (UpnpRootDeviceDescription *)UpnpDevice::description();
+    return qobject_cast<UpnpRootDeviceDescription *>(UpnpDevice::description());
 }
 
 QString UpnpRootDevice::configId() const

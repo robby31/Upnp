@@ -2,7 +2,6 @@
 
 MyApplication::MyApplication(int &argc, char **argv):
     Application(argc, argv),
-    netManager(),
     m_upnp(Q_NULLPTR),
     m_messageModel(Q_NULLPTR),
     m_mDnsBrowser(&m_mDnsServer, QMdnsEngine::MdnsBrowseType, &m_mDnsCache)
@@ -24,7 +23,7 @@ MyApplication::MyApplication(int &argc, char **argv):
 
 void MyApplication::messageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message)
 {
-    MessageItem *item = new MessageItem(m_messageModel);
+    auto item = new MessageItem(m_messageModel);
     item->setHostAddress(host);
     item->setPort(port);
     item->setMessage(message);

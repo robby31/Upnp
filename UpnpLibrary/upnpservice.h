@@ -37,15 +37,15 @@ public:
         AvailableRole
     };
 
-    explicit UpnpService(QObject *parent = 0);
-    explicit UpnpService(UpnpObject *upnpParent, QObject *parent = 0);
-    explicit UpnpService(UpnpObject *upnpParent, QDomNode info, QObject *parent = 0);
+    explicit UpnpService(QObject *parent = Q_NULLPTR);
+    explicit UpnpService(UpnpObject *upnpParent, QObject *parent = Q_NULLPTR);
+    explicit UpnpService(UpnpObject *upnpParent, const QDomNode& info, QObject *parent = Q_NULLPTR);
 
-    virtual QString id() const Q_DECL_OVERRIDE;
+    QString id() const Q_DECL_OVERRIDE;
 
-    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
+    QVariant data(int role) const Q_DECL_OVERRIDE;
 
-    bool setInfo(QDomNode info);
+    bool setInfo(const QDomNode& info);
 
     QString serviceType() const;
     QString serviceId() const;
@@ -61,7 +61,7 @@ public:
     StateVariableItem *findStateVariableByName(const QString &name);
     void updateStateVariable(const QString &name, const QString &value);
     void updateStateVariables(QHash<QString,QString> data);
-    void updateLastChange(QString data);
+    void updateLastChange(const QString& data);
 
     virtual bool replyRequest(HttpRequest *request);
 
@@ -83,7 +83,7 @@ private:
 protected:
     virtual bool replyAction(HttpRequest *request, const SoapAction &action);
 
-    virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
+    void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 
 signals:
     void serviceTypeChanged();
@@ -102,7 +102,7 @@ public slots:
     void subscribeEventing();
 
 private slots:
-    virtual void parseObject() Q_DECL_OVERRIDE; // parse service to read actions and state variables
+    void parseObject() Q_DECL_OVERRIDE; // parse service to read actions and state variables
 
     void readActions();
     void readStateVariables();

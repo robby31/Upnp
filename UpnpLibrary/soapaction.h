@@ -10,8 +10,8 @@ class SoapAction : public QObject
 {
     Q_OBJECT
 public:
-    explicit SoapAction(QString serviceType, QString actionName, QObject *parent = 0);
-    explicit SoapAction(QByteArray data, QObject *parent = 0);
+    explicit SoapAction(const QString& serviceType, const QString& actionName, QObject *parent = Q_NULLPTR);
+    explicit SoapAction(const QByteArray& data, QObject *parent = Q_NULLPTR);
 
     bool isValid() const;
 

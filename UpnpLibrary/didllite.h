@@ -9,7 +9,7 @@ class DidlLite : public QDomDocument
 public:
     explicit DidlLite();
 
-    QDomNode addElement(QDomNode node);
+    QDomNode addElement(const QDomNode& node);
 
 private:
     QDomElement m_didl;

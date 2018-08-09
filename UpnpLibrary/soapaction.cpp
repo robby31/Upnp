@@ -1,6 +1,6 @@
 #include "soapaction.h"
 
-SoapAction::SoapAction(QString serviceType, QString actionName, QObject *parent):
+SoapAction::SoapAction(const QString &serviceType, const QString &actionName, QObject *parent):
     QObject(parent),
     m_valid(true),
     m_serviceType(serviceType),
@@ -19,7 +19,7 @@ SoapAction::SoapAction(QString serviceType, QString actionName, QObject *parent)
     body.appendChild(m_xmlAction);
 }
 
-SoapAction::SoapAction(QByteArray data, QObject *parent):
+SoapAction::SoapAction(const QByteArray &data, QObject *parent):
     QObject(parent),
     m_valid(false)
 {    
@@ -80,13 +80,11 @@ bool SoapAction::addArgument(const QString &name, const QString &value)
         qCritical() << "argument" << name << "already exists.";
         return false;
     }
-    else
-    {
-        QDomElement arg = m_xml.createElement(name);
-        arg.appendChild(m_xml.createTextNode(value));
-        m_xmlAction.appendChild(arg);
-        return true;
-    }
+
+    QDomElement arg = m_xml.createElement(name);
+    arg.appendChild(m_xml.createTextNode(value));
+    m_xmlAction.appendChild(arg);
+    return true;
 }
 
 QString SoapAction::argumentValue(const QString &param) const
@@ -94,8 +92,8 @@ QString SoapAction::argumentValue(const QString &param) const
     QDomNodeList l_arg = m_xmlAction.elementsByTagName(param);
     if (l_arg.size() == 1)
         return l_arg.at(0).firstChild().nodeValue();
-    else
-        return QString();
+
+    return QString();
 }
 
 QStringList SoapAction::arguments() const
