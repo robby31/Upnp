@@ -12,7 +12,7 @@ class MediaRenderer : public ListItem
 public:
     explicit MediaRenderer(QObject *parent = Q_NULLPTR);
     explicit MediaRenderer(UpnpRootDevice *device, QObject *parent = Q_NULLPTR);
-    virtual ~MediaRenderer() = default;
+    ~MediaRenderer() Q_DECL_OVERRIDE = default;
 
     enum Roles {
         statusRole = Qt::UserRole+1,
@@ -23,11 +23,11 @@ public:
         sinkProtocolRole
     };
 
-    virtual QString id() const Q_DECL_OVERRIDE;
+    QString id() const Q_DECL_OVERRIDE;
 
-    virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
-    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
-    virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
+    QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
+    QVariant data(int role) const Q_DECL_OVERRIDE;
+    bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
     QString netWorkAddress() const;
 

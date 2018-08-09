@@ -89,10 +89,13 @@ Item {
                     textRole: "value"
                     onCurrentIndexChanged: {
                         var idSelected = model.get(currentIndex).value
-                        if (idSelected)
-                            service.runAction("GetCurrentConnectionInfo", { ConnectionID: idSelected })
-                        else
+                        if (idSelected) {
+                            var reply = service.runAction("GetCurrentConnectionInfo", { ConnectionID: idSelected })
+                            var newObject = connections.createObject(item, {target: reply})
+//                            console.log("new object created", newObject)
+                        } else {
                             console.log("invalid id")
+                        }
                     }
                 }
 
@@ -179,13 +182,20 @@ Item {
 
     }
 
-    Connections {
-        target: service
+    Component {
+        // component to get reply of action GetCurrentConnectionInfo
+        id: connections
 
-        onActionAnswer: {
-            connectionInfoModel.clear()
-            for (var param in data)
-                connectionInfoModel.append({ param: param, value: data[param] })
+        Connections {
+            onFinished: {
+                var response = target.response
+                var arguments = response.arguments
+
+                connectionInfoModel.clear()
+                for (var i in response.arguments)
+                    connectionInfoModel.append({ param: arguments[i], value: response.value(arguments[i]) })
+            }
+
         }
     }
 

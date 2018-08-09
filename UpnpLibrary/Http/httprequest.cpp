@@ -269,7 +269,7 @@ quint16 HttpRequest::peerPort() const
     if (m_client)
         return m_client->peerPort();
     else
-        return -1;
+        return 0;
 }
 
 qintptr HttpRequest::socketDescriptor() const
@@ -384,8 +384,6 @@ QVariant HttpRequest::data(int role) const
         return QVariant::Invalid;
     }
     }
-
-    return QVariant::Invalid;
 }
 
 bool HttpRequest::setData(const QVariant &value, const int &role)
@@ -614,9 +612,17 @@ void HttpRequest::close()
 
             if (m_streamingCompleted && !m_streamWithErrors)
             {
-                setData("Streaming finished.", statusRole);
-                emit servingFinishedSignal(m_peerAddress.toString(), m_requestedResource, 0);
-                logMessage(QString("Streaming finished."));
+                if (m_partialStreaming)
+                {
+                    setData("Partial streaming finished.", statusRole);
+                    logMessage(QString("Partial streaming finished."));
+                }
+                else
+                {
+                    setData("Streaming finished.", statusRole);
+                    emit servingFinishedSignal(m_peerAddress.toString(), m_requestedResource, 0);
+                    logMessage(QString("Streaming finished."));
+                }
             }
             else
             {
@@ -664,9 +670,24 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
         }
         else
         {
+            // check partial content status
+            foreach (const QString &headerParam, m_replyHeader)
+            {
+                if (headerParam.startsWith("Content-Range"))
+                {
+                    if (status == HTTP_200_OK)
+                        qWarning() << "reply contains content-range, status shall be HTTP_206_Partial_Content";
+                    break;
+                }
+            }
+
             if (status == HTTP_200_OK)
             {
                 m_replyHeader << QString("%1 200 OK").arg(m_version);
+            }
+            else if (status == HTTP_206_Partial_Content)
+            {
+                m_replyHeader << QString("%1 206 Partial Content").arg(m_version);
             }
             else if (status == HTTP_400_KO)
             {
@@ -1202,7 +1223,7 @@ void HttpRequest::timerEvent(QTimerEvent *event)
 
                 if (m_maxBufferSize != 0)
                 {
-                    int bufferTime = 0;
+                    qint64 bufferTime = 0;
                     if (networkSpeed != 0)
                         bufferTime = m_maxBufferSize/(networkSpeed*1024);
 
@@ -1260,7 +1281,7 @@ void HttpRequest::setRequestedDisplayName(const QString &name)
 
 HttpRange *HttpRequest::range(qint64 size)
 {
-    HttpRange *res = 0;
+    HttpRange *res = Q_NULLPTR;
 
     if (!header("RANGE").isEmpty())
     {
@@ -1269,7 +1290,7 @@ HttpRange *HttpRequest::range(qint64 size)
         {
             // invalid range, ignore it
             delete res;
-            res = 0;
+            res = Q_NULLPTR;
             qCritical() << "Invalid range in request:" << header("RANGE");
         }
         else
@@ -1314,4 +1335,14 @@ void HttpRequest::streamDataAvailable()
         if (m_client && m_client->bytesToWrite() < m_maxBufferSize*0.5)
             emit requestStreamingData(m_maxBufferSize - m_client->bytesToWrite());
     }
+}
+
+bool HttpRequest::partialStreaming() const
+{
+    return m_partialStreaming;
+}
+
+void HttpRequest::setpartialStreaming(const bool &flag)
+{
+    m_partialStreaming = flag;
 }

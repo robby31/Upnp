@@ -98,6 +98,7 @@ bool SoapActionResponse::addArgument(const QString &name, const QString &value)
         QDomElement arg = m_xml.createElement(name);
         arg.appendChild(m_xml.createTextNode(value));
         m_xmlAction.appendChild(arg);
+        emit argumentsChanged();
         return true;
     }
 }

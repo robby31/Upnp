@@ -324,7 +324,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 }
                 else if (browseFlag == "BrowseDirectChildren")
                 {
-                    DlnaResource *parent = 0;
+                    DlnaResource *parent = Q_NULLPTR;
                     if (l_dlna.size() > 0)
                         parent = l_dlna.at(0)->getDlnaParent();
 
@@ -441,10 +441,28 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
 
                     m_header << QString("SERVER: %1").arg(request->serverName());
 
-                    m_header << QString("Content-Length: %1").arg(dlna->size());
+
+                    HttpRequest::HttpStatus replyStatus = HttpRequest::HTTP_200_OK;
 
                     if (range)
+                    {
+                        replyStatus = HttpRequest::HTTP_206_Partial_Content;
                         m_header << QString("Content-Range: bytes %1-%2/%3").arg(range->getStartByte()).arg(range->getEndByte()).arg(dlna->size());
+
+                        m_header << QString("Content-Length: %1").arg(range->getLength());
+
+                        QDateTime datetime;
+                        m_header << QString("DATE: %1").arg(datetime.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+
+                        if (range->getEndByte() >= range->getSize()-1)
+                            request->setpartialStreaming(false);
+                        else
+                            request->setpartialStreaming(true);
+                    }
+                    else
+                    {
+                        m_header << QString("Content-Length: %1").arg(dlna->size());
+                    }
 
                     if (timeSeekRangeStart >= 0 && dlna->getLengthInMilliSeconds() > 0)
                     {
@@ -467,7 +485,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                         m_header << QString("X-AvailableSeekRange: 1 npt=%1-%2").arg(0).arg(dlna->getLengthInSeconds());
                     }
 
-                    if (request->sendHeader(m_header))
+                    if (request->sendHeader(m_header, replyStatus))
                     {
                         if (request->operation() == QNetworkAccessManager::GetOperation)
                         {
@@ -532,7 +550,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                                 connect(request, SIGNAL(requestStreamingData(qint64)), streamContent, SLOT(requestData(qint64)));
                                 connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), request, SLOT(sendPartialData(QByteArray)));
 
-                                connect(request, SIGNAL(servingSignal(QString,int)), this, SLOT(servingMedia(QString,int)));
+                                connect(request, &HttpRequest::servingSignal, this, &ServiceContentDirectory::servingMedia);
 
                                 connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SIGNAL(servingFinishedSignal(QString,QString,int)));
                                 connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingFinished(QString,QString,int)));
@@ -659,7 +677,7 @@ DlnaResource *ServiceContentDirectory::getDlnaResource(const QString &hostaddres
         }
     }
 
-    return 0;
+    return Q_NULLPTR;
 }
 
 void ServiceContentDirectory::dlnaContentUpdated()

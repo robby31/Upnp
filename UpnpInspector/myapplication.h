@@ -12,6 +12,7 @@
 #include "qmdnsengine/service.h"
 #include "qmdnsengine/resolver.h"
 #include "qmdnsengine/mdns.h"
+#include "upnpactionreply.h"
 
 class MyApplication : public Application
 {

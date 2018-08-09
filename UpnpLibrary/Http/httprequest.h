@@ -46,14 +46,15 @@ public:
 
     enum HttpStatus {
         HTTP_200_OK,
+        HTTP_206_Partial_Content,
         HTTP_400_KO, // Bad Request
         HTTP_401_KO, // Invalid action
         HTTP_412_KO, // Precondition Failed
         HTTP_500_KO  // internal server error
     };
 
-    explicit HttpRequest(QObject *parent = 0);
-    explicit HttpRequest(QTcpSocket *client, QObject *parent = 0);
+    explicit HttpRequest(QObject *parent = Q_NULLPTR);
+    explicit HttpRequest(QTcpSocket *client, QObject *parent = Q_NULLPTR);
 
     virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
@@ -79,6 +80,9 @@ public:
 
     QString requestedDisplayName() const;
     void setRequestedDisplayName(const QString &name);
+
+    bool partialStreaming() const;
+    void setpartialStreaming(const bool &flag);
 
     QTcpSocket *tcpSocket() const;
     QHostAddress peerAddress() const;
@@ -131,7 +135,7 @@ signals:
     void servingRendererSignal(QString ip, const QString &mediaName);
 
     // emit signal to provide progress on serving media
-    void servingSignal(QString filename, int playedDurationInMs);
+    void servingSignal(QString filename, qint64 playedDurationInMs);
 
     // emit signal when serving is finished
     //   status = 0 if serving finished successfully
@@ -201,6 +205,7 @@ private:
     QString m_streamingStatus;
     bool m_streamWithErrors;
     bool m_streamingCompleted;
+    bool m_partialStreaming = false;
     QString m_requestedResource;
     QString m_requestedDisplayName;
     qint64 m_maxBufferSize;

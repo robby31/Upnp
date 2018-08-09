@@ -3,13 +3,14 @@
 MyApplication::MyApplication(int &argc, char **argv):
     Application(argc, argv),
     netManager(),
-    m_upnp(0),
-    m_messageModel(0),
+    m_upnp(Q_NULLPTR),
+    m_messageModel(Q_NULLPTR),
     m_mDnsBrowser(&m_mDnsServer, QMdnsEngine::MdnsBrowseType, &m_mDnsCache)
 {
     qRegisterMetaType<QHostAddress>("QHostAddress");
     qRegisterMetaType<SsdpMessage>("SsdpMessage");
     qRegisterMetaType<ListItem*>("CListItem");
+    qRegisterMetaType<UpnpActionReply*>("UpnpActionReply");
 
     m_messageModel = new ListModel(new MessageItem, this);
 

@@ -11,9 +11,11 @@ class SoapActionResponse : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QStringList arguments READ arguments NOTIFY argumentsChanged)
+
 public:
-    explicit SoapActionResponse(QString serviceType, QString actionName, QObject *parent = 0);
-    explicit SoapActionResponse(QByteArray data, QObject *parent = 0);
+    explicit SoapActionResponse(QString serviceType, QString actionName, QObject *parent = Q_NULLPTR);
+    explicit SoapActionResponse(QByteArray data, QObject *parent = Q_NULLPTR);
 
     bool isValid() const;
 
@@ -22,11 +24,12 @@ public:
 
     bool addArgument(const QString &name, const QString &value);
     QStringList arguments() const;
-    QString value(const QString &argumentName) const;
+    Q_INVOKABLE QString value(const QString &argumentName) const;
 
     QByteArray toByteArray() const;
 
 signals:
+    void argumentsChanged();
 
 public slots:
 

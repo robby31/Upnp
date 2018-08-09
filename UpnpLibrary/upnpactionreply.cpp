@@ -36,7 +36,7 @@ void UpnpActionReply::replyReceived()
         qDebug() << "action done" << this << reply->request().rawHeader("SOAPACTION");
         m_actionName = reply->request().rawHeader("SOAPACTION");
         m_response = new SoapActionResponse(reply->readAll(), this);
-
+        emit responseChanged();
         emit finished();
     }
     else

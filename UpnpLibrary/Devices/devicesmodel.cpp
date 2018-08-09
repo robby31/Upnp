@@ -29,8 +29,8 @@ UpnpService *DevicesModel::getService(const QString &deviceUuid, const QString &
     auto device = qobject_cast<UpnpDevice*>(getUpnpObjectFromUSN(QString("uuid:%1").arg(deviceUuid)));
     if (device)
         return device->getService(serviceId);
-    else
-        return Q_NULLPTR;
+
+    return Q_NULLPTR;
 }
 
 void DevicesModel::addRootDevice(const SsdpMessage &message)

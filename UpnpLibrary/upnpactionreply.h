@@ -10,6 +10,8 @@ class UpnpActionReply : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(SoapActionResponse* response READ response NOTIFY responseChanged)
+
 public:
     explicit UpnpActionReply(QNetworkReply *reply);
 
@@ -20,6 +22,7 @@ public:
 signals:
     void errorOccured(const UpnpError &error);
     void finished();
+    void responseChanged();
 
 private slots:
     void replyReceived();

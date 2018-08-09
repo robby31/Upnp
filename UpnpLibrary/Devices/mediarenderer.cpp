@@ -47,8 +47,8 @@ QString MediaRenderer::id() const
 {
     if (m_device)
         return m_device->uuid();
-    else
-        return ListItem::id();
+
+    return ListItem::id();
 }
 
 QVariant MediaRenderer::data(int role) const
@@ -62,8 +62,8 @@ QVariant MediaRenderer::data(int role) const
     {
         if (m_device)
             return m_device->friendlyName();
-        else
-            return QString();
+
+        return QString();
     }
     case networkAddressRole:
     {
@@ -73,15 +73,15 @@ QVariant MediaRenderer::data(int role) const
     {
         if (m_device)
             return m_device->iconUrl();
-        else
-            return QString();
+
+        return QString();
     }
     case availableRole:
     {
         if (m_device)
             return m_device->available();
-        else
-            return false;
+
+        return false;
     }
 
     case sinkProtocolRole:
@@ -133,8 +133,8 @@ QString MediaRenderer::netWorkAddress() const
 {
     if (m_device)
         return m_device->host().toString();
-    else
-        return QString();
+
+    return QString();
 }
 
 void MediaRenderer::deviceDestroyed(QObject *obj)
