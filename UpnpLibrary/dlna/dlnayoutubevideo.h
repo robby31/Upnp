@@ -14,8 +14,8 @@ class DlnaYouTubeVideo : public DlnaVideoItem
     Q_OBJECT
 
 public:
-    explicit DlnaYouTubeVideo(QObject *parent = 0);
-    virtual ~DlnaYouTubeVideo();
+    explicit DlnaYouTubeVideo(QObject *parent = Q_NULLPTR);
+    ~DlnaYouTubeVideo() Q_DECL_OVERRIDE;
 
     bool isValid() { return m_unavailableMessage.isEmpty() && !m_title.isEmpty() && !resolution().isEmpty() && metaDataDuration()>0; }
     QString unavailableMessage() { return m_unavailableMessage; }
@@ -23,43 +23,43 @@ public:
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
-    virtual QString getName() const { return metaDataTitle(); }
+    QString getName() const Q_DECL_OVERRIDE { return metaDataTitle(); }
 
-    virtual QString getSystemName() const { return m_url.toString();  }
+    QString getSystemName() const Q_DECL_OVERRIDE { return m_url.toString();  }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() const { return metaDataTitle(); }
+    QString getDisplayName() const Q_DECL_OVERRIDE { return metaDataTitle(); }
 
     //returns the size of the source
-    virtual qint64 sourceSize() const;
+    qint64 sourceSize() const Q_DECL_OVERRIDE;
 
-    virtual int metaDataBitrate()              const { return ffmpeg.getBitrate(); }
-    virtual int metaDataDuration()             const;
-    virtual QString metaDataTitle()            const { return m_title; }
-    virtual QString metaDataGenre()            const { return QString(); }
-    virtual QString metaDataPerformer()        const { return QString(); }
-    virtual QString metaDataPerformerSort()    const { return QString(); }
-    virtual QString metaDataAlbum()            const { return QString(); }
-    virtual QString metaDataAlbumArtist()      const { return QString(); }
-    virtual int metaDataYear()                 const { return -1; }
-    virtual int metaDataTrackPosition()        const { return 0; }
-    virtual int metaDataDisc()                 const { return 0; }
-    virtual QString metaDataFormat()           const;
-    virtual QByteArray metaDataPicture()       const { return QByteArray(); }
-    virtual QString metaDataLastModifiedDate() const { return QString(); }
+    int metaDataBitrate()              const Q_DECL_OVERRIDE { return ffmpeg.getBitrate(); }
+    int metaDataDuration()             const Q_DECL_OVERRIDE;
+    QString metaDataTitle()            const Q_DECL_OVERRIDE { return m_title; }
+    QString metaDataGenre()            const Q_DECL_OVERRIDE { return QString(); }
+    QString metaDataPerformer()        const Q_DECL_OVERRIDE { return QString(); }
+    QString metaDataPerformerSort()    const Q_DECL_OVERRIDE { return QString(); }
+    QString metaDataAlbum()            const Q_DECL_OVERRIDE { return QString(); }
+    QString metaDataAlbumArtist()      const Q_DECL_OVERRIDE { return QString(); }
+    int metaDataYear()                 const Q_DECL_OVERRIDE { return -1; }
+    int metaDataTrackPosition()        const Q_DECL_OVERRIDE { return 0; }
+    int metaDataDisc()                 const Q_DECL_OVERRIDE { return 0; }
+    QString metaDataFormat()           const Q_DECL_OVERRIDE;
+    QByteArray metaDataPicture()       const Q_DECL_OVERRIDE { return QByteArray(); }
+    QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { return QString(); }
 
     // returns the samplerate of the video track
-    virtual int samplerate() const;
+    int samplerate() const Q_DECL_OVERRIDE;
 
     //returns the channel number of the video track
-    virtual int channelCount() const;
+    int channelCount() const Q_DECL_OVERRIDE;
 
-    virtual QHash<QString, double> volumeInfo(const int timeout = 30000);
+    QHash<QString, double> volumeInfo(const int& timeout = 30000) Q_DECL_OVERRIDE;
 
-    virtual QString resolution() const;
-    virtual QStringList subtitleLanguages() const { return QStringList(); }
-    virtual QStringList audioLanguages() const { return QStringList(); }
-    virtual QString framerate() const;
+    QString resolution() const Q_DECL_OVERRIDE;
+    QStringList subtitleLanguages() const Q_DECL_OVERRIDE { return QStringList(); }
+    QStringList audioLanguages() const Q_DECL_OVERRIDE { return QStringList(); }
+    QString framerate() const Q_DECL_OVERRIDE;
 
     QString streamUrl() const { return m_streamUrl; }
 
@@ -73,10 +73,10 @@ public:
 
 protected:
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess();
+    TranscodeProcess* getTranscodeProcess() Q_DECL_OVERRIDE;
 
     // Returns the process for original streaming
-    virtual Device* getOriginalStreaming();
+    Device* getOriginalStreaming() Q_DECL_OVERRIDE;
 
 signals:
     void getVideoUrl(const QString &videoId);

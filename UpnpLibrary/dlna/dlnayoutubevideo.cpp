@@ -4,15 +4,12 @@ qint64 DlnaYouTubeVideo::objectCounter = 0;
 
 DlnaYouTubeVideo::DlnaYouTubeVideo(QObject *parent) :
     DlnaVideoItem(parent),
-    m_url(),
     m_analyzeStream(true),
     m_videoUrlInProgress(false),
     m_unavailableMessage(),
     m_title(),
     m_streamUrl(),
-    m_youtube(0),
-    mutex(),
-    replyWaitCondition(),
+    m_youtube(Q_NULLPTR),
     m_error()
 {
     ++objectCounter;
@@ -130,15 +127,13 @@ bool DlnaYouTubeVideo::waitUrl(const int &timeout)
         // waiting reply with timeout
         return replyWaitCondition.wait(locker.mutex(), timeout);
     }
-    else
-    {
-        return true;
-    }
+
+    return true;
 }
 
 TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
 {
-    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
+    auto transcodeProcess = new FfmpegTranscoding();
 
     transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
     transcodeProcess->setFormat(transcodeFormat);
@@ -159,7 +154,7 @@ Device *DlnaYouTubeVideo::getOriginalStreaming()
     return process;
 }
 
-QHash<QString, double> DlnaYouTubeVideo::volumeInfo(const int timeout)
+QHash<QString, double> DlnaYouTubeVideo::volumeInfo(const int& timeout)
 {
     return ffmpeg.getVolumeInfo(timeout);
 }

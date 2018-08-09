@@ -10,57 +10,57 @@ class DlnaVideoFile : public DlnaVideoItem
     Q_OBJECT
 
 public:
-    explicit DlnaVideoFile(QString filename, QObject *parent = 0);
-    virtual ~DlnaVideoFile();
+    explicit DlnaVideoFile(const QString& filename, QObject *parent = Q_NULLPTR);
+    ~DlnaVideoFile() Q_DECL_OVERRIDE;
 
     QFileInfo getFileInfo() const { return fileinfo; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
-    virtual QString getName() const { return fileinfo.fileName(); }
+    QString getName() const Q_DECL_OVERRIDE { return fileinfo.fileName(); }
 
-    virtual QString getSystemName() const { return fileinfo.absoluteFilePath(); }
+    QString getSystemName() const Q_DECL_OVERRIDE { return fileinfo.absoluteFilePath(); }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() const { return fileinfo.completeBaseName(); }
+    QString getDisplayName() const Q_DECL_OVERRIDE { return fileinfo.completeBaseName(); }
 
     //returns the size of the source
-    virtual qint64 sourceSize() const { return fileinfo.size(); }
+    qint64 sourceSize() const Q_DECL_OVERRIDE { return fileinfo.size(); }
 
-    virtual int metaDataBitrate() const;
-    virtual int metaDataDuration() const;
-    virtual QString metaDataTitle() const;
-    virtual QString metaDataGenre() const;
-    virtual QString metaDataPerformer() const;
-    virtual QString metaDataPerformerSort() const;
-    virtual QString metaDataAlbum() const;
-    virtual QString metaDataAlbumArtist() const;
-    virtual int metaDataYear() const;
-    virtual int metaDataTrackPosition() const;
-    virtual int metaDataDisc() const;
-    virtual QString metaDataFormat() const;
-    virtual QByteArray metaDataPicture() const;
-    virtual QString metaDataLastModifiedDate() const { return fileinfo.lastModified().toString("yyyy-MM-dd"); }
+    int metaDataBitrate() const Q_DECL_OVERRIDE;
+    int metaDataDuration() const Q_DECL_OVERRIDE;
+    QString metaDataTitle() const Q_DECL_OVERRIDE;
+    QString metaDataGenre() const Q_DECL_OVERRIDE;
+    QString metaDataPerformer() const Q_DECL_OVERRIDE;
+    QString metaDataPerformerSort() const Q_DECL_OVERRIDE;
+    QString metaDataAlbum() const Q_DECL_OVERRIDE;
+    QString metaDataAlbumArtist() const Q_DECL_OVERRIDE;
+    int metaDataYear() const Q_DECL_OVERRIDE;
+    int metaDataTrackPosition() const Q_DECL_OVERRIDE;
+    int metaDataDisc() const Q_DECL_OVERRIDE;
+    QString metaDataFormat() const Q_DECL_OVERRIDE;
+    QByteArray metaDataPicture() const Q_DECL_OVERRIDE;
+    QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { return fileinfo.lastModified().toString("yyyy-MM-dd"); }
 
     // returns the samplerate of the video track
-    virtual int samplerate() const;
+    int samplerate() const Q_DECL_OVERRIDE;
 
     //returns the channel number of the video track
-    virtual int channelCount() const;
+    int channelCount() const Q_DECL_OVERRIDE;
 
-    virtual QHash<QString, double> volumeInfo(const int timeout = 30000);
+    QHash<QString, double> volumeInfo(const int& timeout = 30000) Q_DECL_OVERRIDE;
 
-    virtual QString resolution() const;
-    virtual QStringList subtitleLanguages() const;
-    virtual QStringList audioLanguages() const;
-    virtual QString framerate() const;
+    QString resolution() const Q_DECL_OVERRIDE;
+    QStringList subtitleLanguages() const Q_DECL_OVERRIDE;
+    QStringList audioLanguages() const Q_DECL_OVERRIDE;
+    QString framerate() const Q_DECL_OVERRIDE;
 
 protected:
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess();
+    TranscodeProcess* getTranscodeProcess() Q_DECL_OVERRIDE;
 
     // Returns the process for original streaming
-    virtual Device* getOriginalStreaming();
+    Device* getOriginalStreaming() Q_DECL_OVERRIDE;
 
 private:
     QFileInfo fileinfo;
