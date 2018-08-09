@@ -14,8 +14,8 @@ class MediaLibrary : public QObject
     typedef QHash<QString, QHash<QString, QVariant> > StateType;
 
 public:
-    explicit MediaLibrary(QObject *parent = 0);
-    virtual ~MediaLibrary();
+    explicit MediaLibrary(QObject *parent = Q_NULLPTR);
+    ~MediaLibrary() Q_DECL_OVERRIDE;
 
     bool isValid();
 
@@ -37,7 +37,7 @@ public:
     QVariant getmetaDataArtist(const QString &tagName, const int &idMedia) const;
 
     QHash<QString, double> volumeInfo(const int &idMedia);
-    bool setVolumeInfo(const int idMedia, const QHash<QString, double> info);
+    bool setVolumeInfo(const int& idMedia, const QHash<QString, double>& info);
 
 //    void checkMetaData(const QFileInfo &fileinfo) const;
 
@@ -66,7 +66,7 @@ signals:
 
 private:
     QHash<QString, QHash<QString, QHash<QString, QString> > > foreignKeys;
-    StateType *libraryState;
+    StateType *libraryState = Q_NULLPTR;
 
 //    Acoustid m_acoustId;
 };

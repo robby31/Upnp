@@ -12,22 +12,22 @@ class DlnaCachedFolderMetaData : public DlnaStorageFolder
 
 public:
     explicit DlnaCachedFolderMetaData(MediaLibrary* library,
-                                      QString stringQuery,
+                                      const QString& stringQuery,
                                       QString stringQueryForChild,
                                       QString name,
-                                      QObject *parent = 0);
+                                      QObject *parent = Q_NULLPTR);
 
-    virtual DlnaResource* getChild(int index, QObject *parent = 0);
-    virtual int getChildrenSize() const { return nbChildren; }
+    DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
+    int getChildrenSize() const Q_DECL_OVERRIDE { return nbChildren; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
-    virtual QString getName() const { return m_name; }
+    QString getName() const Q_DECL_OVERRIDE { return m_name; }
 
-    virtual QString getSystemName() const { return m_name; }
+    QString getSystemName() const Q_DECL_OVERRIDE { return m_name; }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() const { return m_name; }
+    QString getDisplayName() const Q_DECL_OVERRIDE { return m_name; }
 
     void setNetworkAccessManager(QNetworkAccessManager *manager) { m_nam = manager; }
 

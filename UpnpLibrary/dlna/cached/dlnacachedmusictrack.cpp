@@ -17,21 +17,17 @@ qint64 DlnaCachedMusicTrack::getResumeTime() const
 
     if (res > 10000)
         return res - 10000;   // returns 10 seconds before resume time
-    else
-        return 0;
+
+    return 0;
 }
 
 QHash<QString, double> DlnaCachedMusicTrack::volumeInfo(const int timeout)
 {
     Q_UNUSED(timeout)
 
-    if (library != 0)
-    {
+    if (library)
         return library->volumeInfo(idMedia);
-    }
-    else
-    {
-        QHash<QString, double> result;
-        return result;
-    }
+
+    QHash<QString, double> result;
+    return result;
 }

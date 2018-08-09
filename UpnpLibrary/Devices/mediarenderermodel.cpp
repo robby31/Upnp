@@ -8,7 +8,7 @@ MediaRendererModel::MediaRendererModel(QObject *parent) :
 
 void MediaRendererModel::addMediaRenderer(UpnpRootDevice *device)
 {
-    MediaRenderer *renderer = qobject_cast<MediaRenderer*>(find(device->uuid()));
+    auto renderer = qobject_cast<MediaRenderer*>(find(device->uuid()));
     if (!renderer)
     {
         renderer = new MediaRenderer(device, this);
@@ -19,7 +19,7 @@ void MediaRendererModel::addMediaRenderer(UpnpRootDevice *device)
 
 void MediaRendererModel::removeRenderer()
 {
-    MediaRenderer *renderer = qobject_cast<MediaRenderer*>(sender());
+    auto renderer = qobject_cast<MediaRenderer*>(sender());
 
     QModelIndex index = indexFromItem(renderer);
 
@@ -50,7 +50,7 @@ MediaRenderer *MediaRendererModel::rendererFromIp(const QString &ip)
 {
     for (int i=0;i<rowCount();++i)
     {
-        MediaRenderer *renderer = qobject_cast<MediaRenderer*>(at(i));
+        auto renderer = qobject_cast<MediaRenderer*>(at(i));
         if (renderer->netWorkAddress() == ip)
             return renderer;
     }

@@ -1,9 +1,7 @@
 #include "medialibrary.h"
 
 MediaLibrary::MediaLibrary(QObject *parent) :
-    QObject(parent),
-    foreignKeys(),
-    libraryState(0)
+    QObject(parent)
 //    m_acoustId()
 {
     initialize();
@@ -257,15 +255,13 @@ bool MediaLibrary::initialize()
 
         return true;
     }
-    else
-    {
-        qCritical() << "Unable to initialize Medialibrary (connection is not valid).";
-        return false;
-    }
+
+    qCritical() << "Unable to initialize Medialibrary (connection is not valid).";
+    return false;
 }
 
-MediaLibrary::~MediaLibrary() {
-    if (libraryState)
+MediaLibrary::~MediaLibrary()
+{
         delete libraryState;
 }
 
@@ -288,16 +284,17 @@ QVariant MediaLibrary::getmetaDataAlbum(const QString &tagName, const int &idMed
 
     if (query.next()) {
         QVariant res = query.value(tagName);
-        if (query.next()) {
+        if (query.next())
+        {
             // at least two results have been found
             return QVariant();
-        } else {
-            // returns the unique result found
-            return res;
         }
-    } else {
-        return QVariant();
+
+        // returns the unique result found
+        return res;
     }
+
+    return QVariant();
 }
 
 QVariant MediaLibrary::getmetaDataArtist(const QString &tagName, const int &idMedia) const
@@ -307,18 +304,20 @@ QVariant MediaLibrary::getmetaDataArtist(const QString &tagName, const int &idMe
     query.bindValue(":idMedia", idMedia);
     query.exec();
 
-    if (query.next()) {
+    if (query.next())
+    {
         QVariant res = query.value(tagName);
-        if (query.next()) {
+        if (query.next())
+        {
             // at least two results have been found
             return QVariant();
-        } else {
-            // returns the unique result found
-            return res;
         }
-    } else {
-        return QVariant();
+
+        // returns the unique result found
+        return res;
     }
+
+    return QVariant();
 }
 
 QVariant MediaLibrary::getmetaData(const QString &tagName, const int &idMedia) const {
@@ -331,18 +330,21 @@ QVariant MediaLibrary::getmetaData(const QString &tagName, const int &idMedia) c
         query.exec(QString("SELECT %1 FROM media WHERE id=%2").arg(tagName).arg(idMedia));
     }
 
-    if (query.next()) {
+    if (query.next())
+    {
         QVariant res = query.value(0);
-        if (query.next()) {
+        if (query.next())
+        {
             // at least two results have been found
             return QVariant();
-        } else {
-            // returns the unique result found
-            return res;
         }
-    } else {
-        return QVariant();
+
+        // returns the unique result found
+
+        return res;
     }
+
+    return QVariant();
 }
 
 QHash<QString, double> MediaLibrary::volumeInfo(const int &idMedia)
@@ -369,7 +371,7 @@ QHash<QString, double> MediaLibrary::volumeInfo(const int &idMedia)
     return result;
 }
 
-bool MediaLibrary::setVolumeInfo(const int idMedia, const QHash<QString, double> info)
+bool MediaLibrary::setVolumeInfo(const int& idMedia, const QHash<QString, double>& info)
 {
     QSqlDatabase db = database();
 
@@ -408,10 +410,8 @@ bool MediaLibrary::setVolumeInfo(const int idMedia, const QHash<QString, double>
                             qWarning() << "unable to add param" << param;
                             break;
                         }
-                        else
-                        {
-                            paramId = query.lastInsertId().toInt();
-                        }
+
+                        paramId = query.lastInsertId().toInt();
                     }
                 }
                 else
@@ -477,20 +477,19 @@ int MediaLibrary::countDistinctMetaData(const int &typeMedia, const QString &tag
         query.exec(QString("SELECT count(DISTINCT %1) FROM media WHERE type=%2 and is_reachable=1").arg(tagName).arg(typeMedia));
     }
 
-    if (query.next()) {
+    if (query.next())
         return query.value(0).toInt();
-    } else {
-        return 0;
-    }
+
+    return 0;
 }
 
-int MediaLibrary::countMedia(const QString &where) const {
+int MediaLibrary::countMedia(const QString &where) const
+{
     QSqlQuery query(QString("SELECT count(id) FROM media WHERE %1 and is_reachable=1").arg(where), database());
-    if (query.next()) {
+    if (query.next())
         return query.value(0).toInt();
-    } else {
-        return 0;
-    }
+
+    return 0;
 }
 
 bool MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &data) {
@@ -579,10 +578,8 @@ int MediaLibrary::insertForeignKey(const QString &table, const QString &paramete
             qCritical() << "unable to update MediaLibrary " + query.lastError().text();
             return -1;
         }
-        else
-        {
-            index = query.lastInsertId().toInt();
-        }
+
+        index = query.lastInsertId().toInt();
     }
     return index;
 }
@@ -610,65 +607,64 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
         qCritical() << "unable to begin transaction" << db.lastError().text();
         return false;
     }
-    else
+
+    foreach(QString elt, data.keys())
     {
-        foreach(QString elt, data.keys())
+        if (!data[elt].isNull() && !data[elt].toString().isEmpty())
         {
-            if (!data[elt].isNull() && !data[elt].toString().isEmpty())
+
+            if (data[elt].type() != QVariant::Int && foreignKeys[table].contains(elt))
             {
+                QString foreignTable = foreignKeys[table][elt]["table"];
 
-                if (data[elt].type() != QVariant::Int && foreignKeys[table].contains(elt))
+                // replace the value of the foreign key by its id
+                int index = insertForeignKey(foreignTable, "name", data[elt]);
+
+                if (index == -1)
                 {
-                    QString foreignTable = foreignKeys[table][elt]["table"];
+                    qCritical() << "unable to bind " << elt;
+                    if (!db.rollback())
+                        qCritical() << "unable to rollback" << db.lastError().text();
+                    return false;
+                }
 
-                    // replace the value of the foreign key by its id
-                    int index = insertForeignKey(foreignTable, "name", data[elt]);
-
-                    if (index == -1)
+                if (record.value(elt) != index)
+                {
+                    qDebug() << QString("update %1, %2, index %3 --> %4").arg(elt).arg(record.value(elt).toString()).arg(index).arg(data[elt].toString());
+                    QSqlQuery queryUpdate(db);
+                    if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(index).arg(id).arg(table)))
                     {
-                        qCritical() << "unable to bind " << elt;
+                        qCritical() << "ERROR" << queryUpdate.lastError().text();
                         if (!db.rollback())
                             qCritical() << "unable to rollback" << db.lastError().text();
                         return false;
                     }
-                    else if (record.value(elt) != index)
-                    {
-                        qDebug() << QString("update %1, %2, index %3 --> %4").arg(elt).arg(record.value(elt).toString()).arg(index).arg(data[elt].toString());
-                        QSqlQuery queryUpdate(db);
-                        if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(index).arg(id).arg(table)))
-                        {
-                            qCritical() << "ERROR" << queryUpdate.lastError().text();
-                            if (!db.rollback())
-                                qCritical() << "unable to rollback" << db.lastError().text();
-                            return false;
-                        }
-                    }
                 }
-                else
+            }
+            else
+            {
+                if (record.value(elt) != data[elt])
                 {
-                    if (record.value(elt) != data[elt])
+                    qDebug() << QString("update %1, %2 --> %3").arg(elt).arg(record.value(elt).toString()).arg(data[elt].toString());
+                    QSqlQuery queryUpdate(db);
+                    QSqlField field = record.field(record.indexOf(elt));
+                    field.setValue(data[elt]);
+                    if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(db.driver()->formatValue(field)).arg(id).arg(table)))
                     {
-                        qDebug() << QString("update %1, %2 --> %3").arg(elt).arg(record.value(elt).toString()).arg(data[elt].toString());
-                        QSqlQuery queryUpdate(db);
-                        QSqlField field = record.field(record.indexOf(elt));
-                        field.setValue(data[elt]);
-                        if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(db.driver()->formatValue(field)).arg(id).arg(table)))
-                        {
-                            qCritical() << "ERROR" << queryUpdate.lastError().text();
-                            if (!db.rollback())
-                                qCritical() << "unable to rollback" << db.lastError().text();
-                            return false;
-                        }
+                        qCritical() << "ERROR" << queryUpdate.lastError().text();
+                        if (!db.rollback())
+                            qCritical() << "unable to rollback" << db.lastError().text();
+                        return false;
                     }
                 }
             }
         }
+    }
 
-        if (!db.commit())
-        {
-            qCritical() << "unable to commit" << db.lastError().text();
-            return false;
-        }
+    if (!db.commit())
+    {
+        qCritical() << "unable to commit" << db.lastError().text();
+        return false;
     }
 
     return true;
@@ -685,14 +681,10 @@ bool MediaLibrary::updateFromFilename(const QString &filename, const QHash<QStri
     }
 
     if (id != -1)
-    {
         return update("media", id, data);
-    }
-    else
-    {
-        qCritical() << "updateFromFilename" << filename << "not found";
-        return false;
-    }
+
+    qCritical() << "updateFromFilename" << filename << "not found";
+    return false;
 }
 
 bool MediaLibrary::updateFromId(const int &id, const QHash<QString, QVariant> &data)
@@ -810,48 +802,50 @@ bool MediaLibrary::add_media(QHash<QString, QVariant> data, QHash<QString, QVari
     query.prepare("SELECT id, last_modified FROM media WHERE filename=:filename");
     query.bindValue(":filename", data["filename"]);
 
-    if (query.exec() && query.next()) {
+    if (query.exec() && query.next())
+    {
         // media already stored in library
         QDateTime lastModified = query.value("last_modified").toDateTime();
 
-        if (lastModified.isValid() && lastModified >= data["last_modified"].toDateTime()) {
+        if (lastModified.isValid() && lastModified >= data["last_modified"].toDateTime())
+        {
             // no need to update the media
             return true;
-        } else {
-            // update the media
-            qWarning() << "update resource" << data["mime_type"].toString() << data["filename"].toString() << lastModified << data["last_modified"].toDateTime();
-            return update("media", query.value("id").toInt(), data);
         }
 
-    } else {
-        // new media
-
-        // set the DateTime when the media has been added
-        data["addedDate"] = QDateTime::currentDateTime();
-
-        // update data with state of the library to import in new media
-        if (libraryState && libraryState->contains(data["filename"].toString())) {
-            foreach(const QString &param, libraryState->operator [](data["filename"].toString()).keys()) {
-                data[param] = libraryState->operator [](data["filename"].toString())[param];
-            }
-        }
-
-        qDebug() << "add resource " + data["mime_type"].toString() + " " + data["filename"].toString();
-        return insert("media", data);
+        // update the media
+        qWarning() << "update resource" << data["mime_type"].toString() << data["filename"].toString() << lastModified << data["last_modified"].toDateTime();
+        return update("media", query.value("id").toInt(), data);
     }
+
+    // new media
+
+    // set the DateTime when the media has been added
+    data["addedDate"] = QDateTime::currentDateTime();
+
+    // update data with state of the library to import in new media
+    if (libraryState && libraryState->contains(data["filename"].toString())) {
+        foreach(const QString &param, libraryState->operator [](data["filename"].toString()).keys()) {
+            data[param] = libraryState->operator [](data["filename"].toString())[param];
+        }
+    }
+
+    qDebug() << "add resource " + data["mime_type"].toString() + " " + data["filename"].toString();
+    return insert("media", data);
 }
 
 bool MediaLibrary::contains(const QFileInfo &fileinfo) const
 {
     QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(fileinfo.absoluteFilePath()));
-    if (query.next()) {
+    if (query.next())
+    {
         // media already stored in library but maybe need to be updated
         // function returns false if the media shall be updated
         QDateTime lastModified = query.value("last_modified").toDateTime();
         return lastModified >= fileinfo.lastModified();
-    } else {
-        return false;
     }
+
+    return false;
 }
 
 //void MediaLibrary::checkMetaData(const QFileInfo &fileinfo) const
@@ -873,7 +867,7 @@ bool MediaLibrary::contains(const QFileInfo &fileinfo) const
 
 MediaLibrary::StateType *MediaLibrary::exportMediaState() const
 {
-    StateType *res = 0;
+    StateType *res = Q_NULLPTR;
 
     QStringList attributesToExport;
     attributesToExport << "rating" << "last_played" << "progress_played" << "counter_played" << "acoustid" << "mbid";
@@ -907,13 +901,13 @@ MediaLibrary::StateType *MediaLibrary::exportMediaState() const
 
 bool MediaLibrary::resetLibrary(const QString &pathname)
 {
-    if (libraryState)
-        delete libraryState;
+    delete libraryState;
 
     // save current state of the library
     libraryState = exportMediaState();
 
-    if (libraryState) {
+    if (libraryState)
+    {
         // close current database
         QSqlDatabase db = database();
         db.close();
@@ -921,7 +915,7 @@ bool MediaLibrary::resetLibrary(const QString &pathname)
         // open new database
         db.setDatabaseName(pathname);
         return db.open() && initialize();
-    } else {
-        return false;
     }
+
+    return false;
 }

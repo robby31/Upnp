@@ -3,14 +3,7 @@
 DlnaCachedRootFolder::DlnaCachedRootFolder(QObject *parent):
     DlnaRootFolder(parent),
     library(this),
-    mimeDb(),
-    rootFolder(this),
-    recentlyPlayedChild(0),
-    resumeChild(0),
-    favoritesChild(0),
-    lastAddedChild(0),
-    youtube(0),
-    m_nam(0)
+    rootFolder(this)
 {
     recentlyPlayedChild = new DlnaCachedFolder(&library,
                                                library.getMedia("last_played is not null", "last_played", "DESC"),
@@ -145,9 +138,9 @@ void DlnaCachedRootFolder::addNetworkLink(const QString &url)
     addResource(QUrl(url));
 }
 
-void DlnaCachedRootFolder::addResource(QUrl url)
+void DlnaCachedRootFolder::addResource(const QUrl &url)
 {
-    DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(this);
+    auto movie = new DlnaYouTubeVideo(this);
     movie->setDlnaParent(this);
     connect(movie, SIGNAL(streamUrlDefined(QString)), this, SLOT(networkLinkAnalyzed(QString)));
     movie->setNetworkAccessManager(m_nam);
@@ -159,7 +152,7 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QString &streamingUrl)
 {
     Q_UNUSED(streamingUrl)
 
-    DlnaYouTubeVideo *movie = qobject_cast<DlnaYouTubeVideo*>(sender());
+    auto movie = qobject_cast<DlnaYouTubeVideo*>(sender());
     if (movie)
     {
         QHash<QString, QVariant> data;
@@ -222,7 +215,7 @@ void DlnaCachedRootFolder::networkLinkError(const QString &message)
 {
     qCritical() << "ERROR, link not added" << message;
 
-    DlnaYouTubeVideo *movie = qobject_cast<DlnaYouTubeVideo*>(sender());
+    auto movie = qobject_cast<DlnaYouTubeVideo*>(sender());
     if (movie)
     {
         emit error_addNetworkLink(movie->url().toString());
@@ -234,7 +227,7 @@ void DlnaCachedRootFolder::networkLinkError(const QString &message)
     }
 }
 
-void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
+void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
 //    // check meta data
 //    library.checkMetaData(fileinfo);
 
@@ -328,7 +321,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
     }
 }
 
-void DlnaCachedRootFolder::readDirectory(QDir folder)
+void DlnaCachedRootFolder::readDirectory(const QDir &folder)
 {
     QFileInfoList files = folder.entryInfoList(QDir::NoDotAndDotDot|QDir::AllEntries);
 

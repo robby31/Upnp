@@ -1,15 +1,14 @@
 #include "dlnacachedfolder.h"
 
-DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, QSqlQuery query, QString name, bool cacheEnabled, int maxSize, QObject *parent):
+DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, const QSqlQuery &query, QString name, bool cacheEnabled, int maxSize, QObject *parent):
     DlnaStorageFolder(parent),
     library(library),
     name(name),
     query(query),
     nbChildren(-1),
     cacheEnabled(cacheEnabled),
-    cache(),
     limitSizeMax(maxSize),
-    m_nam(0)
+    m_nam(Q_NULLPTR)
 {
     refreshContent();
 }
@@ -44,7 +43,7 @@ void DlnaCachedFolder::refreshContent()
 }
 
 DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
-    DlnaResource* child = 0;
+    DlnaResource* child = Q_NULLPTR;
     int id_media = -1;
     QString type_media;
     QString filename;
@@ -73,19 +72,19 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
     if (type_media == "audio")
     {
         child = new DlnaCachedMusicTrack(library, id_media,
-                                         parent != 0 ? parent : this);
+                                         parent != Q_NULLPTR ? parent : this);
 
     } else if (type_media == "video")
     {
         if (filename.startsWith("http"))
         {
             child= new DlnaCachedNetworkVideo(m_nam, library, id_media,
-                                              parent != 0 ? parent : this);
+                                              parent != Q_NULLPTR ? parent : this);
         }
         else
         {
             child = new DlnaCachedVideo(library, id_media,
-                                        parent != 0 ? parent : this);
+                                        parent != Q_NULLPTR ? parent : this);
         }
 
     } else {
@@ -93,7 +92,7 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
     }
 
 
-    if (child != 0)
+    if (child)
     {
         child->setId(QString("%1").arg(index+1));
         child->setDlnaParent(this);

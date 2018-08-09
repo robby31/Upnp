@@ -19,21 +19,19 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
         if (!m_nam)
         {
             qCritical() << "network not initialised, cannot manage Youtube stream.";
-            return 0;
+            return Q_NULLPTR;
         }
-        else
-        {
-            transcodeProcess = new FfmpegTranscoding();
 
-            // request from Youtube url for streaming
-            DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(transcodeProcess);
-            movie->setDlnaParent(this);
-            connect(movie, SIGNAL(streamUrlDefined(QString)), transcodeProcess, SLOT(setUrl(QString)));
-            connect(movie, SIGNAL(videoUrlErrorSignal(QString)), transcodeProcess, SLOT(urlError(QString)));
-            movie->setAnalyzeStream(false);
-            movie->setNetworkAccessManager(m_nam);
-            movie->setUrl(sysName);
-        }
+        transcodeProcess = new FfmpegTranscoding();
+
+        // request from Youtube url for streaming
+        auto movie = new DlnaYouTubeVideo(transcodeProcess);
+        movie->setDlnaParent(this);
+        connect(movie, SIGNAL(streamUrlDefined(QString)), transcodeProcess, SLOT(setUrl(QString)));
+        connect(movie, SIGNAL(videoUrlErrorSignal(QString)), transcodeProcess, SLOT(urlError(QString)));
+        movie->setAnalyzeStream(false);
+        movie->setNetworkAccessManager(m_nam);
+        movie->setUrl(sysName);
     }
     else if (!m_streamUrl.isEmpty())
     {
@@ -56,11 +54,9 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 
         return transcodeProcess;
     }
-    else
-    {
-        qCritical() << "No stream to return.";
-        return 0;
-    }
+
+    qCritical() << "No stream to return.";
+    return Q_NULLPTR;
 }
 
 Device *DlnaCachedNetworkVideo::getOriginalStreaming()
@@ -72,8 +68,6 @@ Device *DlnaCachedNetworkVideo::getOriginalStreaming()
         process->setFormat(COPY);
         return process;
     }
-    else
-    {
-        return new StreamingFile(getSystemName());
-    }
+
+    return new StreamingFile(getSystemName());
 }

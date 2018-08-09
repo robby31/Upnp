@@ -1,13 +1,13 @@
 #include "dlnacachedfoldermetadata.h"
 
-DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(MediaLibrary *library, QString stringQuery, QString stringQueryForChild, QString name, QObject *parent):
+DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(MediaLibrary *library, const QString& stringQuery, QString stringQueryForChild, QString name, QObject *parent):
     DlnaStorageFolder(parent),
     library(library),
     m_name(name),
     query(stringQuery, library ? library->database() : QSqlDatabase()),
     stringQueryForChild(stringQueryForChild),
     nbChildren(-1),
-    m_nam(0)
+    m_nam(Q_NULLPTR)
 {
     if (query.isSelect() && query.isActive()) {
         if (query.last())
@@ -19,7 +19,7 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(MediaLibrary *library, QStrin
 
 DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
 {
-    DlnaCachedFolder *child = 0;
+    DlnaCachedFolder *child = Q_NULLPTR;
 
     if (library && query.seek(index)) {
         QString name = query.value(0).toString();
@@ -45,10 +45,11 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
                                      QSqlQuery(childQuery,  library->database()),
                                      childName,
                                      false, -1,
-                                     parent != 0 ? parent : this);
+                                     parent != Q_NULLPTR ? parent : this);
     }
 
-    if (child != 0) {
+    if (child)
+    {
         child->setId(QString("%1").arg(index+1));
         child->setNetworkAccessManager(m_nam);
         child->setDlnaParent(this);

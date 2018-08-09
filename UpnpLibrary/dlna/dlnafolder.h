@@ -12,23 +12,23 @@ class DlnaFolder : public DlnaStorageFolder
     Q_OBJECT
 
 public:
-    explicit DlnaFolder(QString filename, QObject *parent = 0);
-    virtual ~DlnaFolder();
+    explicit DlnaFolder(QString filename, QObject *parent = Q_NULLPTR);
+    ~DlnaFolder() Q_DECL_OVERRIDE;
 
-    virtual DlnaResource* getChild(int index, QObject *parent = 0);
-    virtual int getChildrenSize() const { return children.size(); }
+    DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
+    int getChildrenSize() const Q_DECL_OVERRIDE { return children.size(); }
 
     // returns the file path of children
     QList<QFileInfo> getChildrenFileInfo() const { return children; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
-    virtual QString getName() const { return fileinfo.fileName(); }
+    QString getName() const Q_DECL_OVERRIDE { return fileinfo.fileName(); }
 
-    virtual QString getSystemName() const { return fileinfo.absoluteFilePath(); }
+    QString getSystemName() const Q_DECL_OVERRIDE { return fileinfo.absoluteFilePath(); }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() const { return fileinfo.completeBaseName(); }
+    QString getDisplayName() const Q_DECL_OVERRIDE { return fileinfo.completeBaseName(); }
 
 private:
     QFileInfo fileinfo;

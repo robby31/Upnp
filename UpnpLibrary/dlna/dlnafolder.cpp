@@ -4,8 +4,7 @@ qint64 DlnaFolder::objectCounter = 0;
 
 DlnaFolder::DlnaFolder(QString filename, QObject *parent):
     DlnaStorageFolder(parent),
-    fileinfo(filename),
-    children()
+    fileinfo(filename)
 {
     ++objectCounter;
 
@@ -39,7 +38,7 @@ DlnaFolder::~DlnaFolder() {
 }
 
 DlnaResource *DlnaFolder::getChild(int index, QObject *parent)  {
-    DlnaResource* child = 0;
+    DlnaResource* child = Q_NULLPTR;
 
     if (index >= 0 && index < children.size()) {
         QFileInfo fileinfo = children.at(index);
@@ -48,22 +47,23 @@ DlnaResource *DlnaFolder::getChild(int index, QObject *parent)  {
 
         if (fileinfo.isDir()) {
             child = new DlnaFolder(fileinfo.absoluteFilePath(),
-                                   parent != 0 ? parent : this);
+                                   parent != Q_NULLPTR ? parent : this);
         }
         else if (mimeDb.mimeTypeForFile(fileinfo).name().startsWith("audio/")) {
             child = new DlnaMusicTrackFile(fileinfo.absoluteFilePath(),
-                                           parent != 0 ? parent : this);
+                                           parent != Q_NULLPTR ? parent : this);
         }
         else if (mimeDb.mimeTypeForFile(fileinfo).name().startsWith("video/")) {
             child = new DlnaVideoFile(fileinfo.absoluteFilePath(),
-                                      parent != 0 ? parent : this);
+                                      parent != Q_NULLPTR ? parent : this);
         }
         else {
             qWarning() << QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(fileinfo).name()).arg(fileinfo.absoluteFilePath());
         }
     }
 
-    if (child != 0) {
+    if (child)
+    {
         child->setId(QString("%1").arg(index+1));
         child->setDlnaParent(this);
     }

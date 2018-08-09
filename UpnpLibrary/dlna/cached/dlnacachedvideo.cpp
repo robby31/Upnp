@@ -9,7 +9,7 @@ DlnaCachedVideo::DlnaCachedVideo(MediaLibrary* library, int idMedia, QObject *pa
 
 TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
 {
-    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
+    auto transcodeProcess = new FfmpegTranscoding();
     transcodeProcess->setUrl(getSystemName());
     transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
     transcodeProcess->setFormat(transcodeFormat);
@@ -57,8 +57,8 @@ qint64 DlnaCachedVideo::getResumeTime() const
 
     if (res > 10000)
         return res - 10000;   // returns 10 seconds before resume time
-    else
-        return 0;
+
+    return 0;
 }
 
 QHash<QString, double> DlnaCachedVideo::volumeInfo(const int timeout)
@@ -69,11 +69,9 @@ QHash<QString, double> DlnaCachedVideo::volumeInfo(const int timeout)
     {
         return library->volumeInfo(idMedia);
     }
-    else
-    {
-        QHash<QString, double> result;
-        return result;
-    }
+
+    QHash<QString, double> result;
+    return result;
 }
 
 Device *DlnaCachedVideo::getOriginalStreaming()

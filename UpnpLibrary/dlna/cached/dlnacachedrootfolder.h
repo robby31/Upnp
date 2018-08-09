@@ -18,18 +18,18 @@ class DlnaCachedRootFolder : public DlnaRootFolder
     Q_OBJECT
 
 public:
-    explicit DlnaCachedRootFolder(QObject *parent = 0);
+    explicit DlnaCachedRootFolder(QObject *parent = Q_NULLPTR);
 
     QSqlQuery getAllNetworkLinks() { return library.getAllNetworkLinks(); }
 
     void setNetworkAccessManager(QNetworkAccessManager *nam);
 
-    void readDirectory(QDir folder);
+    void readDirectory(const QDir& folder);
 
 private:
 
-    void addResource(QFileInfo fileinfo);
-    void addResource(QUrl url);
+    void addResource(const QFileInfo& fileinfo);
+    void addResource(const QUrl& url);
 
 signals:
     void linkAdded(QString url);
@@ -42,7 +42,7 @@ private slots:
     void incrementCounterPlayed(const QString &filename);
 
     // returns true if the folder is added to Root.
-    virtual bool addFolderSlot(QString path);
+    bool addFolderSlot(QString path) Q_DECL_OVERRIDE;
 
     void addNetworkLink(const QString &url);
 
@@ -56,12 +56,12 @@ private:
     MediaLibrary library;
     QMimeDatabase mimeDb;
     DlnaRootFolder rootFolder;
-    DlnaCachedFolder *recentlyPlayedChild;
-    DlnaCachedFolder *resumeChild;
-    DlnaCachedFolder *favoritesChild;
-    DlnaCachedFolder *lastAddedChild;
-    DlnaCachedGroupedFolderMetaData *youtube;
-    QNetworkAccessManager *m_nam;
+    DlnaCachedFolder *recentlyPlayedChild = Q_NULLPTR;
+    DlnaCachedFolder *resumeChild = Q_NULLPTR;
+    DlnaCachedFolder *favoritesChild = Q_NULLPTR;
+    DlnaCachedFolder *lastAddedChild = Q_NULLPTR;
+    DlnaCachedGroupedFolderMetaData *youtube = Q_NULLPTR;
+    QNetworkAccessManager *m_nam = Q_NULLPTR;
 };
 
 #endif // DLNACACHEDROOTFOLDER_H

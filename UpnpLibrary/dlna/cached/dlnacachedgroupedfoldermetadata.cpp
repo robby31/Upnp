@@ -3,12 +3,11 @@
 DlnaCachedGroupedFolderMetaData::DlnaCachedGroupedFolderMetaData(MediaLibrary *library, QString name, QObject *parent):
     DlnaStorageFolder(parent),
     library(library),
-    name(name),
-    children()
+    name(name)
 {
 }
 
-void DlnaCachedGroupedFolderMetaData::addFolder(QString stringQuery,
+void DlnaCachedGroupedFolderMetaData::addFolder(const QString &stringQuery,
                                                 QString stringQueryForChild,
                                                 QString name)
 {
@@ -29,8 +28,8 @@ DlnaResource *DlnaCachedGroupedFolderMetaData::getChild(int index, QObject *pare
 
     if (index>=0 && index<children.count())
         return children.at(index);
-    else
-        return 0;
+
+    return Q_NULLPTR;
 }
 
 void DlnaCachedGroupedFolderMetaData::setNetworkAccessManager(QNetworkAccessManager *manager)

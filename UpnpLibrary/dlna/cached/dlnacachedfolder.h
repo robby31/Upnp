@@ -16,7 +16,7 @@ class DlnaCachedFolder : public DlnaStorageFolder
 
 public:
     explicit DlnaCachedFolder(MediaLibrary* library,
-                              QSqlQuery query,
+                              const QSqlQuery& query,
                               QString name, bool cacheEnabled = false, int maxSize = -1, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
