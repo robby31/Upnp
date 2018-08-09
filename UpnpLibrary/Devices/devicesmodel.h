@@ -12,7 +12,7 @@ class DevicesModel : public ListModel
 public:
     explicit DevicesModel(ListItem* prototype, QObject* parent = Q_NULLPTR);
     explicit DevicesModel(QObject *parent = Q_NULLPTR);
-    virtual ~DevicesModel() = default;
+    ~DevicesModel() Q_DECL_OVERRIDE = default;
 
     void setNetworkManager(QNetworkAccessManager *nam);
     void setMacAddress(const QString &m_address);

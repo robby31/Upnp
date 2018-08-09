@@ -97,7 +97,7 @@ int DlnaMusicTrackFile::metaDataDuration() const {
     return ffmpeg.getDuration();
 }
 
-int DlnaMusicTrackFile::metaDataBitrate() const {
+qint64 DlnaMusicTrackFile::metaDataBitrate() const {
     return ffmpeg.getAudioBitrate();
 }
 

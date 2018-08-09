@@ -5,9 +5,7 @@ const int HttpRequest::STREAMING_PERIOD = 1000;
 HttpRequest::HttpRequest(QObject *parent):
     ListItem(parent),
     m_date(QDateTime::currentDateTime()),
-    m_peerAddress(),
     m_client(Q_NULLPTR),
-    m_request(),
     m_operation(QNetworkAccessManager::UnknownOperation),
     m_version(),
     m_headerCompleted(false),
@@ -31,7 +29,6 @@ HttpRequest::HttpRequest(QTcpSocket *client, QObject *parent):
     m_date(QDateTime::currentDateTime()),
     m_peerAddress(client->peerAddress()),
     m_client(client),
-    m_request(),
     m_operation(QNetworkAccessManager::UnknownOperation),
     m_version(),
     m_headerCompleted(false),
@@ -268,16 +265,16 @@ quint16 HttpRequest::peerPort() const
 {
     if (m_client)
         return m_client->peerPort();
-    else
-        return 0;
+
+    return 0;
 }
 
 qintptr HttpRequest::socketDescriptor() const
 {
     if (m_client)
         return m_client->socketDescriptor();
-    else
-        return -1;
+
+    return -1;
 }
 
 QString HttpRequest::serverName() const
@@ -348,8 +345,8 @@ QVariant HttpRequest::data(int role) const
     {
         if (isClosed())
             return QTime(0, 0).addMSecs(m_date.msecsTo(m_closeDate)).toString("hh:mm:ss.zzz");
-        else
-            return QString();
+
+        return QString();
     }
 
     case headerRole:
@@ -407,10 +404,8 @@ bool HttpRequest::setData(const QVariant &value, const int &role)
             emit itemChanged(roles);
             return true;
         }
-        else
-        {
-            return false;
-        }
+
+        return false;
     }
 
     case streamingStatusRole:
@@ -421,10 +416,8 @@ bool HttpRequest::setData(const QVariant &value, const int &role)
             emit itemChanged(roles);
             return true;
         }
-        else
-        {
-            return false;
-        }
+
+        return false;
     }
 
     case statusRole:
@@ -437,11 +430,9 @@ bool HttpRequest::setData(const QVariant &value, const int &role)
                 emit itemChanged(roles);
                 return true;
             }
-            else
-            {
-                qCritical() << "cannot update status when error occurs" << value.toString();
-                return false;
-            }
+
+            qCritical() << "cannot update status when error occurs" << value.toString();
+            return false;
         }
         else
         {
@@ -457,10 +448,8 @@ bool HttpRequest::setData(const QVariant &value, const int &role)
             emit itemChanged(roles);
             return true;
         }
-        else
-        {
-            return false;
-        }
+
+        return false;
     }
 
     case operationRole:
@@ -471,36 +460,38 @@ bool HttpRequest::setData(const QVariant &value, const int &role)
             emit itemChanged(roles);
             return true;
         }
-        else if (value.toString() == "POST")
+
+        if (value.toString() == "POST")
         {
             m_operation = QNetworkAccessManager::PostOperation;
             emit itemChanged(roles);
             return true;
         }
-        else if (value.toString() == "PUT")
+
+        if (value.toString() == "PUT")
         {
             m_operation = QNetworkAccessManager::PutOperation;
             emit itemChanged(roles);
             return true;
         }
-        else if (value.toString() == "HEAD")
+
+        if (value.toString() == "HEAD")
         {
             m_operation = QNetworkAccessManager::HeadOperation;
             emit itemChanged(roles);
             return true;
         }
-        else if (value.toString() == "SUBSCRIBE" || value.toString() == "NOTIFY")
+
+        if (value.toString() == "SUBSCRIBE" || value.toString() == "NOTIFY")
         {
             m_operation = QNetworkAccessManager::CustomOperation;
             m_customOperation = value.toString();
             emit itemChanged(roles);
             return true;
         }
-        else
-        {
-            setError(QString("invalid operation : %1.").arg(value.toString()));
-            return false;
-        }
+
+        setError(QString("invalid operation : %1.").arg(value.toString()));
+        return false;
     }
 
     case closeDateRole:
@@ -660,7 +651,8 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
         close();
         return false;
     }
-    else if (m_client && m_status == "request ready")
+
+    if (m_client && m_status == "request ready")
     {
         if (!m_client->isValid() || !m_client->isWritable() || !m_client->isOpen())
         {
@@ -668,96 +660,90 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
             close();
             return false;
         }
+
+        // check partial content status
+        foreach (const QString &headerParam, m_replyHeader)
+        {
+            if (headerParam.startsWith("Content-Range"))
+            {
+                if (status == HTTP_200_OK)
+                    qWarning() << "reply contains content-range, status shall be HTTP_206_Partial_Content";
+                break;
+            }
+        }
+
+        if (status == HTTP_200_OK)
+        {
+            m_replyHeader << QString("%1 200 OK").arg(m_version);
+        }
+        else if (status == HTTP_206_Partial_Content)
+        {
+            m_replyHeader << QString("%1 206 Partial Content").arg(m_version);
+        }
+        else if (status == HTTP_400_KO)
+        {
+            m_replyHeader << QString("%1 400 Bad Request").arg(m_version);
+        }
+        else if (status == HTTP_412_KO)
+        {
+            m_replyHeader << QString("%1 412 Precondition Failed").arg(m_version);
+        }
+        else if (status == HTTP_500_KO)
+        {
+            m_replyHeader << QString("%1 500 Internal Server Error").arg(m_version);
+        }
         else
         {
-            // check partial content status
-            foreach (const QString &headerParam, m_replyHeader)
-            {
-                if (headerParam.startsWith("Content-Range"))
-                {
-                    if (status == HTTP_200_OK)
-                        qWarning() << "reply contains content-range, status shall be HTTP_206_Partial_Content";
-                    break;
-                }
-            }
+            setError(QString("unable to send data, invalid http status"));
+            close();
+            return false;
+        }
 
-            if (status == HTTP_200_OK)
+        m_replyHeader << header;
+        m_replyHeader << "";
+        m_replyHeader << "";
+
+        qint64 content_length = 0;
+        QRegularExpression length("^Content-Length:\\s*(\\d+)", QRegularExpression::CaseInsensitiveOption);
+        foreach (const QString &param, m_replyHeader)
+        {
+            QRegularExpressionMatch match = length.match(param);
+            if (match.hasMatch())
             {
-                m_replyHeader << QString("%1 200 OK").arg(m_version);
+                content_length = match.captured(1).toLongLong();
+                break;
             }
-            else if (status == HTTP_206_Partial_Content)
+        }
+
+        if (operation() == QNetworkAccessManager::HeadOperation or content_length == 0)
+        {
+            // no data expected so header is sent immediately
+            if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
             {
-                m_replyHeader << QString("%1 206 Partial Content").arg(m_version);
-            }
-            else if (status == HTTP_400_KO)
-            {
-                m_replyHeader << QString("%1 400 Bad Request").arg(m_version);
-            }
-            else if (status == HTTP_412_KO)
-            {
-                m_replyHeader << QString("%1 412 Precondition Failed").arg(m_version);
-            }
-            else if (status == HTTP_500_KO)
-            {
-                m_replyHeader << QString("%1 500 Internal Server Error").arg(m_version);
-            }
-            else
-            {
-                setError(QString("unable to send data, invalid http status"));
+                setError(QString("unable to send header data to client"));
                 close();
                 return false;
             }
 
-            m_replyHeader << header;
-            m_replyHeader << "";
-            m_replyHeader << "";
+            logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
+            emit headerSent();
 
-            qint64 content_length = 0;
-            QRegularExpression length("^Content-Length:\\s*(\\d+)", QRegularExpression::CaseInsensitiveOption);
-            foreach (const QString &param, m_replyHeader)
-            {
-                QRegularExpressionMatch match = length.match(param);
-                if (match.hasMatch())
-                {
-                    content_length = match.captured(1).toLongLong();
-                    break;
-                }
-            }
+            setData("OK", statusRole);
+            close();
 
-            if (operation() == QNetworkAccessManager::HeadOperation or content_length == 0)
-            {
-                // no data expected so header is sent immediately
-                if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
-                {
-                    setError(QString("unable to send header data to client"));
-                    close();
-                    return false;
-                }
-                else
-                {
-                    logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
-                    emit headerSent();
-
-                    setData("OK", statusRole);
-                    close();
-                }
-
-                m_replyHeaderSent = true;
-            }
-            else
-            {
-                setData("header set", statusRole);
-            }
-
-            return true;
+            m_replyHeaderSent = true;
         }
+        else
+        {
+            setData("header set", statusRole);
+        }
+
+        return true;
     }
-    else
-    {
-        setError(QString("unable to send header data to client (status is wrong or client invalid)."));
-        close();
-        return false;
-    }
+
+    setError(QString("unable to send header data to client (status is wrong or client invalid)."));
+    close();
+    return false;
 }
 
 bool HttpRequest::sendPartialData(const QByteArray &data)
@@ -1219,7 +1205,7 @@ void HttpRequest::timerEvent(QTimerEvent *event)
                     bytesToWrite = m_client->bytesToWrite();
 
                 // display the network buffer and network speed
-                int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
+                auto networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
 
                 if (m_maxBufferSize != 0)
                 {
@@ -1297,13 +1283,9 @@ HttpRange *HttpRequest::range(qint64 size)
         {
             res->setSize(size);
         }
+    }
 
-        return res;
-    }
-    else
-    {
-        return res;
-    }
+    return res;
 }
 
 void HttpRequest::streamClosed()

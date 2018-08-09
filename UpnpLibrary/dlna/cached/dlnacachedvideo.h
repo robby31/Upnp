@@ -26,7 +26,7 @@ public:
 
     qint64 getResumeTime() const Q_DECL_OVERRIDE;
 
-    int metaDataBitrate()              const Q_DECL_OVERRIDE { if (library) return library->getmetaData("bitrate", idMedia).toInt(); return -1; }
+    qint64 metaDataBitrate()            const Q_DECL_OVERRIDE { if (library) return library->getmetaData("bitrate", idMedia).toLongLong(); return -1; }
     int metaDataDuration()             const Q_DECL_OVERRIDE { if (library) return library->getmetaData("duration", idMedia).toInt(); return -1; }
     QString metaDataTitle()            const Q_DECL_OVERRIDE { return QFileInfo(getSystemName()).completeBaseName(); }
     QString metaDataGenre()            const Q_DECL_OVERRIDE { return ""; }

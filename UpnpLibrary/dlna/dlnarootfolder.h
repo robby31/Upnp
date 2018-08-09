@@ -10,20 +10,20 @@ class DlnaRootFolder : public DlnaStorageFolder
     Q_OBJECT
 
 public:
-    explicit DlnaRootFolder(QObject *parent = 0);
-    virtual ~DlnaRootFolder();
+    explicit DlnaRootFolder(QObject *parent = Q_NULLPTR);
+    ~DlnaRootFolder() Q_DECL_OVERRIDE;
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
-    virtual QString getName() const { return QString("root"); }
+    QString getName() const Q_DECL_OVERRIDE { return QString("root"); }
 
-    virtual QString getSystemName() const { return getName(); }
+    QString getSystemName() const Q_DECL_OVERRIDE { return getName(); }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() const { return getName(); }
+    QString getDisplayName() const Q_DECL_OVERRIDE { return getName(); }
 
-    virtual int getChildrenSize() const { return children.size(); }
-    virtual DlnaResource* getChild(int index, QObject *parent = 0);
+    int getChildrenSize() const Q_DECL_OVERRIDE { return children.size(); }
+    DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
 
     /*
      * Adds a new DLNAResource to the child list.
@@ -32,7 +32,7 @@ public:
     void addChild(DlnaResource *child)  { emit addChildSignal(child); }
     void clearChildren()                { emit clearChildrenSignal(); }
 
-    void addFolder(QString path) { emit addFolderSignal(path); }
+    void addFolder(const QString& path) { emit addFolderSignal(path); }
 
 signals:
     void addFolderSignal(const QString &path);

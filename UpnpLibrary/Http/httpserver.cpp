@@ -8,7 +8,7 @@ HttpServer::HttpServer(QObject *parent):
 
 HttpServer::~HttpServer()
 {
-    if (m_request.size() != 0)
+    if (!m_request.isEmpty())
         qCritical() << "DESTROY HttpServer" << m_request.size() << "requests pending.";
 }
 
@@ -27,7 +27,7 @@ void HttpServer::incomingData()
 {
     HttpRequest *request = Q_NULLPTR;
 
-    QTcpSocket *clientConnection = qobject_cast<QTcpSocket*>(sender());
+    auto clientConnection = qobject_cast<QTcpSocket*>(sender());
 
     while (clientConnection->bytesAvailable() > 0)
     {

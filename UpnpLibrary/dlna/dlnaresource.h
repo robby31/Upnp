@@ -15,14 +15,14 @@ class DlnaResource: public QObject
     Q_OBJECT
 
 public:
-    explicit DlnaResource(QObject *parent = 0);
-    virtual ~DlnaResource();
+    explicit DlnaResource(QObject *parent = Q_NULLPTR);
+    ~DlnaResource() Q_DECL_OVERRIDE;
 
     void setHostUrl(const QUrl &url);
     QUrl getHostUrl() const;
 
     QString getId() const { return id; }
-    void setId(QString id) { this->id = id; }
+    void setId(const QString& id) { this->id = id; }
 
     /*
      * String representing this resource ID. This string is used by the UPNP
@@ -65,15 +65,15 @@ public:
     QString getDlnaParentId() const;
     void setDlnaParent(DlnaResource *dlna_parent) { dlnaParent = dlna_parent; }
 
-    virtual DlnaResource* getChild(int index, QObject *parent = 0) = 0;
+    virtual DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) = 0;
     virtual int getChildrenSize() const = 0;
 
     // Recursive function that searches for a given ID such as 0$2$13.
-    DlnaResource* search(QString searchId, QString searchStr, QObject *parent = 0);
+    DlnaResource* search(QString searchId, QString searchStr, QObject *parent = Q_NULLPTR);
 
     // Search for an item matching the given objectID if returnChildren is false.
     // if returnChildren is true it returns all children of the objectID.
-    QList<DlnaResource*> getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr, QObject *parent = 0);
+    QList<DlnaResource*> getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr, QObject *parent = Q_NULLPTR);
 
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() const = 0;

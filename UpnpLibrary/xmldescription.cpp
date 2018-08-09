@@ -70,19 +70,13 @@ QDomElement XmlDescription::getParam(const QString &param, const QDomElement &pa
     }
 
     if (indexFound != -1)
-    {
         return nodes.at(indexFound).toElement();
-    }
-    else if (nodes.size() == 1)
-    {
-        return nodes.at(0).toElement();
-    }
-    else
-    {
-        qCritical() << nodes.size() << "nodes" << param << "found below" << parent.tagName();
-        return QDomElement();
-    }
 
+    if (nodes.size() == 1)
+        return nodes.at(0).toElement();
+
+    qCritical() << nodes.size() << "nodes" << param << "found below" << parent.tagName();
+    return QDomElement();
 }
 
 QString XmlDescription::getParamValue(const QString &param, const QDomElement &parent) const

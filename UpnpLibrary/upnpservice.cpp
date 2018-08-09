@@ -372,7 +372,7 @@ QNetworkReply *UpnpService::sendAction(const SoapAction &action)
 
 void UpnpService::networkError(QNetworkReply::NetworkError error)
 {
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    auto reply = qobject_cast<QNetworkReply*>(sender());
 
     UpnpError upnpError(error, reply->readAll());
     emit errorOccured(upnpError);
@@ -429,7 +429,7 @@ StateVariableItem *UpnpService::findStateVariableByName(const QString &name)
 {
     for (int i=0;i<m_stateVariablesModel.rowCount();++i)
     {
-        StateVariableItem *item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
+        auto item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
         if (item)
         {
             QString var_name = item->data(StateVariableItem::NameRole).toString();
@@ -457,7 +457,7 @@ void UpnpService::updateStateVariables(QHash<QString, QString> data)
 
     for (int i=0;i<m_stateVariablesModel.rowCount();++i)
     {
-        StateVariableItem *item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
+        auto item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
         if (item)
         {
             QString name = item->data(StateVariableItem::NameRole).toString();
@@ -483,7 +483,7 @@ void UpnpService::updateStateVariables(QHash<QString, QString> data)
             bool found = false;
             for (int i=0;i<m_stateVariablesModel.rowCount();++i)
             {
-                StateVariableItem *item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
+                auto item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
                 if (item)
                 {
                     if (item->data(StateVariableItem::NameRole) == name)
@@ -763,7 +763,7 @@ void UpnpService::sendEvent(const QString &uuid)
 
         for (int index=0;index<m_stateVariablesModel.rowCount();++index)
         {
-            StateVariableItem *item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(index));
+            auto item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(index));
             bool sendEvents = item->data(StateVariableItem::SendEventsRole).toBool();
             if (sendEvents)
             {
@@ -793,7 +793,7 @@ void UpnpService::sendEvent(const QString &uuid)
 
 void UpnpService::sendEventReply()
 {
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    auto reply = qobject_cast<QNetworkReply*>(sender());
     qDebug() << "reply received" << reply;
     if (reply)
     {

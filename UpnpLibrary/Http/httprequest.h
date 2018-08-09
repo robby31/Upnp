@@ -56,9 +56,9 @@ public:
     explicit HttpRequest(QObject *parent = Q_NULLPTR);
     explicit HttpRequest(QTcpSocket *client, QObject *parent = Q_NULLPTR);
 
-    virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
-    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
-    virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
+    QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
+    QVariant data(int role) const Q_DECL_OVERRIDE;
+    bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
     QNetworkAccessManager::Operation operation() const;
     QString operationString() const;
@@ -113,7 +113,7 @@ public:
     void setMaxBufferSize(const qint64 &size);
 
 protected:
-    virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
+    void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
 
 private:
     void initializeRoles();

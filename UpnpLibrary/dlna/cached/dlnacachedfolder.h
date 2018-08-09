@@ -17,36 +17,36 @@ class DlnaCachedFolder : public DlnaStorageFolder
 public:
     explicit DlnaCachedFolder(MediaLibrary* library,
                               const QSqlQuery& query,
-                              QString name, bool cacheEnabled = false, int maxSize = -1, QObject *parent = 0);
+                              QString name, bool cacheEnabled = false, int maxSize = -1, QObject *parent = Q_NULLPTR);
 
-    virtual DlnaResource* getChild(int index, QObject *parent = 0);
-    virtual int getChildrenSize() const { return nbChildren; }
+    DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
+    int getChildrenSize() const Q_DECL_OVERRIDE { return nbChildren; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
-    virtual QString getName() const { return name; }
+    QString getName() const Q_DECL_OVERRIDE { return name; }
 
-    virtual QString getSystemName() const { return name; }
+    QString getSystemName() const Q_DECL_OVERRIDE { return name; }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() const { return name; }
+    QString getDisplayName() const Q_DECL_OVERRIDE { return name; }
 
     void setLimitSizeMax(const int &size) { limitSizeMax = size; refreshContent(); }
 
     void setNetworkAccessManager(QNetworkAccessManager *manager) { m_nam = manager; }
 
 private:
-    virtual void refreshContent();
+    void refreshContent() Q_DECL_OVERRIDE;
 
 private:
-    MediaLibrary* library;
+    MediaLibrary* library = Q_NULLPTR;
     QString name;
     QSqlQuery query;
     int nbChildren;
     bool cacheEnabled;
     QList<int> cache;
     int limitSizeMax;
-    QNetworkAccessManager *m_nam;
+    QNetworkAccessManager *m_nam = Q_NULLPTR;
 };
 
 #endif // DLNACACHEDFOLDER_H

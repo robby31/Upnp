@@ -27,7 +27,7 @@ public:
     //returns the size of the source
     qint64 sourceSize() const Q_DECL_OVERRIDE { return fileinfo.size(); }
 
-    int metaDataBitrate() const Q_DECL_OVERRIDE;
+    qint64 metaDataBitrate() const Q_DECL_OVERRIDE;
     int metaDataDuration() const Q_DECL_OVERRIDE;
     QString metaDataTitle() const Q_DECL_OVERRIDE;
     QString metaDataGenre() const Q_DECL_OVERRIDE;

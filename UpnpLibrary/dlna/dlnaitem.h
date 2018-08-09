@@ -62,7 +62,7 @@ public:
     // returns volume information
     virtual QHash<QString, double> volumeInfo(const int& timeout = 30000) = 0;
 
-    virtual int metaDataBitrate() const = 0;
+    virtual qint64 metaDataBitrate() const = 0;
     virtual int metaDataDuration() const = 0;
     virtual QString metaDataTitle() const = 0;
     virtual QString metaDataGenre() const = 0;

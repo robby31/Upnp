@@ -89,7 +89,7 @@ int DlnaVideoFile::metaDataDuration() const {
     return ffmpeg.getDuration();
 }
 
-int DlnaVideoFile::metaDataBitrate() const {
+qint64 DlnaVideoFile::metaDataBitrate() const {
     return ffmpeg.getBitrate();
 }
 

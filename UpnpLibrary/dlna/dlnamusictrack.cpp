@@ -27,28 +27,28 @@ void DlnaMusicTrack::updateDLNAOrgPn() {
     }
 }
 
-int DlnaMusicTrack::bitrate() const {
+int DlnaMusicTrack::bitrate() const
+{
     // returns bitrate in bits/sec
-    if (toTranscode()) {
+    if (toTranscode())
+    {
         if (transcodeFormat == MP3 || transcodeFormat == AAC)
-        {
             return 320000;
-        }
-        else if (transcodeFormat == LPCM_S16BE || transcodeFormat == WAV || transcodeFormat == ALAC) {
 
-            if (samplerate() == 44100) {
+        if (transcodeFormat == LPCM_S16BE || transcodeFormat == WAV || transcodeFormat == ALAC)
+        {
+            if (samplerate() == 44100)
                 return 1411200;
 
-            } else {
-                return 1536000;
-            }
-        } else {
-            // invalid transcode format
-            return -1;
+            return 1536000;
         }
-    } else {
-        return metaDataBitrate();
+
+        // invalid transcode format
+
+        return -1;
     }
+
+    return metaDataBitrate();
 }
 
 /*
@@ -191,7 +191,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
 QFfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess()
 {
-    QFfmpegTranscoding* transcodeProcess = new QFfmpegTranscoding();
+    auto  transcodeProcess = new QFfmpegTranscoding();
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
 //    transcodeProcess->setVolumeInfo(volumeInfo());
@@ -214,14 +214,17 @@ QString DlnaMusicTrack::mimeType() const
         // Trancode music track
         if (transcodeFormat == MP3)
             return AUDIO_MP3_TYPEMIME;
-        else if (transcodeFormat == AAC || transcodeFormat == ALAC)
+
+        if (transcodeFormat == AAC || transcodeFormat == ALAC)
             return AUDIO_MP4_TYPEMIME;
-        else if (transcodeFormat == LPCM_S16BE)
+
+        if (transcodeFormat == LPCM_S16BE)
             return QString("%1;rate=%2;channels=%3").arg(AUDIO_LPCM_TYPEMIME).arg(samplerate()).arg(channelCount());
-        else if (transcodeFormat == WAV)
+
+        if (transcodeFormat == WAV)
             return AUDIO_WAV_TYPEMIME;
-        else
-            qCritical() << "Unable to define mimeType of DlnaMusicTrack Transcoding: " << getSystemName();
+
+        qCritical() << "Unable to define mimeType of DlnaMusicTrack Transcoding: " << getSystemName();
     }
     else
     {
@@ -237,26 +240,29 @@ QString DlnaMusicTrack::sourceMimeType() const
     QString format = metaDataFormat();
     if (format == "mp3" || format == "mp2" || format == "mp1")
         return AUDIO_MP3_TYPEMIME;
-    else if (format == "aac" || format == "alac")
+
+    if (format == "aac" || format == "alac")
         return AUDIO_MP4_TYPEMIME;
-    else if (format == "pcm_s16be")
+
+    if (format == "pcm_s16be")
         return QString("%1;rate=%2;channels=%3").arg(AUDIO_LPCM_TYPEMIME).arg(samplerate()).arg(channelCount());
-    else if (format == "pcm_s16le")
+
+    if (format == "pcm_s16le")
         return AUDIO_WAV_TYPEMIME;
-    else
-        qCritical() << QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format);
+
+    qCritical() << QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format);
 
     // returns unknown mimeType
     return UNKNOWN_AUDIO_TYPEMIME;
 }
 
-QImage DlnaMusicTrack::getAlbumArt() const {
+QImage DlnaMusicTrack::getAlbumArt() const
+{
     QImage picture;
 
     QByteArray bytesPicture = metaDataPicture();
-    if (picture.loadFromData(bytesPicture)) {
+    if (picture.loadFromData(bytesPicture))
         return picture;
-    }
 
     return picture;
 }

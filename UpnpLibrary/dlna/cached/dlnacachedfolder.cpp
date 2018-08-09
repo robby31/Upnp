@@ -7,8 +7,7 @@ DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, const QSqlQuery &query
     query(query),
     nbChildren(-1),
     cacheEnabled(cacheEnabled),
-    limitSizeMax(maxSize),
-    m_nam(Q_NULLPTR)
+    limitSizeMax(maxSize)
 {
     refreshContent();
 }

@@ -11,9 +11,9 @@ public:
     enum T_DIRECTION { Input, Output };
     enum T_STATUS { Unknown, Ok };
 
-    explicit ServiceConnectionManager(QObject *parent = nullptr);
-    explicit ServiceConnectionManager(UpnpObject *upnpParent, QObject *parent = nullptr);
-    explicit ServiceConnectionManager(UpnpObject *upnpParent, QDomNode info, QObject *parent = nullptr);
+    explicit ServiceConnectionManager(QObject *parent = Q_NULLPTR);
+    explicit ServiceConnectionManager(UpnpObject *upnpParent, QObject *parent = Q_NULLPTR);
+    explicit ServiceConnectionManager(UpnpObject *upnpParent, QDomNode info, QObject *parent = Q_NULLPTR);
 
     void setDirection(const T_DIRECTION &direction);
     T_DIRECTION direction() const;
@@ -22,12 +22,12 @@ public:
     T_STATUS connectionStatus() const;
 
 private:
-    virtual void initDescription() Q_DECL_OVERRIDE;
-    virtual void initActions() Q_DECL_OVERRIDE;
-    virtual void initStateVariables() Q_DECL_OVERRIDE;
+    void initDescription() Q_DECL_OVERRIDE;
+    void initActions() Q_DECL_OVERRIDE;
+    void initStateVariables() Q_DECL_OVERRIDE;
 
 protected:
-    virtual bool replyAction(HttpRequest *request, const SoapAction &action) Q_DECL_OVERRIDE;
+    bool replyAction(HttpRequest *request, const SoapAction &action) Q_DECL_OVERRIDE;
 
 signals:
 

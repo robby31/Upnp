@@ -12,21 +12,20 @@ class ServiceContentDirectory : public AbstractService
     Q_OBJECT
 
 public:
-    explicit ServiceContentDirectory(MediaRendererModel *model, UpnpDevice *upnpParent, QObject *parent = nullptr);
+    explicit ServiceContentDirectory(MediaRendererModel *model, UpnpDevice *upnpParent, QObject *parent = Q_NULLPTR);
+    ~ServiceContentDirectory() Q_DECL_OVERRIDE;
 
-    virtual ~ServiceContentDirectory();
-
-    virtual bool replyRequest(HttpRequest *request) Q_DECL_OVERRIDE;
+    bool replyRequest(HttpRequest *request) Q_DECL_OVERRIDE;
 
 private:
-    virtual void initDescription() Q_DECL_OVERRIDE;
-    virtual void initActions() Q_DECL_OVERRIDE;
-    virtual void initStateVariables() Q_DECL_OVERRIDE;
+    void initDescription() Q_DECL_OVERRIDE;
+    void initActions() Q_DECL_OVERRIDE;
+    void initStateVariables() Q_DECL_OVERRIDE;
 
     DlnaResource *getDlnaResource(const QString &hostaddress, const QString &objId);
 
 protected:
-    virtual bool replyAction(HttpRequest *request, const SoapAction &action) Q_DECL_OVERRIDE;
+    bool replyAction(HttpRequest *request, const SoapAction &action) Q_DECL_OVERRIDE;
 
 signals:
     void addFolderSignal(QString folder);
@@ -34,12 +33,12 @@ signals:
     void error_addFolder(QString folder);
     void scanFolder(QString path);
 
-    void addNetworkLinkSignal(const QString url);
+    void addNetworkLinkSignal(const QString& url);
     void linkAdded(QString url);
     void error_addNetworkLink(QString url);
     void brokenLink(QString url, QString title);
 
-    void reloadLibrarySignal(const QStringList localFolder);
+    void reloadLibrarySignal(const QStringList& localFolder);
 
     void updateMediaData(const QString &filename, const QHash<QString, QVariant> &data);
     void updateMediaFromId(const int &id, const QHash<QString, QVariant> &data);

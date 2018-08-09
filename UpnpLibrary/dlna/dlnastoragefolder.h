@@ -8,18 +8,18 @@ class DlnaStorageFolder : public DlnaResource
     Q_OBJECT
 
 public:
-    explicit DlnaStorageFolder(QObject *parent = 0);
+    explicit DlnaStorageFolder(QObject *parent = Q_NULLPTR);
 
     // Return upnp class
-    virtual QString getUpnpClass() const { return QString("object.container.storageFolder"); }
+    QString getUpnpClass() const Q_DECL_OVERRIDE { return QString("object.container.storageFolder"); }
 
-    virtual bool isFolder() const { return true; }
+    bool isFolder() const Q_DECL_OVERRIDE { return true; }
 
     // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
+    QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) Q_DECL_OVERRIDE;
 
     // Returns album art in jpeg format
-    virtual QImage getAlbumArt() const { return QImage(); }
+    QImage getAlbumArt() const Q_DECL_OVERRIDE { return QImage(); }
 };
 
 #endif // DLNASTORAGEFOLDER_H
