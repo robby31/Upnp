@@ -343,7 +343,7 @@ void UpnpRootDevice::sendByeBye()
 void UpnpRootDevice::searchForST(const QHostAddress &host, const int &port, const QString &st)
 {
     if (st == "ssdp:all" || st == UPNP_ROOTDEVICE)
-        emit searchResponse(host, port, UPNP_ROOTDEVICE, QString("uuid:%1::%2").arg(uuid()).arg(UPNP_ROOTDEVICE));
+        emit searchResponse(host, port, UPNP_ROOTDEVICE, QString("uuid:%1::%2").arg(uuid(), UPNP_ROOTDEVICE));
 
     if (st != UPNP_ROOTDEVICE)
     {
@@ -407,7 +407,7 @@ QString UpnpRootDevice::generateUuid()
     QString node(m_macAddress);
     node = node.replace(":", "").toLower();
 
-    return QString("%1-%2-%3-%4%5-%6").arg(time_low).arg(time_short).arg(time_hi_and_version).arg(clock_seq_low).arg(clock_seq_hi_and_reserved).arg(node);
+    return QString("%1-%2-%3-%4%5-%6").arg(time_low, time_short, time_hi_and_version, clock_seq_low, clock_seq_hi_and_reserved, node);
 }
 
 void UpnpRootDevice::replyGetIcon(HttpRequest *request)

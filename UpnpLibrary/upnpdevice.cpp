@@ -142,7 +142,7 @@ void UpnpDevice::addService(const QDomNode &descr)
 
         if (!service)
         {
-            UpnpService *service = new UpnpService(this, descr, m_services);
+            auto service = new UpnpService(this, descr, m_services);
             connect(service, SIGNAL(aliveMessage(QString,QString)), this, SIGNAL(aliveMessage(QString,QString)));
             connect(service, SIGNAL(byebyeMessage(QString,QString)), this, SIGNAL(byebyeMessage(QString,QString)));
             connect(service, &UpnpService::searchResponse, this, &UpnpDevice::searchResponse);
@@ -364,7 +364,7 @@ void UpnpDevice::searchForST(const QHostAddress &host, const int &port, const QS
             emit searchResponse(host, port, QString("uuid:%1").arg(uuid()), QString("uuid:%1").arg(uuid()));
 
         if (st == "ssdp:all" || st == deviceType())
-            emit searchResponse(host, port, deviceType(), QString("uuid:%1::%2").arg(uuid()).arg(deviceType()));
+            emit searchResponse(host, port, deviceType(), QString("uuid:%1::%2").arg(uuid(), deviceType()));
 
         for (int i=0;i<m_services->rowCount();++i)
         {

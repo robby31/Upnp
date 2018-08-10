@@ -12,7 +12,7 @@ class HttpRange
 
 public:
     explicit HttpRange();
-    explicit HttpRange(QString range);
+    explicit HttpRange(const QString& range);
 
     bool isNull() const { return null; }
 

@@ -1,6 +1,6 @@
 #include "dlnacachedfolder.h"
 
-DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, const QSqlQuery &query, QString name, bool cacheEnabled, int maxSize, QObject *parent):
+DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, const QSqlQuery &query, const QString& name, bool cacheEnabled, int maxSize, QObject *parent):
     DlnaStorageFolder(parent),
     library(library),
     name(name),
@@ -87,7 +87,7 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
         }
 
     } else {
-        qWarning() << QString("Unkwown format %1: %2").arg(type_media).arg(filename);
+        qWarning() << QString("Unkwown format %1: %2").arg(type_media, filename);
     }
 
 

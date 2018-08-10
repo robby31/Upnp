@@ -12,7 +12,7 @@ class UpnpDeviceTest : public QObject
     Q_OBJECT
 
 public:
-    UpnpDeviceTest();
+    UpnpDeviceTest() = default;
 
 private Q_SLOTS:
     void initTestCase();
@@ -26,10 +26,6 @@ private:
     QNetworkAccessManager nam;
 };
 
-UpnpDeviceTest::UpnpDeviceTest()
-{
-}
-
 void UpnpDeviceTest::initTestCase()
 {
 }
@@ -40,7 +36,7 @@ void UpnpDeviceTest::cleanupTestCase()
 
 void UpnpDeviceTest::testUpnpRootDeviceFromDescription()
 {
-    UpnpRootDeviceDescription *deviceDescription = new UpnpRootDeviceDescription();
+    auto deviceDescription = new UpnpRootDeviceDescription();
     QCOMPARE(deviceDescription->deviceAttribute("deviceType"), "");
     QCOMPARE(deviceDescription->deviceAttribute("friendlyName"), "");
     QCOMPARE(deviceDescription->deviceAttribute("manufacturer"), "");
@@ -104,7 +100,7 @@ void UpnpDeviceTest::testUpnpRootDeviceFromXml()
 {
     QFile xml_file(":/PMS.xml");
     QCOMPARE(xml_file.open(QIODevice::ReadOnly), true);
-    UpnpRootDeviceDescription *description = new UpnpRootDeviceDescription();
+    auto description = new UpnpRootDeviceDescription();
     description->setContent(xml_file.readAll());
 
     QCOMPARE(description->xmlDescription().tagName(), QString("root"));
@@ -181,12 +177,12 @@ void UpnpDeviceTest::testUpnpDeviceFromDescription()
     QCOMPARE(device.devicesModel()->rowCount(), 0);
     QCOMPARE(device.servicesModel()->rowCount(), 0);
 
-    UpnpDeviceDescription *device_descr = (UpnpDeviceDescription*)device.description();
+    auto device_descr = qobject_cast<UpnpDeviceDescription*>(device.description());
     QVERIFY(device_descr != Q_NULLPTR);
     QCOMPARE(device_descr->devices().size(), 0);
     QCOMPARE(device_descr->services().size(), 0);
 
-    ServiceConnectionManager *service_connectionmanager = new ServiceConnectionManager();
+    auto service_connectionmanager = new ServiceConnectionManager();
     QCOMPARE(service_connectionmanager->serviceType(), "urn:schemas-upnp-org:service:ConnectionManager:1");
 
     QCOMPARE(device.addService(service_connectionmanager), true);
@@ -203,7 +199,7 @@ void UpnpDeviceTest::testUpnpDeviceFromDescription()
     QCOMPARE(device_descr->services().size(), 1);
 
 
-    ServiceContentDirectory *service_contentdirectory = new ServiceContentDirectory(Q_NULLPTR, Q_NULLPTR);
+    auto service_contentdirectory = new ServiceContentDirectory(Q_NULLPTR, Q_NULLPTR);
     QCOMPARE(service_contentdirectory->serviceType(), "urn:schemas-upnp-org:service:ContentDirectory:1");
 
     QCOMPARE(device.addService(service_contentdirectory), true);

@@ -145,7 +145,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
             QDomElement upnpAlbumArtURI = xml->createElement("upnp:albumArtURI");
             upnpAlbumArtURI.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
             upnpAlbumArtURI.setAttribute("dlna:profileID", "JPEG_TN");
-            upnpAlbumArtURI.appendChild(xml->createTextNode(QString("http://%1:%2/get/%3/thumbnail0000%4&").arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getResourceId()).arg(getDisplayName().toUtf8().toPercentEncoding().constData())));
+            upnpAlbumArtURI.appendChild(xml->createTextNode(QString("http://%1:%2/get/%3/thumbnail0000%4&").arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getResourceId(), getDisplayName().toUtf8().toPercentEncoding().constData())));
             xml_obj.appendChild(upnpAlbumArtURI);
         }
     }
@@ -182,7 +182,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getName().toUtf8().toPercentEncoding().constData())));
+    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId(), getHostUrl().host()).arg(getHostUrl().port()).arg(getName().toUtf8().toPercentEncoding().constData())));
 
     xml_obj.appendChild(res);
 
@@ -250,7 +250,7 @@ QString DlnaMusicTrack::sourceMimeType() const
     if (format == "pcm_s16le")
         return AUDIO_WAV_TYPEMIME;
 
-    qCritical() << QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format);
+    qCritical() << QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName(), format);
 
     // returns unknown mimeType
     return UNKNOWN_AUDIO_TYPEMIME;

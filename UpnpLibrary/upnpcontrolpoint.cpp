@@ -15,7 +15,7 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
 UpnpControlPoint::UpnpControlPoint(quint16 eventPort, QObject *parent):
     QObject(parent),
     m_eventPort(eventPort),
-    m_servername(QString("%1/%2 UPnP/%3 CTP/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(UPNP_VERSION)),
+    m_servername(QString("%1/%2 UPnP/%3 CTP/1.0").arg(QSysInfo::productType(), QSysInfo::productVersion(), UPNP_VERSION)),
     m_bootid(0),
     m_configid(0)
 {
@@ -187,7 +187,7 @@ void UpnpControlPoint::_sendAliveMessage(const QString &uuid, const QString &nt)
         if (nt.isEmpty())
             usn = QString("uuid:%1").arg(uuid);
         else
-            usn = QString("uuid:%1::%2").arg(uuid).arg(nt);
+            usn = QString("uuid:%1::%2").arg(uuid, nt);
 
         SsdpMessage message(NOTIFY);
         message.addHeader("HOST", QString("%1:%2").arg(IPV4_UPNP_HOST.toString()).arg(UPNP_PORT));
@@ -223,7 +223,7 @@ void UpnpControlPoint::_sendByeByeMessage(const QString &uuid, const QString &nt
         if (nt.isEmpty())
             usn = QString("uuid:%1").arg(uuid);
         else
-            usn = QString("uuid:%1::%2").arg(uuid).arg(nt);
+            usn = QString("uuid:%1::%2").arg(uuid, nt);
 
         SsdpMessage message(NOTIFY);
 
@@ -382,11 +382,9 @@ void UpnpControlPoint::_sendSearchResponse(const QHostAddress &host, const quint
     {
         auto root = qobject_cast<UpnpRootDevice*>(object);
 
-        QDateTime sdf;
-
         SsdpMessage message(HTTP);
         message.addHeader("CACHE-CONTROL", "max-age=1800");
-        message.addHeader("DATE", sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+        message.addHeader("DATE", QDateTime::currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
         message.addHeader("EXT", "");
         message.addHeader("LOCATION", root->url().toString());
         message.addHeader("SERVER", root->serverName());
@@ -401,10 +399,10 @@ void UpnpControlPoint::_sendSearchResponse(const QHostAddress &host, const quint
 
 QString UpnpControlPoint::eventSubscribed(const QString &uuid, const QString &serviceId)
 {
-    foreach (const QString &sid, m_sidEvent.keys())
+    for (auto it = m_sidEvent.constBegin(); it != m_sidEvent.constEnd(); ++it)
     {
-        if (m_sidEvent[sid].deviceUuid == uuid && m_sidEvent[sid].serviceId==serviceId)
-            return sid;  // return sid of events subscribed for serviceId on device identified by uuid
+        if (it.value().deviceUuid == uuid && it.value().serviceId==serviceId)
+            return it.key();  // return sid of events subscribed for serviceId on device identified by uuid
     }
 
     return QString();
@@ -418,7 +416,7 @@ void UpnpControlPoint::subscribeEventing(QNetworkRequest request, const QString 
     {
         request.setRawHeader("Connection", "close");
         request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
-        request.setRawHeader("CALLBACK", QString("<http://%1:%2/event/%3/%4>").arg(host().toString()).arg(m_eventPort).arg(uuid).arg(serviceId).toUtf8());
+        request.setRawHeader("CALLBACK", QString("<http://%1:%2/event/%3/%4>").arg(host().toString()).arg(m_eventPort).arg(uuid, serviceId).toUtf8());
 
         QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
         connect(reply, &QNetworkReply::finished, this, &UpnpControlPoint::subscribeEventingFinished);
@@ -603,25 +601,28 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
     if (event->timerId() == m_eventCheckSubscription)
     {
         // check eventing subscription
-        foreach (const QString &sid, m_sidEvent.keys())
+        auto it = m_sidEvent.begin();
+        while (it != m_sidEvent.end())
         {
-            QDateTime timeout = QDateTime::fromString(m_sidEvent[sid].timeOut);
+            QDateTime timeout = QDateTime::fromString(it.value().timeOut);
             if (timeout.isValid())
             {
                 if (QDateTime::currentDateTime().secsTo(timeout) < 0)
                 {
-                    qCritical() << QDateTime::currentDateTime() << "event" << sid << "is obsolete" << timeout;
+                    qCritical() << QDateTime::currentDateTime() << "event" << it.key() << "is obsolete" << timeout;
 
                     // cancel event
-                    qWarning() << "remove sid from event subscribed" << sid;
-                    m_sidEvent.remove(sid);
+                    qWarning() << "remove sid from event subscribed" << it.key();
+                    it = m_sidEvent.erase(it);
+                    continue;
                 }
-                else if (QDateTime::currentDateTime().secsTo(timeout) < 100)
-                {
-                    QString deviceUuid = m_sidEvent[sid].deviceUuid;
-                    QString serviceId = m_sidEvent[sid].serviceId;
 
-                    qDebug() << QDateTime::currentDateTime() << "renew event" << sid << deviceUuid << serviceId << timeout;
+                if (QDateTime::currentDateTime().secsTo(timeout) < 100)
+                {
+                    QString deviceUuid = it.value().deviceUuid;
+                    QString serviceId = it.value().serviceId;
+
+                    qDebug() << QDateTime::currentDateTime() << "renew event" << it.key() << deviceUuid << serviceId << timeout;
 
                     UpnpService *service = Q_NULLPTR;
                     if (m_remoteRootDevice)
@@ -632,7 +633,7 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
                         QNetworkRequest request(service->eventSubUrl());
                         request.setRawHeader("Connection", "close");
                         request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
-                        request.setRawHeader("SID", sid.toUtf8());
+                        request.setRawHeader("SID", it.key().toUtf8());
                         request.setRawHeader("TIMEOUT", "Second-300");
 
                         QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
@@ -645,19 +646,23 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
                         qCritical() << "unable to find service for eventing renewing" << deviceUuid << serviceId;
 
                         // cancel event
-                        qWarning() << "remove sid from event subscribed" << sid;
-                        m_sidEvent.remove(sid);
+                        qWarning() << "remove sid from event subscribed" << it.key();
+                        it = m_sidEvent.erase(it);
+                        continue;
                     }
                 }
             }
             else
             {
-                qCritical() << "invalid timeout" << timeout << "for event sid" << sid;
+                qCritical() << "invalid timeout" << timeout << "for event sid" << it.key();
 
                 // cancel event
-                qWarning() << "remove sid from event subscribed" << sid;
-                m_sidEvent.remove(sid);
+                qWarning() << "remove sid from event subscribed" << it.key();
+                it = m_sidEvent.erase(it);
+                continue;
             }
+
+            ++it;
         }
     }
     else if (m_searchAnswer.contains(event->timerId()))
@@ -687,13 +692,18 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
 void UpnpControlPoint::removeSidEventFromUuid(const QString &deviceUuid)
 {
     qDebug() << "removeSidEventFromUuid" << deviceUuid;
-    foreach (const QString &sid, m_sidEvent.keys())
+    auto it = m_sidEvent.begin();
+    while (it != m_sidEvent.end())
     {
-        QString uuid = m_sidEvent[sid].deviceUuid;
+        QString uuid = it.value().deviceUuid;
         if (uuid == deviceUuid)
         {
-            m_sidEvent.remove(sid);
-            qDebug() << "remove sid" << sid;
+            it = m_sidEvent.erase(it);
+            qDebug() << "remove sid" << it.key();
+        }
+        else
+        {
+            ++it;
         }
     }
 }

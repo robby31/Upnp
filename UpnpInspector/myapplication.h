@@ -32,9 +32,9 @@ signals:
     void upnpControlPointChanged();
 
 private slots:
-    void messageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
+    void messageReceived(const QHostAddress &host, const quint16 &port, const SsdpMessage &message);
 
-    void mDnsServiceAdded(QMdnsEngine::Service service);
+    void mDnsServiceAdded(const QMdnsEngine::Service& service);
 
 private:
     QNetworkAccessManager netManager;

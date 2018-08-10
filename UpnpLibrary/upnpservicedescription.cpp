@@ -33,7 +33,7 @@ QString UpnpServiceDescription::version() const
         return QString("null");
     }
 
-    return QString("%1.%2").arg(m_xml.getParamValue("major", specVersion)).arg(m_xml.getParamValue("minor", specVersion));
+    return QString("%1.%2").arg(m_xml.getParamValue("major", specVersion), m_xml.getParamValue("minor", specVersion));
 }
 
 void UpnpServiceDescription::setVersion(const int &major, const int &minor)

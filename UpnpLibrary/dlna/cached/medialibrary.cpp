@@ -180,7 +180,7 @@ bool MediaLibrary::initialize()
                     QFile fd(url);
                     if (fd.exists())
                     {
-                        qInfo() << QString("media %1 id=%2 is now reachable").arg(fd.fileName()).arg(query.value("id").toString());
+                        qInfo() << QString("media %1 id=%2 is now reachable").arg(fd.fileName(), query.value("id").toString());
                         update("media", query.value("id").toInt(), data);
                     }
                 }
@@ -197,7 +197,7 @@ bool MediaLibrary::initialize()
                 if (!url.startsWith("http")) {
                     QFile fd(url);
                     if (!fd.exists()) {
-                        qInfo() << QString("unable to reach media %1 id=%2").arg(fd.fileName()).arg(query.value("id").toString());
+                        qInfo() << QString("unable to reach media %1 id=%2").arg(fd.fileName(), query.value("id").toString());
                         update("media", query.value("id").toInt(), data);
                     }
                 }
@@ -224,7 +224,7 @@ bool MediaLibrary::initialize()
         // check if duration is valid
         if (query.exec("SELECT filename, title, duration from media WHERE duration<1000")) {
             while (query.next())
-                qWarning() << QString("invalid duration: %1 (filename=%2, title=%3)").arg(query.value(2).toString()).arg(query.value(0).toString()).arg(query.value(1).toString());
+                qWarning() << QString("invalid duration: %1 (filename=%2, title=%3)").arg(query.value(2).toString(), query.value(0).toString(), query.value(1).toString());
         }
 
         // check sortname for artists
@@ -271,7 +271,7 @@ QSqlQuery MediaLibrary::getMedia(const QString &where, const QString &orderParam
                              "from media "
                              "LEFT OUTER JOIN type ON media.type=type.id "
                              "WHERE %1 and is_reachable=1 "
-                             "ORDER BY %2 %3").arg(where).arg(orderParam).arg(sortOption), database());
+                             "ORDER BY %2 %3").arg(where, orderParam, sortOption), database());
 
 }
 
@@ -325,7 +325,7 @@ QVariant MediaLibrary::getmetaData(const QString &tagName, const int &idMedia) c
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
-        query.exec(QString("SELECT %3.name FROM media LEFT OUTER JOIN %3 ON media.%2=%3.%4 WHERE media.id=%1").arg(idMedia).arg(tagName).arg(foreignTable).arg(foreignTo));
+        query.exec(QString("SELECT %3.name FROM media LEFT OUTER JOIN %3 ON media.%2=%3.%4 WHERE media.id=%1").arg(idMedia).arg(tagName, foreignTable, foreignTo));
     } else {
         query.exec(QString("SELECT %1 FROM media WHERE id=%2").arg(tagName).arg(idMedia));
     }
@@ -385,13 +385,13 @@ bool MediaLibrary::setVolumeInfo(const int& idMedia, const QHash<QString, double
     }
     else
     {
-        foreach(const QString &param, info.keys())
+        for (auto it = info.constBegin(); it != info.constEnd(); ++it)
         {
-            if (param.endsWith("_volume"))
+            if (it.key().endsWith("_volume"))
             {
                 int paramId = -1;
                 query.prepare("SELECT id from param_name WHERE name=:name");
-                query.bindValue(":name", param);
+                query.bindValue(":name", it.key());
                 ret = query.exec();
                 if (ret)
                 {
@@ -401,13 +401,13 @@ bool MediaLibrary::setVolumeInfo(const int& idMedia, const QHash<QString, double
                     }
                     else
                     {
-                        qWarning() << "param not found" << param;
+                        qWarning() << "param not found" << it.key();
                         query.prepare("INSERT INTO param_name (name) VALUES (:name)");
-                        query.bindValue(":name", param);
+                        query.bindValue(":name", it.key());
                         ret = query.exec();
                         if (!ret)
                         {
-                            qWarning() << "unable to add param" << param;
+                            qWarning() << "unable to add param" << it.key();
                             break;
                         }
 
@@ -416,14 +416,14 @@ bool MediaLibrary::setVolumeInfo(const int& idMedia, const QHash<QString, double
                 }
                 else
                 {
-                    qWarning() << "ERROR unable to find param name" << param << query.lastError().text();
+                    qWarning() << "ERROR unable to find param name" << it.key() << query.lastError().text();
                     break;
                 }
 
                 query.prepare("INSERT INTO param_value (name, media, value) VALUES (:name, :media, :value)");
                 query.bindValue(":name", paramId);
                 query.bindValue(":media", idMedia);
-                query.bindValue(":value", info[param]);
+                query.bindValue(":value", it.value());
 
                 ret = query.exec();
                 if (!ret)
@@ -459,7 +459,7 @@ QSqlQuery MediaLibrary::getDistinctMetaData(const int &typeMedia, const QString 
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
-        query.exec(QString("SELECT DISTINCT %2.id, %2.name FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4 and is_reachable=1 %5 ORDER BY %2.name").arg(tagName).arg(foreignTable).arg(foreignTo).arg(typeMedia).arg(whereQuery));
+        query.exec(QString("SELECT DISTINCT %2.id, %2.name FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4 and is_reachable=1 %5 ORDER BY %2.name").arg(tagName, foreignTable, foreignTo).arg(typeMedia).arg(whereQuery));
     } else {
         query.exec(QString("SELECT DISTINCT %1 FROM media WHERE type=%2 and is_reachable=1 %3 ORDER by %1").arg(tagName).arg(typeMedia).arg(whereQuery));
     }
@@ -472,7 +472,7 @@ int MediaLibrary::countDistinctMetaData(const int &typeMedia, const QString &tag
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
-        query.exec(QString("SELECT count(DISTINCT %2.name) FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4 and is_reachable=1").arg(tagName).arg(foreignTable).arg(foreignTo).arg(typeMedia));
+        query.exec(QString("SELECT count(DISTINCT %2.name) FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4 and is_reachable=1").arg(tagName, foreignTable, foreignTo).arg(typeMedia));
     } else {
         query.exec(QString("SELECT count(DISTINCT %1) FROM media WHERE type=%2 and is_reachable=1").arg(tagName).arg(typeMedia));
     }
@@ -507,16 +507,17 @@ bool MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &
     {
         QStringList l_parameters;
         QStringList l_values;
-        foreach(QString elt, data.keys()) {
-            if (!data[elt].isNull() && !data[elt].toString().isEmpty()) {
-                l_parameters << elt;
-                l_values << QString(":%1").arg(elt);
+        for (auto it = data.constBegin(); it != data.constEnd(); ++it)
+        {
+            if (!it.value().isNull() && !it.value().toString().isEmpty()) {
+                l_parameters << it.key();
+                l_values << QString(":%1").arg(it.key());
             }
         }
         QString parameters = l_parameters.join(",");
         QString values = l_values.join(",");
 
-        ret = query.prepare(QString("INSERT INTO %3 (%1) VALUES (%2)").arg(parameters).arg(values).arg(table));
+        ret = query.prepare(QString("INSERT INTO %3 (%1) VALUES (%2)").arg(parameters, values, table));
         if (ret)
         {
             foreach(QString elt, l_parameters) {
@@ -566,14 +567,14 @@ int MediaLibrary::insertForeignKey(const QString &table, const QString &paramete
     QSqlQuery query(db);
 
     int index = -1;
-    query.exec(QString("SELECT id FROM %1 WHERE %2 = %3").arg(table).arg(parameter).arg(db.driver()->formatValue(field)));
+    query.exec(QString("SELECT id FROM %1 WHERE %2 = %3").arg(table, parameter, db.driver()->formatValue(field)));
     if (query.next())
     {
         index = query.value(0).toInt();
     }
     else
     {
-        if (!query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table).arg(parameter).arg(db.driver()->formatValue(field))))
+        if (!query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table, parameter, db.driver()->formatValue(field))))
         {
             qCritical() << "unable to update MediaLibrary " + query.lastError().text();
             return -1;
@@ -608,31 +609,31 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
         return false;
     }
 
-    foreach(QString elt, data.keys())
+    for (auto it = data.constBegin(); it != data.constEnd(); ++it)
     {
-        if (!data[elt].isNull() && !data[elt].toString().isEmpty())
+        if (!it.value().isNull() && !it.value().toString().isEmpty())
         {
 
-            if (data[elt].type() != QVariant::Int && foreignKeys[table].contains(elt))
+            if (it.value().type() != QVariant::Int && foreignKeys[table].contains(it.key()))
             {
-                QString foreignTable = foreignKeys[table][elt]["table"];
+                QString foreignTable = foreignKeys[table][it.key()]["table"];
 
                 // replace the value of the foreign key by its id
-                int index = insertForeignKey(foreignTable, "name", data[elt]);
+                int index = insertForeignKey(foreignTable, "name", it.value());
 
                 if (index == -1)
                 {
-                    qCritical() << "unable to bind " << elt;
+                    qCritical() << "unable to bind " << it.key();
                     if (!db.rollback())
                         qCritical() << "unable to rollback" << db.lastError().text();
                     return false;
                 }
 
-                if (record.value(elt) != index)
+                if (record.value(it.key()) != index)
                 {
-                    qDebug() << QString("update %1, %2, index %3 --> %4").arg(elt).arg(record.value(elt).toString()).arg(index).arg(data[elt].toString());
+                    qDebug() << QString("update %1, %2, index %3 --> %4").arg(it.key(), record.value(it.key()).toString()).arg(index).arg(it.value().toString());
                     QSqlQuery queryUpdate(db);
-                    if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(index).arg(id).arg(table)))
+                    if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(it.key()).arg(index).arg(id).arg(table)))
                     {
                         qCritical() << "ERROR" << queryUpdate.lastError().text();
                         if (!db.rollback())
@@ -643,13 +644,13 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
             }
             else
             {
-                if (record.value(elt) != data[elt])
+                if (record.value(it.key()) != it.value())
                 {
-                    qDebug() << QString("update %1, %2 --> %3").arg(elt).arg(record.value(elt).toString()).arg(data[elt].toString());
+                    qDebug() << QString("update %1, %2 --> %3").arg(it.key(), record.value(it.key()).toString(), it.value().toString());
                     QSqlQuery queryUpdate(db);
-                    QSqlField field = record.field(record.indexOf(elt));
-                    field.setValue(data[elt]);
-                    if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(db.driver()->formatValue(field)).arg(id).arg(table)))
+                    QSqlField field = record.field(record.indexOf(it.key()));
+                    field.setValue(it.value());
+                    if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(it.key(), db.driver()->formatValue(field)).arg(id).arg(table)))
                     {
                         qCritical() << "ERROR" << queryUpdate.lastError().text();
                         if (!db.rollback())
@@ -739,13 +740,13 @@ int MediaLibrary::add_album(QHash<QString, QVariant> data_album)
         {
             if (!insert("album", data_album))
             {
-                qCritical() << QString("unable to add album: %1 with artist %2").arg(data_album["name"].toString()).arg(data_album["artist"].toString());
+                qCritical() << QString("unable to add album: %1 with artist %2").arg(data_album["name"].toString(), data_album["artist"].toString());
             }
 
             if (queryAlbum.exec() && queryAlbum.next())
                 id_album = queryAlbum.value(0).toInt();
             else
-                qCritical() << QString("unable to add album: %1 with artist %2 (%3)").arg(data_album["name"].toString()).arg(data_album["artist"].toString()).arg(queryAlbum.lastError().text());
+                qCritical() << QString("unable to add album: %1 with artist %2 (%3)").arg(data_album["name"].toString(), data_album["artist"].toString(), queryAlbum.lastError().text());
         }
     }
 
@@ -781,14 +782,14 @@ int MediaLibrary::add_artist(QHash<QString, QVariant> data_artist)
             if (queryArtist.exec() && queryArtist.next())
                 id_artist = queryArtist.value(0).toInt();
             else
-                qCritical() << QString("unable to add artist: %1 (%2)").arg(data_artist["name"].toString()).arg(queryArtist.lastError().text());
+                qCritical() << QString("unable to add artist: %1 (%2)").arg(data_artist["name"].toString(), queryArtist.lastError().text());
         }
     }
 
     return id_artist;
 }
 
-bool MediaLibrary::add_media(QHash<QString, QVariant> data, QHash<QString, QVariant> data_album, QHash<QString, QVariant> data_artist)
+bool MediaLibrary::add_media(QHash<QString, QVariant> data, const QHash<QString, QVariant> &data_album, const QHash<QString, QVariant> &data_artist)
 {
     int id_album = add_album(data_album);
     if (id_album != -1)

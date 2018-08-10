@@ -70,7 +70,7 @@ QString SoapAction::actionName() const
 
 QByteArray SoapAction::soapaction() const
 {
-    return QString("\"%1#%2\"").arg(serviceType()).arg(actionName()).toUtf8();
+    return QString("\"%1#%2\"").arg(serviceType(), actionName()).toUtf8();
 }
 
 bool SoapAction::addArgument(const QString &name, const QString &value)

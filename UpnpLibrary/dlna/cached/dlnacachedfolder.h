@@ -17,7 +17,7 @@ class DlnaCachedFolder : public DlnaStorageFolder
 public:
     explicit DlnaCachedFolder(MediaLibrary* library,
                               const QSqlQuery& query,
-                              QString name, bool cacheEnabled = false, int maxSize = -1, QObject *parent = Q_NULLPTR);
+                              const QString& name, bool cacheEnabled = false, int maxSize = -1, QObject *parent = Q_NULLPTR);
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
     int getChildrenSize() const Q_DECL_OVERRIDE { return nbChildren; }

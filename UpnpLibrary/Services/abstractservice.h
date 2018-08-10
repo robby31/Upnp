@@ -14,11 +14,6 @@ public:
 
     UpnpServiceDescription *description() const;
 
-private:
-    virtual void initDescription() = 0;
-    virtual void initActions() = 0;
-    virtual void initStateVariables() = 0;
-
 signals:
 
 public slots:

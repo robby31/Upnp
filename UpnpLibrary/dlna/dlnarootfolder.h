@@ -44,7 +44,7 @@ signals:
 
 private slots:
     // returns true if the folder is added to Root.
-    virtual bool addFolderSlot(QString folder);
+    virtual bool addFolderSlot(const QString& folder);
 
     void addChildSlot(DlnaResource *child);
     void clearChildrenSlot() { children.clear(); }

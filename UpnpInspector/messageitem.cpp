@@ -3,7 +3,7 @@
 MessageItem::MessageItem(QObject *parent):
     ListItem(parent),
     m_date(QDateTime::currentDateTime()),
-    m_port(-1)
+    m_port(0)
 {
     m_roles[HostRole] = "host";
     m_roles[PortRole] = "port";
@@ -60,8 +60,6 @@ QVariant MessageItem::data(int role) const
         return QVariant::Invalid;
     }
     }
-
-    return QVariant::Invalid;
 }
 
 bool MessageItem::setData(const QVariant &value, const int &role)
@@ -70,17 +68,17 @@ bool MessageItem::setData(const QVariant &value, const int &role)
     return false;
 }
 
-void MessageItem::setHostAddress(QHostAddress host)
+void MessageItem::setHostAddress(const QHostAddress &host)
 {
     m_host = host;
 }
 
-void MessageItem::setPort(int port)
+void MessageItem::setPort(const quint16 &port)
 {
     m_port = port;
 }
 
-void MessageItem::setMessage(SsdpMessage msg)
+void MessageItem::setMessage(const SsdpMessage &msg)
 {
     m_message = msg;
 }

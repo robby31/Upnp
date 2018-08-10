@@ -11,7 +11,7 @@ class UpnpServiceTest : public QObject
     Q_OBJECT
 
 public:
-    UpnpServiceTest();
+    UpnpServiceTest() = default;
 
 private Q_SLOTS:
     void initTestCase();
@@ -23,10 +23,6 @@ private Q_SLOTS:
 
 };
 
-UpnpServiceTest::UpnpServiceTest()
-{
-}
-
 void UpnpServiceTest::initTestCase()
 {
 }
@@ -37,7 +33,7 @@ void UpnpServiceTest::cleanupTestCase()
 
 void UpnpServiceTest::testUpnpServiceFromDescription()
 {
-    UpnpServiceDescription *serviceDescription = new UpnpServiceDescription();
+    auto serviceDescription = new UpnpServiceDescription();
     serviceDescription->setServiceAttribute("serviceType", "urn:schemas-upnp-org:service:ContentDirectory:1");
     serviceDescription->setServiceAttribute("serviceId", "urn:upnp-org:serviceId:ContentDirectory");
     serviceDescription->setServiceAttribute("SCPDURL", "/UPnP_AV_ContentDirectory_1.0.xml");

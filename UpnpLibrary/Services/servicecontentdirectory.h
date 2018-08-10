@@ -18,9 +18,9 @@ public:
     bool replyRequest(HttpRequest *request) Q_DECL_OVERRIDE;
 
 private:
-    void initDescription() Q_DECL_OVERRIDE;
-    void initActions() Q_DECL_OVERRIDE;
-    void initStateVariables() Q_DECL_OVERRIDE;
+    void initDescription();
+    void initActions();
+    void initStateVariables();
 
     DlnaResource *getDlnaResource(const QString &hostaddress, const QString &objId);
 
@@ -54,7 +54,7 @@ signals:
 private slots:
     void _addFolder(const QString &folder);
 
-    void folderAddedSlot(QString folder);
+    void folderAddedSlot(const QString& folder);
 
     void reloadLibrary();
 
@@ -62,9 +62,9 @@ private slots:
 
     void streamReadyToOpen();
 
-    void servingMedia(QString filename, int playedDurationInMs);
+    void servingMedia(const QString& filename, int playedDurationInMs);
 
-    void servingFinished(QString host, QString filename, int status);
+    void servingFinished(QString host, const QString& filename, int status);
 
     void dlnaContentUpdated();
 

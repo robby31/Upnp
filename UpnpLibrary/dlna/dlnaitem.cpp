@@ -77,7 +77,7 @@ QString DlnaItem::getProtocolInfo() const
     if (m_protocolInfo.isEmpty())
     {
         qWarning() << getSystemName() << "protocol info is empty";
-        return QString("http-get:*:%1:%2").arg(mimeType()).arg(getDlnaContentFeatures());
+        return QString("http-get:*:%1:%2").arg(mimeType(), getDlnaContentFeatures());
     }
 
     return m_protocolInfo;

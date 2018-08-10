@@ -5,16 +5,16 @@ HttpRange::HttpRange() :
     lowRange(0),
     highRange(0),
     size(-1),
-    rxRange("range:\\s+(\\w+)=(\\d*)-(\\d*)", Qt::CaseInsensitive)
+    rxRange(R"(range:\s+(\w+)=(\d*)-(\d*))", Qt::CaseInsensitive)
 {
 }
 
-HttpRange::HttpRange(QString range) :
+HttpRange::HttpRange(const QString &range) :
     null(true),
     lowRange(0),
     highRange(0),
     size(-1),
-    rxRange("range:\\s+(\\w+)=(\\d*)-(\\d*)", Qt::CaseInsensitive)
+    rxRange(R"(range:\s+(\w+)=(\d*)-(\d*))", Qt::CaseInsensitive)
 {
     if (rxRange.indexIn(range) != -1) {
         unit = rxRange.cap(1);
@@ -43,41 +43,41 @@ HttpRange::HttpRange(QString range) :
     }
 }
 
-long HttpRange::getStartByte() const {
+long HttpRange::getStartByte() const
+{
 
-    if (!isNull() && (size > 0)) {
-        if ((lowRange >= 0) && (lowRange < size)) {
+    if (!isNull() && (size > 0))
+    {
+        if ((lowRange >= 0) && (lowRange < size))
             return lowRange;
-        }
 
-        if ((lowRange == -1) && (highRange > 0)) {
-            if ((size - highRange) >= 0) {
+        if ((lowRange == -1) && (highRange > 0))
+        {
+            if ((size - highRange) >= 0)
                 return size - highRange;
-            } else {
-                return 0;
-            }
+
+            return 0;
         }
     }
 
     return -1;
 }
 
-long HttpRange::getEndByte() const {
+long HttpRange::getEndByte() const
+{
 
-    if (!isNull() && (size > 0)) {
-        if (highRange == -1)  {
+    if (!isNull() && (size > 0))
+    {
+        if (highRange == -1)
             return size - 1;
-        }
 
-        if ((lowRange == -1) && (highRange > 0)) {
+        if ((lowRange == -1) && (highRange > 0))
             return size - 1;
-        }
 
-        if (highRange < size) {
+        if (highRange < size)
             return highRange;
-        } else {
-            return size - 1;
-        }
+
+        return size - 1;
     }
 
     return -1;

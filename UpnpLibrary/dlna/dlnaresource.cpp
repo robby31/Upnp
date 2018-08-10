@@ -5,7 +5,7 @@ qint64 DlnaResource::objectCounter = 0;
 DlnaResource::DlnaResource(QObject *parent):
     QObject(parent),
     id(),
-    dlnaParent(0),
+    dlnaParent(Q_NULLPTR),
     m_needRefresh(false),
     updateId(1)
 {
@@ -21,34 +21,36 @@ QString DlnaResource::getResourceId() const {
     if (getId().isNull())
         return QString();
 
-    if (getDlnaParent() != 0)
+    if (getDlnaParent())
         return getDlnaParent()->getResourceId() + '$' + getId();
-    else
-        return getId();
+
+    return getId();
 }
 
-DlnaResource* DlnaResource::search(QString searchId, QString searchStr, QObject *parent) {
-    if (getResourceId() == searchId) {
+DlnaResource* DlnaResource::search(const QString &searchId, const QString &searchStr, QObject *parent)
+{
+    if (getResourceId() == searchId)
         return this;
-    }
-    else if (getResourceId().length() < searchId.length() && searchId.startsWith(getResourceId())) {
+
+    if (getResourceId().length() < searchId.length() && searchId.startsWith(getResourceId())) {
 
         int child_index = searchId.split("$").at(getResourceId().split("$").length()).toInt()-1;
 
         if ((child_index >= 0) && (child_index < getChildrenSize())) {
             DlnaResource *child = getChild(child_index, parent);
-            if (child != 0)
+            if (child)
                 return child->search(searchId, searchStr, parent);
         }
     }
 
-    return 0;
+    return Q_NULLPTR;
 }
 
-QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr, QObject *parent) {
+QList<DlnaResource*> DlnaResource::getDLNAResources(const QString &objectId, bool returnChildren, int start, int count, const QString &searchStr, QObject *parent) {
     QList<DlnaResource*> resources;
     DlnaResource* dlna = search(objectId, searchStr, parent);
-    if (dlna != 0) {
+    if (dlna)
+    {
         if (!returnChildren) {
             resources.append(dlna);
         } else {
@@ -58,8 +60,10 @@ QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool retur
             for (int i = start; i < start + count; i++) {
                 if (i < nbChildren) {
                     DlnaResource* child = dlna->getChild(i, parent);
-                    if (child != 0) {
-                        if (child->m_needRefresh) {
+                    if (child)
+                    {
+                        if (child->m_needRefresh)
+                        {
                             child->refreshContent();
                             ++child->updateId;
                             child->m_needRefresh = false;
@@ -74,14 +78,15 @@ QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool retur
     return resources;
 }
 
-QString DlnaResource::getDlnaParentId() const {
-    if (getDlnaParent() != 0)
+QString DlnaResource::getDlnaParentId() const
+{
+    if (getDlnaParent())
         return getDlnaParent()->getResourceId();
-    else
-        return "-1";
+
+    return "-1";
 }
 
-QString DlnaResource::getStringContentDirectory(QStringList properties)  {
+QString DlnaResource::getStringContentDirectory(const QStringList &properties)  {
     QDomDocument xml;
     xml.appendChild(getXmlContentDirectory(&xml, properties));
 
@@ -142,7 +147,7 @@ void DlnaResource::change_parent(QObject *old_parent, QObject *new_parent)
     if (new_parent && parent() == old_parent)
     {
         // set parent to null
-        setParent(0);
+        setParent(Q_NULLPTR);
 
         // change the thread
         moveToThread(new_parent->thread());
@@ -153,7 +158,7 @@ void DlnaResource::change_parent(QObject *old_parent, QObject *new_parent)
     }
 }
 
-void DlnaResource::requestDlnaResources(QObject *sender, QString objectId, bool returnChildren, int start, int count, QString searchStr)
+void DlnaResource::requestDlnaResources(QObject *sender, const QString &objectId, bool returnChildren, int start, int count, const QString &searchStr)
 {
     QObject context;
     QList<DlnaResource*> res = getDLNAResources(objectId, returnChildren, start, count, searchStr, &context);
@@ -172,11 +177,11 @@ QUrl DlnaResource::getHostUrl() const
 {
     if (!m_hostUrl.isEmpty())
         return m_hostUrl;
-    else if (dlnaParent)
-        return dlnaParent->getHostUrl();
-    else
-        qCritical() << "invalid host url" << m_hostUrl << this;
 
+    if (dlnaParent)
+        return dlnaParent->getHostUrl();
+
+    qCritical() << "invalid host url" << m_hostUrl << this;
     return QString();
 }
 

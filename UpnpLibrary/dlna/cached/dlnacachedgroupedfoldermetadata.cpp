@@ -1,6 +1,6 @@
 #include "dlnacachedgroupedfoldermetadata.h"
 
-DlnaCachedGroupedFolderMetaData::DlnaCachedGroupedFolderMetaData(MediaLibrary *library, QString name, QObject *parent):
+DlnaCachedGroupedFolderMetaData::DlnaCachedGroupedFolderMetaData(MediaLibrary *library, const QString& name, QObject *parent):
     DlnaStorageFolder(parent),
     library(library),
     name(name)
@@ -8,8 +8,8 @@ DlnaCachedGroupedFolderMetaData::DlnaCachedGroupedFolderMetaData(MediaLibrary *l
 }
 
 void DlnaCachedGroupedFolderMetaData::addFolder(const QString &stringQuery,
-                                                QString stringQueryForChild,
-                                                QString name)
+                                                const QString& stringQueryForChild,
+                                                const QString& name)
 {
     DlnaCachedFolderMetaData* child;
 

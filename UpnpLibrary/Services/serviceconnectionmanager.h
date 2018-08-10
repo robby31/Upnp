@@ -13,7 +13,7 @@ public:
 
     explicit ServiceConnectionManager(QObject *parent = Q_NULLPTR);
     explicit ServiceConnectionManager(UpnpObject *upnpParent, QObject *parent = Q_NULLPTR);
-    explicit ServiceConnectionManager(UpnpObject *upnpParent, QDomNode info, QObject *parent = Q_NULLPTR);
+    explicit ServiceConnectionManager(UpnpObject *upnpParent, const QDomNode& info, QObject *parent = Q_NULLPTR);
 
     void setDirection(const T_DIRECTION &direction);
     T_DIRECTION direction() const;
@@ -22,9 +22,9 @@ public:
     T_STATUS connectionStatus() const;
 
 private:
-    void initDescription() Q_DECL_OVERRIDE;
-    void initActions() Q_DECL_OVERRIDE;
-    void initStateVariables() Q_DECL_OVERRIDE;
+    void initDescription();
+    void initActions();
+    void initStateVariables();
 
 protected:
     bool replyAction(HttpRequest *request, const SoapAction &action) Q_DECL_OVERRIDE;

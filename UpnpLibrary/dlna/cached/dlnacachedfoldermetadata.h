@@ -13,8 +13,8 @@ class DlnaCachedFolderMetaData : public DlnaStorageFolder
 public:
     explicit DlnaCachedFolderMetaData(MediaLibrary* library,
                                       const QString& stringQuery,
-                                      QString stringQueryForChild,
-                                      QString name,
+                                      const QString& stringQueryForChild,
+                                      const QString& name,
                                       QObject *parent = Q_NULLPTR);
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;

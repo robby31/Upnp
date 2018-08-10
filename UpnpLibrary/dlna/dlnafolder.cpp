@@ -28,7 +28,7 @@ DlnaFolder::DlnaFolder(const QString &filename, QObject *parent):
             children.append(new_file);
         }
         else {
-            qWarning() << QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath());
+            qWarning() << QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name(), new_file.absoluteFilePath());
         }
     }
 }
@@ -58,7 +58,7 @@ DlnaResource *DlnaFolder::getChild(int index, QObject *parent)  {
                                       parent != Q_NULLPTR ? parent : this);
         }
         else {
-            qWarning() << QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(fileinfo).name()).arg(fileinfo.absoluteFilePath());
+            qWarning() << QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(fileinfo).name(), fileinfo.absoluteFilePath());
         }
     }
 

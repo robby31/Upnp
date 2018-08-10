@@ -42,7 +42,7 @@ private slots:
     void incrementCounterPlayed(const QString &filename);
 
     // returns true if the folder is added to Root.
-    bool addFolderSlot(QString path) Q_DECL_OVERRIDE;
+    bool addFolderSlot(const QString& path) Q_DECL_OVERRIDE;
 
     void addNetworkLink(const QString &url);
 

@@ -2,7 +2,6 @@
 
 ServiceContentDirectory::ServiceContentDirectory(MediaRendererModel *model, UpnpDevice *upnpParent, QObject *parent):
     AbstractService(upnpParent, parent),
-    rootFolder(),
     m_renderersModel(model)
 {
     initDescription();
@@ -52,7 +51,7 @@ ServiceContentDirectory::~ServiceContentDirectory()
 
 void ServiceContentDirectory::initDescription()
 {
-    UpnpServiceDescription *serviceDescription = new UpnpServiceDescription();
+    auto serviceDescription = new UpnpServiceDescription();
     serviceDescription->setServiceAttribute("serviceType", "urn:schemas-upnp-org:service:ContentDirectory:1");
     serviceDescription->setServiceAttribute("serviceId", "urn:upnp-org:serviceId:ContentDirectory");
     serviceDescription->setServiceAttribute("SCPDURL", "/UPnP_AV_ContentDirectory_1.0.xml");
@@ -140,7 +139,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
     {
         StateVariableItem *searchCaps = findStateVariableByName("SearchCapabilities");
 
-        if (action.arguments().size() != 0)
+        if (!action.arguments().isEmpty())
         {
             UpnpError error(UpnpError::INVALID_ARGS);
             request->replyError(error);
@@ -161,11 +160,12 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
 
         return true;
     }
-    else if (action.actionName() == "GetSortCapabilities")
+
+    if (action.actionName() == "GetSortCapabilities")
     {
         StateVariableItem *sortCaps = findStateVariableByName("SortCapabilities");
 
-        if (action.arguments().size() != 0)
+        if (!action.arguments().isEmpty())
         {
             UpnpError error(UpnpError::INVALID_ARGS);
             request->replyError(error);
@@ -186,11 +186,12 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
 
         return true;
     }
-    else if (action.actionName() == "GetSystemUpdateID")
+
+    if (action.actionName() == "GetSystemUpdateID")
     {
         StateVariableItem *sysUpdateId = findStateVariableByName("SystemUpdateID");
 
-        if (action.arguments().size() != 0)
+        if (!action.arguments().isEmpty())
         {
             UpnpError error(UpnpError::INVALID_ARGS);
             request->replyError(error);
@@ -211,7 +212,8 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
 
         return true;
     }
-    else if (action.actionName() == "Browse")
+
+    if (action.actionName() == "Browse")
     {
         MediaRenderer* renderer = Q_NULLPTR;
         if (m_renderersModel)
@@ -277,7 +279,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 DlnaResource *object_requested = Q_NULLPTR;
                 if (browseFlag == "BrowseDirectChildren")
                 {
-                    if (l_dlna.size() > 0)
+                    if (!l_dlna.isEmpty())
                         object_requested = l_dlna.at(0)->getDlnaParent();
                 }
                 else if (browseFlag == "BrowseMetadata")
@@ -305,7 +307,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
 
                 foreach (DlnaResource* resource, l_dlna)
                 {
-                    DlnaItem *dlnaItem = qobject_cast<DlnaItem*>(resource);
+                    auto dlnaItem = qobject_cast<DlnaItem*>(resource);
                     if (dlnaItem && renderer)
                         dlnaItem->setSinkProtocol(renderer->sinkProtocols());
 
@@ -325,14 +327,14 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 else if (browseFlag == "BrowseDirectChildren")
                 {
                     DlnaResource *parent = Q_NULLPTR;
-                    if (l_dlna.size() > 0)
+                    if (!l_dlna.isEmpty())
                         parent = l_dlna.at(0)->getDlnaParent();
 
                     if (parent)
                     {
                         response.addArgument("TotalMatches", QString("%1").arg(parent->getChildrenSize()));
                     }
-                    else if (l_dlna.size() != 0)
+                    else if (!l_dlna.isEmpty())
                     {
                         response.addArgument("TotalMatches", "0");
                     }
@@ -359,29 +361,23 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 request->replyAction(response);
                 return true;
             }
-            else
-            {
-                qCritical() << "invalid argument in Browse" << objectID << startingIndex << requestedCount << browseFlag << filter << sortCriteria;
 
-                UpnpError error(UpnpError::INVALID_ARGS);
-                request->replyError(error);
-                return false;
-            }
-        }
-        else
-        {
-            UpnpError error(UpnpError::INVALID_OBJECT);
+            qCritical() << "invalid argument in Browse" << objectID << startingIndex << requestedCount << browseFlag << filter << sortCriteria;
+
+            UpnpError error(UpnpError::INVALID_ARGS);
             request->replyError(error);
             return false;
         }
-    }
-    else
-    {
-        qCritical() << "unknwon action" << action.actionName();
-        UpnpError error(UpnpError::INVALID_ACTION);
+
+        UpnpError error(UpnpError::INVALID_OBJECT);
         request->replyError(error);
         return false;
     }
+
+    qCritical() << "unknwon action" << action.actionName();
+    UpnpError error(UpnpError::INVALID_ACTION);
+    request->replyError(error);
+    return false;
 }
 
 bool ServiceContentDirectory::replyRequest(HttpRequest *request)
@@ -396,9 +392,9 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
         QStringList l_path = request->url().toString().split("/");
         if (l_path.size() > 1)
         {
-            QString objectID = l_path.at(l_path.size()-2);
+            const QString& objectID = l_path.at(l_path.size()-2);
 
-            DlnaItem *dlna = qobject_cast<DlnaItem*>(getDlnaResource(request->peerAddress().toString(), objectID));
+            auto dlna = qobject_cast<DlnaItem*>(getDlnaResource(request->peerAddress().toString(), objectID));
 
             if (dlna)
             {
@@ -451,8 +447,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
 
                         m_header << QString("Content-Length: %1").arg(range->getLength());
 
-                        QDateTime datetime;
-                        m_header << QString("DATE: %1").arg(datetime.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+                        m_header << QString("DATE: %1").arg(QDateTime::currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
 
                         if (range->getEndByte() >= range->getSize()-1)
                             request->setpartialStreaming(false);
@@ -480,8 +475,8 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                         QTime length_time(0, 0, 0);
                         length_time = length_time.addMSecs(dlna->getLengthInMilliSeconds());
 
-                        m_header << QString("TimeSeekRange.dlna.org: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z"));
-                        m_header << QString("X-Seek-Range: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z"));
+                        m_header << QString("TimeSeekRange.dlna.org: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z"), end_time.toString("hh:mm:ss,z"), length_time.toString("hh:mm:ss,z"));
+                        m_header << QString("X-Seek-Range: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z"), end_time.toString("hh:mm:ss,z"), length_time.toString("hh:mm:ss,z"));
                         m_header << QString("X-AvailableSeekRange: 1 npt=%1-%2").arg(0).arg(dlna->getLengthInSeconds());
                     }
 
@@ -490,9 +485,9 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                         if (request->operation() == QNetworkAccessManager::GetOperation)
                         {
                             if (dlna->toTranscode())
-                                request->logMessage(QString("Transcode media from %1 to %2").arg(dlna->metaDataFormat()).arg(dlna->mimeType()));
+                                request->logMessage(QString("Transcode media from %1 to %2").arg(dlna->metaDataFormat(), dlna->mimeType()));
                             else
-                                request->logMessage(QString("Stream media %1 %2").arg(dlna->metaDataFormat()).arg(dlna->mimeType()));
+                                request->logMessage(QString("Stream media %1 %2").arg(dlna->metaDataFormat(), dlna->mimeType()));
 
                             request->logMessage(QString("%1 bytes to send in %2.").arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")));
 
@@ -585,7 +580,7 @@ void ServiceContentDirectory::_addFolder(const QString &folder)
         emit error_addFolder(folder);   // error folder is not a directory
 }
 
-void ServiceContentDirectory::folderAddedSlot(QString folder)
+void ServiceContentDirectory::folderAddedSlot(const QString &folder)
 {
     listFolderAdded << folder;
 }
@@ -597,13 +592,13 @@ void ServiceContentDirectory::reloadLibrary()
 
 void ServiceContentDirectory::streamReadyToOpen()
 {
-    Device *stream = qobject_cast<Device*>(sender());
+    auto stream = qobject_cast<Device*>(sender());
     stream->open();
 }
 
 void ServiceContentDirectory::readTimeSeekRange(const QString &data, qint64 *start, qint64 *end)
 {
-    QRegularExpression pattern("timeseekrange\\.dlna\\.org:\\s*npt\\s*=\\s*(\\d+)\\-?(\\d*)", QRegularExpression::CaseInsensitiveOption);
+    QRegularExpression pattern(R"(timeseekrange\.dlna\.org:\s*npt\s*=\s*(\d+)\-?(\d*))", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch match = pattern.match(data);
 
     if (match.hasMatch())
@@ -620,7 +615,7 @@ void ServiceContentDirectory::readTimeSeekRange(const QString &data, qint64 *sta
     }
 }
 
-void ServiceContentDirectory::servingFinished(QString host, QString filename, int status)
+void ServiceContentDirectory::servingFinished(QString host, const QString &filename, int status)
 {
     Q_UNUSED(host)
 
@@ -630,20 +625,25 @@ void ServiceContentDirectory::servingFinished(QString host, QString filename, in
 
         // remove resource from cache
         qDebug() << "SERVING FINISHED" << host << filename << m_dlnaresources.keys();
-        foreach (QString dlnaresourceID, m_dlnaresources.keys())
+        auto it = m_dlnaresources.begin();
+        while (it != m_dlnaresources.end())
         {
-            if (dlnaresourceID.startsWith(host) && m_dlnaresources[dlnaresourceID]->getSystemName() == filename)
+            if (it.key().startsWith(host) && it.value()->getSystemName() == filename)
             {
-                qDebug() << "remove from cache" << dlnaresourceID << m_dlnaresources[dlnaresourceID]->getSystemName();
-                DlnaResource *resource = m_dlnaresources[dlnaresourceID];
-                m_dlnaresources.remove(dlnaresourceID);
+                qDebug() << "remove from cache" << it.key() << it.value()->getSystemName();
+                DlnaResource *resource = it.value();
+                it = m_dlnaresources.erase(it);
                 resource->deleteLater();
+            }
+            else
+            {
+                ++it;
             }
         }
     }
 }
 
-void ServiceContentDirectory::servingMedia(QString filename, int playedDurationInMs)
+void ServiceContentDirectory::servingMedia(const QString &filename, int playedDurationInMs)
 {
     QHash<QString, QVariant> data;
     data.insert("last_played", QDateTime::currentDateTime());
@@ -654,27 +654,23 @@ void ServiceContentDirectory::servingMedia(QString filename, int playedDurationI
 
 DlnaResource *ServiceContentDirectory::getDlnaResource(const QString &hostaddress, const QString &objId)
 {
-    QString dlnaresourceID = QString("%1_%2").arg(hostaddress).arg(objId);
+    QString dlnaresourceID = QString("%1_%2").arg(hostaddress, objId);
 
     if (m_dlnaresources.contains(dlnaresourceID))
-    {
         return m_dlnaresources[dlnaresourceID];
-    }
-    else
-    {
-        qDebug() << "request" << objId << "from" << hostaddress;
 
-        QObject context;
-        QList<DlnaResource*> l_dlna = rootFolder.getDLNAResources(objId, false, 0, 0, "", &context);
-        if (l_dlna.size() == 1)
-        {
-            // store dlna object in cache
-            m_dlnaresources[dlnaresourceID] = l_dlna.at(0);
-            l_dlna.at(0)->setParent(this);
-            if (l_dlna.at(0)->getDlnaParent())
-                connect(l_dlna.at(0)->getDlnaParent(), SIGNAL(dlnaContentUpdated()), this, SLOT(dlnaContentUpdated()), Qt::UniqueConnection);
-            return m_dlnaresources[dlnaresourceID];
-        }
+    qDebug() << "request" << objId << "from" << hostaddress;
+
+    QObject context;
+    QList<DlnaResource*> l_dlna = rootFolder.getDLNAResources(objId, false, 0, 0, "", &context);
+    if (l_dlna.size() == 1)
+    {
+        // store dlna object in cache
+        m_dlnaresources[dlnaresourceID] = l_dlna.at(0);
+        l_dlna.at(0)->setParent(this);
+        if (l_dlna.at(0)->getDlnaParent())
+            connect(l_dlna.at(0)->getDlnaParent(), SIGNAL(dlnaContentUpdated()), this, SLOT(dlnaContentUpdated()), Qt::UniqueConnection);
+        return m_dlnaresources[dlnaresourceID];
     }
 
     return Q_NULLPTR;
@@ -682,20 +678,25 @@ DlnaResource *ServiceContentDirectory::getDlnaResource(const QString &hostaddres
 
 void ServiceContentDirectory::dlnaContentUpdated()
 {
-    DlnaResource *dlna = qobject_cast<DlnaResource*>(sender());
+    auto dlna = qobject_cast<DlnaResource*>(sender());
     if (dlna)
     {
         // remove from cache chid object of dlna resource updated
         qDebug() << "dlna content updated" << dlna->getResourceId();
         QString id = QString("_%1").arg(dlna->getResourceId());
-        foreach (const QString &param, m_dlnaresources.keys())
+        auto it = m_dlnaresources.begin();
+        while (it != m_dlnaresources.end())
         {
-            if (param.contains(id))
+            if (it.key().contains(id))
             {
-                qDebug() << "remove child" << param << "from cache";
-                DlnaResource *resource = m_dlnaresources[param];
-                m_dlnaresources.remove(param);
+                qDebug() << "remove child" << it.key() << "from cache";
+                DlnaResource *resource = it.value();
+                it = m_dlnaresources.erase(it);
                 resource->deleteLater();
+            }
+            else
+            {
+                ++it;
             }
         }
     }
@@ -708,14 +709,19 @@ void ServiceContentDirectory::dlnaContentUpdated()
 void ServiceContentDirectory::mediaRendererDestroyed(const QString &hostaddress)
 {
     qDebug() << "renderer destroyed" << hostaddress;
-    foreach (const QString &param, m_dlnaresources.keys())
+    auto it = m_dlnaresources.begin();
+    while (it != m_dlnaresources.end())
     {
-        if (param.startsWith(hostaddress))
+        if (it.key().startsWith(hostaddress))
         {
-            qDebug() << "remove child" << param << "from cache";
-            DlnaResource *resource = m_dlnaresources[param];
-            m_dlnaresources.remove(param);
+            qDebug() << "remove child" << it.key() << "from cache";
+            DlnaResource *resource = it.value();
+            it = m_dlnaresources.erase(it);
             resource->deleteLater();
+        }
+        else
+        {
+            ++it;
         }
     }
 }

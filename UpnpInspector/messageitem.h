@@ -32,15 +32,15 @@ public:
     QVariant data(int role) const Q_DECL_OVERRIDE;
     bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
-    void setHostAddress(QHostAddress host);
-    void setPort(int port);
-    void setMessage(SsdpMessage msg);
+    void setHostAddress(const QHostAddress& host);
+    void setPort(const quint16& port);
+    void setMessage(const SsdpMessage& msg);
 
 private:
     QHash<int, QByteArray> m_roles;
     QDateTime m_date;
     QHostAddress m_host;
-    int m_port;
+    quint16 m_port;
     SsdpMessage m_message;
 };
 

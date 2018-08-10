@@ -1,6 +1,6 @@
 #include "dlnacachedfoldermetadata.h"
 
-DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(MediaLibrary *library, const QString& stringQuery, QString stringQueryForChild, QString name, QObject *parent):
+DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(MediaLibrary *library, const QString& stringQuery, const QString& stringQueryForChild, const QString& name, QObject *parent):
     DlnaStorageFolder(parent),
     library(library),
     m_name(name),

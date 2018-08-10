@@ -109,7 +109,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getName().toUtf8().toPercentEncoding().constData())));
+    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId(), getHostUrl().host()).arg(getHostUrl().port()).arg(getName().toUtf8().toPercentEncoding().constData())));
 
     xml_obj.appendChild(res);
 
@@ -123,64 +123,50 @@ int DlnaVideoItem::bitrate() const
     {
         if (format() == H264_AC3 || format() == H264_AAC)
             return 2500000;
-        else
-            return 4558800;
+
+        return 4558800;
     }
-    else
-    {
-        return metaDataBitrate();
-    }
+
+    return metaDataBitrate();
 }
 
-QString DlnaVideoItem::mimeType() const {
-    if (toTranscode()) {
+QString DlnaVideoItem::mimeType() const
+{
+    if (toTranscode())
+    {
         if (transcodeFormat == MPEG2_AC3)
-        {
             return MPEG_TYPEMIME;
 
-        } else if (transcodeFormat == H264_AAC || transcodeFormat == H264_AC3)
-        {
+        if (transcodeFormat == H264_AAC || transcodeFormat == H264_AC3)
             return MP4_TYPEMIME;
-        }
-        else
-        {
-            qCritical() << "Unable to define mimeType of DlnaVideoItem: " << getSystemName();
 
-            // returns unknown mimeType
-            return UNKNOWN_VIDEO_TYPEMIME;
-        }
-    } else {
-        return sourceMimeType();
+        qCritical() << "Unable to define mimeType of DlnaVideoItem: " << getSystemName();
+        // returns unknown mimeType
+        return UNKNOWN_VIDEO_TYPEMIME;
     }
+
+    return sourceMimeType();
 }
 
 QString DlnaVideoItem::sourceMimeType() const
 {
     QString format = metaDataFormat();
     if (format == "avi")
-    {
         return AVI_TYPEMIME;
-    }
-    else if (format == "matroska,webm")
-    {
+
+    if (format == "matroska,webm")
         return MATROSKA_TYPEMIME;
 
-    }
-    else if (format == "mov,mp4,m4a,3gp,3g2,mj2")
-    {
+    if (format == "mov,mp4,m4a,3gp,3g2,mj2")
         return MP4_TYPEMIME;
-    }
-    else if (format == "asf")
-    {
-        return ASF_TYPEMIME;
-    }
-    else
-    {
-        qCritical() << "Unable to define mimeType of DlnaVideoItem: " << format << " " << getSystemName();
 
-        // returns unknown mimeType
-        return UNKNOWN_VIDEO_TYPEMIME;
-    }
+    if (format == "asf")
+        return ASF_TYPEMIME;
+
+    qCritical() << "Unable to define mimeType of DlnaVideoItem: " << format << " " << getSystemName();
+
+    // returns unknown mimeType
+    return UNKNOWN_VIDEO_TYPEMIME;
 }
 
 void DlnaVideoItem::updateDLNAOrgPn() {

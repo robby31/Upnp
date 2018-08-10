@@ -19,7 +19,7 @@ ServiceConnectionManager::ServiceConnectionManager(UpnpObject *upnpParent, QObje
 }
 
 
-ServiceConnectionManager::ServiceConnectionManager(UpnpObject *upnpParent, QDomNode info, QObject *parent) :
+ServiceConnectionManager::ServiceConnectionManager(UpnpObject *upnpParent, const QDomNode &info, QObject *parent) :
     AbstractService(upnpParent, info, parent)
 {
     initDescription();
@@ -30,7 +30,7 @@ ServiceConnectionManager::ServiceConnectionManager(UpnpObject *upnpParent, QDomN
 
 void ServiceConnectionManager::initDescription()
 {
-    UpnpServiceDescription *serviceDescription = new UpnpServiceDescription();
+    auto serviceDescription = new UpnpServiceDescription();
     serviceDescription->setServiceAttribute("serviceType", "urn:schemas-upnp-org:service:ConnectionManager:1");
     serviceDescription->setServiceAttribute("serviceId", "urn:upnp-org:serviceId:ConnectionManager");
     serviceDescription->setServiceAttribute("SCPDURL", "/UPnP_AV_ConnectionManager_1.0.xml");
@@ -115,7 +115,7 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
     {
         StateVariableItem *sourceProtocal = findStateVariableByName("SourceProtocolInfo");
         StateVariableItem *sinkProtocal = findStateVariableByName("SinkProtocolInfo");
-        if (action.arguments().size() != 0)
+        if (!action.arguments().isEmpty())
         {
             UpnpError error(UpnpError::INVALID_ARGS);
             request->replyError(error);
@@ -137,10 +137,11 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
 
         return true;
     }
-    else if (action.actionName() == "GetCurrentConnectionIDs")
+
+    if (action.actionName() == "GetCurrentConnectionIDs")
     {
         StateVariableItem *currentConnection = findStateVariableByName("CurrentConnectionIDs");
-        if (action.arguments().size() != 0)
+        if (!action.arguments().isEmpty())
         {
             UpnpError error(UpnpError::INVALID_ARGS);
             request->replyError(error);
@@ -161,7 +162,8 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
 
         return true;
     }
-    else if (action.actionName() == "GetCurrentConnectionInfo")
+
+    if (action.actionName() == "GetCurrentConnectionInfo")
     {
         QString connectionID = action.argumentValue("ConnectionID");
 
@@ -200,13 +202,11 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
 
         return true;
     }
-    else
-    {
-        qCritical() << "unknwon action" << action.actionName();
-        UpnpError error(UpnpError::INVALID_ACTION);
-        request->replyError(error);
-        return false;
-    }
+
+    qCritical() << "unknwon action" << action.actionName();
+    UpnpError error(UpnpError::INVALID_ACTION);
+    request->replyError(error);
+    return false;
 }
 
 ServiceConnectionManager::T_DIRECTION ServiceConnectionManager::direction() const

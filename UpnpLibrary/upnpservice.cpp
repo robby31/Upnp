@@ -393,7 +393,7 @@ void UpnpService::searchForST(const QHostAddress &host, const int &port, const Q
     else
     {
         if (st == "ssdp:all" || st == serviceType())
-            emit searchResponse(host, port, serviceType(), QString("uuid:%1::%2").arg(uuid).arg(serviceType()));
+            emit searchResponse(host, port, serviceType(), QString("uuid:%1::%2").arg(uuid, serviceType()));
     }
 }
 
@@ -462,13 +462,13 @@ void UpnpService::updateStateVariables(QHash<QString, QString> data)
         }
     }
 
-    // check all variables have been updated
-    foreach (const QString &name, data.keys())
+    // check all variables have been updated    
+    for (auto it = data.constBegin(); it != data.constEnd(); ++it)
     {
-        if (name == "LastChange")
+        if (it.key() == "LastChange")
         {
-            if (!data[name].isEmpty())
-                updateLastChange(data[name]);
+            if (!it.value().isEmpty())
+                updateLastChange(it.value());
         }
         else
         {
@@ -478,7 +478,7 @@ void UpnpService::updateStateVariables(QHash<QString, QString> data)
                 auto item = qobject_cast<StateVariableItem*>(m_stateVariablesModel.at(i));
                 if (item)
                 {
-                    if (item->data(StateVariableItem::NameRole) == name)
+                    if (item->data(StateVariableItem::NameRole) == it.key())
                     {
                         found = true;
                         break;
@@ -487,7 +487,7 @@ void UpnpService::updateStateVariables(QHash<QString, QString> data)
             }
 
             if (!found)
-                qCritical() << "state variable not found" << name;
+                qCritical() << "state variable not found" << it.key();
         }
     }
 }
@@ -636,8 +636,7 @@ bool UpnpService::replyNewSubscription(HttpRequest *request)
         {
             QStringList header;
 
-            QDateTime sdf;
-            header << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+            header << QString("DATE: %1").arg(QDateTime::currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
             if (!request->serverName().isEmpty())
                 header << QString("SERVER: %1").arg(request->serverName());
 
@@ -703,8 +702,7 @@ bool UpnpService::replyRenewSubscription(HttpRequest *request)
             int timeOut = 1800;
             QStringList header;
 
-            QDateTime sdf;
-            header << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+            header << QString("DATE: %1").arg(QDateTime::currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
             if (!request->serverName().isEmpty())
                 header << QString("SERVER: %1").arg(request->serverName());
 
@@ -796,15 +794,18 @@ void UpnpService::sendEventReply()
             qCritical() << "answer data" << reply->errorString() << reply->rawHeaderList() << reply->readAll();
         }
 
-        foreach (const int &timerId, m_checkSendEvent.keys())
+        auto it = m_checkSendEvent.begin();
+        while (it != m_checkSendEvent.end())
         {
-            if (m_checkSendEvent[timerId].reply == reply)
+            if (it.value().reply == reply)
             {
-                qDebug() << "kill timer timeout" << timerId;
-                killTimer(timerId);
-                m_checkSendEvent.remove(timerId);
+                qDebug() << "kill timer timeout" << it.key();
+                killTimer(it.key());
+                it = m_checkSendEvent.erase(it);
                 break;
             }
+
+            ++it;
         }
 
         reply->deleteLater();
@@ -830,12 +831,17 @@ void UpnpService::timerEvent(QTimerEvent *event)
     else if (m_timerCheckSubscription == event->timerId())
     {
         // check event subscribed are still valid
-        foreach (const QString &uuid, m_subscription.keys())
+        auto it = m_subscription.begin();
+        while (it != m_subscription.end())
         {
-            if (QDateTime::currentDateTime().secsTo(m_subscription[uuid].timeOver) < 1)
+            if (QDateTime::currentDateTime().secsTo(it.value().timeOver) < 1)
             {
-                qWarning() << uuid << m_subscription[uuid].timeOver << "subscription over";
-                m_subscription.remove(uuid);
+                qWarning() << it.key() << it.value().timeOver << "subscription over";
+                it = m_subscription.erase(it);
+            }
+            else
+            {
+                ++it;
             }
         }
 

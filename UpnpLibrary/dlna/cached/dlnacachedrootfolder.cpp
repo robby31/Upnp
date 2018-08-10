@@ -116,7 +116,7 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(QObject *parent):
     addChild(&rootFolder);
 }
 
-bool DlnaCachedRootFolder::addFolderSlot(QString path)
+bool DlnaCachedRootFolder::addFolderSlot(const QString &path)
 {
     if (QFileInfo(path).isDir())
     {
@@ -182,16 +182,16 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QString &streamingUrl)
         else
         {
             if (movie->metaDataDuration()<=0)
-                qWarning() << QString("invalid duration %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(movie->url().toString()).arg(movie->metaDataDuration());
+                qWarning() << QString("invalid duration %3 for %1 (%2).").arg(movie->metaDataTitle(), movie->url().toString()).arg(movie->metaDataDuration());
             if (movie->resolution().isEmpty())
-                qWarning() << QString("invalid resolution %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(movie->url().toString()).arg(movie->resolution());
+                qWarning() << QString("invalid resolution %3 for %1 (%2).").arg(movie->metaDataTitle(), movie->url().toString(), movie->resolution());
 
             if (!data.isEmpty())
             {
                 qDebug() << QString("Resource to add: %1").arg(movie->metaDataTitle());
                 if (!library.add_media(data, data_album, data_artist))
                 {
-                    qCritical() << QString("unable to add or update resource %1 (%2)").arg(movie->url().toString()).arg("video");
+                    qCritical() << QString("unable to add or update resource %1 (%2)").arg(movie->url().toString(), "video");
                     emit error_addNetworkLink(movie->metaDataTitle());
                 }
                 else
@@ -316,7 +316,7 @@ void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
         if (!data.isEmpty())
         {
             if (!library.add_media(data, data_album, data_artist))
-                qCritical() << QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type);
+                qCritical() << QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath(), mime_type);
         }
     }
 }

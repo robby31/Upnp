@@ -21,7 +21,7 @@ SsdpMessage::SsdpMessage(SsdpFormat format)
 
 bool SsdpMessage::addHeader(const QString &param, const QString &value)
 {
-    m_header << QString("%1: %2").arg(param).arg(value);
+    m_header << QString("%1: %2").arg(param, value);
     return true;
 }
 
@@ -115,7 +115,7 @@ int SsdpMessage::cacheControl() const
     QString cacheControl = getHeader("CACHE-CONTROL");
     if (!cacheControl.isEmpty())
     {
-        QRegularExpression pattern("max-age\\s*=\\s*(\\d+)");
+        QRegularExpression pattern(R"(max-age\s*=\s*(\d+))");
         QRegularExpressionMatch match = pattern.match(cacheControl);
         if (match.hasMatch())
             return match.captured(1).toInt();

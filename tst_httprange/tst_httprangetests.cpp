@@ -7,16 +7,12 @@ class HttpRangeTests : public QObject
     Q_OBJECT
 
 public:
-    HttpRangeTests();
+    HttpRangeTests() = default;
 
 private Q_SLOTS:
     void testCase1_data();
     void testCase1();
 };
-
-HttpRangeTests::HttpRangeTests()
-{
-}
 
 void HttpRangeTests::testCase1_data()
 {

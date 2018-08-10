@@ -10,7 +10,7 @@ class UpnpserviceconnectionmanagerTest : public QObject
     Q_OBJECT
 
 public:
-    UpnpserviceconnectionmanagerTest();
+    UpnpserviceconnectionmanagerTest() = default;
 
 private Q_SLOTS:
     void actionFinished();
@@ -40,15 +40,11 @@ private:
     UpnpControlPoint *m_upnp = Q_NULLPTR;
     UpnpRootDevice *m_root = Q_NULLPTR;
     ServiceConnectionManager *m_connectionManager = Q_NULLPTR;
-    int UPNP_PORT = -1;
-    int EVENT_PORT = -1;
+    quint16 UPNP_PORT = 0;
+    quint16 EVENT_PORT = 0;
     QString m_XmlActionAnswer;
     UpnpError m_error;
 };
-
-UpnpserviceconnectionmanagerTest::UpnpserviceconnectionmanagerTest()
-{
-}
 
 void UpnpserviceconnectionmanagerTest::initTestCase()
 {
@@ -88,7 +84,7 @@ void UpnpserviceconnectionmanagerTest::initRootDevice()
         QUrl tmp(QString("http://%1:%2").arg(m_upnp->host().toString()).arg(UPNP_PORT));
         m_root->setUrl(tmp.resolved(QString("/description/fetch")));
 
-        UpnpRootDeviceDescription *deviceDescription = new UpnpRootDeviceDescription();
+        auto deviceDescription = new UpnpRootDeviceDescription();
         deviceDescription->setDeviceAttribute("deviceType", "urn:schemas-upnp-org:device:MediaServer:1");
         deviceDescription->setDeviceAttribute("friendlyName", "QT Media Server");
         deviceDescription->setDeviceAttribute("manufacturer", "G HIMBERT");
@@ -110,7 +106,7 @@ void UpnpserviceconnectionmanagerTest::initRootDevice()
         deviceDescription->setDeviceAttribute("UDN", QString("uuid:%1").arg(m_root->id()));
         m_root->setDescription(deviceDescription);
 
-        m_root->setServerName(QString("%1/%2 UPnP/%3 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(m_root->version()));
+        m_root->setServerName(QString("%1/%2 UPnP/%3 QMS/1.0").arg(QSysInfo::productType(), QSysInfo::productVersion(), m_root->version()));
     }
     else
     {
@@ -182,7 +178,7 @@ void UpnpserviceconnectionmanagerTest::initConnectionManager()
 
 void UpnpserviceconnectionmanagerTest::actionFinished()
 {
-    UpnpActionReply *reply = (UpnpActionReply *)(sender());
+    auto reply = qobject_cast<UpnpActionReply *>(sender());
     if (reply)
         m_XmlActionAnswer = reply->data();
 }

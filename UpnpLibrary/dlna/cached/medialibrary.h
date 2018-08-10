@@ -42,7 +42,7 @@ public:
 //    void checkMetaData(const QFileInfo &fileinfo) const;
 
     bool contains(const QFileInfo &fileinfo) const;
-    bool add_media(QHash<QString, QVariant> data_media, QHash<QString, QVariant> data_album, QHash<QString, QVariant> data_artist);
+    bool add_media(QHash<QString, QVariant> data, const QHash<QString, QVariant>& data_album, const QHash<QString, QVariant>& data_artist);
     int add_album(QHash<QString, QVariant> data_album);
     int add_artist(QHash<QString, QVariant> data_artist);
     bool updateFromFilename(const QString &filename, const QHash<QString, QVariant> &data);

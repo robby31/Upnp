@@ -134,7 +134,7 @@ void HttpRequest::readOperation(const QString &data)
 {
     if (m_operation == QNetworkAccessManager::UnknownOperation)
     {
-        QRegularExpression pattern("^(GET|PUT|POST|HEAD|SUBSCRIBE|NOTIFY)\\s+(\\S+)\\s+(HTTP\\S+)");
+        QRegularExpression pattern(R"(^(GET|PUT|POST|HEAD|SUBSCRIBE|NOTIFY)\s+(\S+)\s+(HTTP\S+))");
         QRegularExpressionMatch match = pattern.match(data);
         if (match.hasMatch())
         {
@@ -153,7 +153,7 @@ void HttpRequest::readOperation(const QString &data)
     }
     else
     {
-        setError(QString("%2, operation %1 already read : %2.").arg(operationString()).arg(data).arg(socketDescriptor()));
+        setError(QString("%2, operation %1 already read : %2.").arg(operationString(), data).arg(socketDescriptor()));
     }
 }
 
@@ -434,10 +434,8 @@ bool HttpRequest::setData(const QVariant &value, const int &role)
             qCritical() << "cannot update status when error occurs" << value.toString();
             return false;
         }
-        else
-        {
-            return false;
-        }
+
+        return false;
     }
 
     case urlRole:
@@ -760,47 +758,41 @@ bool HttpRequest::sendPartialData(const QByteArray &data)
                 close();
             return false;
         }
-        else
+
+        QByteArray tmpData;
+
+        if (!m_replyHeaderSent)
+            tmpData.append(m_replyHeader.join("\r\n").toUtf8());
+
+        tmpData.append(data);
+
+        qint64 bytesWritten = m_client->write(tmpData);
+        if (bytesWritten == -1)
         {
-            QByteArray tmpData;
-
-            if (!m_replyHeaderSent)
-                tmpData.append(m_replyHeader.join("\r\n").toUtf8());
-
-            tmpData.append(data);
-
-            qint64 bytesWritten = m_client->write(tmpData);
-            if (bytesWritten == -1)
-            {
-                logMessage(QString("unable to send data to client : %1").arg(m_client->errorString()));
-                if (!isClosed())
-                    close();
-                return false;
-            }
-            else
-            {
-                if (!m_replyHeaderSent)
-                {
-                    logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
-                    m_replyHeaderSent = true;
-                    emit headerSent();
-                }
-
-                qDebug() << "sendPartialData, data sent" << bytesWritten << m_client->bytesToWrite();
-#if !defined(QT_NO_DEBUG_OUTPUT)
-                logMessage(QString("sendPartialData, data written : %1, pending bytes to write %2").arg(bytesWritten).arg(m_client->bytesToWrite()));
-#endif
-                return true;
-            }
+            logMessage(QString("unable to send data to client : %1").arg(m_client->errorString()));
+            if (!isClosed())
+                close();
+            return false;
         }
+
+        if (!m_replyHeaderSent)
+        {
+            logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
+            m_replyHeaderSent = true;
+            emit headerSent();
+        }
+
+        qDebug() << "sendPartialData, data sent" << bytesWritten << m_client->bytesToWrite();
+#if !defined(QT_NO_DEBUG_OUTPUT)
+        logMessage(QString("sendPartialData, data written : %1, pending bytes to write %2").arg(bytesWritten).arg(m_client->bytesToWrite()));
+#endif
+        return true;
     }
-    else
-    {
-        logMessage(QString("cannot send data, operation(%1) or client (%2) or status (%3) are invalid.").arg(operationString()).arg((qintptr)m_client).arg(m_status));
-        if (!isClosed())
-            close();
-        return false;
-    }
+
+    logMessage(QString("cannot send data, operation(%1) or client (%2) or status (%3) are invalid.").arg(operationString()).arg((qintptr)m_client).arg(m_status));
+    if (!isClosed())
+        close();
+    return false;
 }
 
 void HttpRequest::replyData(const QByteArray &data, const QString &contentType)
@@ -906,7 +898,7 @@ void HttpRequest::replyFile(const QString &pathname)
         }
         else
         {
-            setError(QString("invalid file %1, mimetype is %2.").arg(pathname).arg(mime.name()));
+            setError(QString("invalid file %1, mimetype is %2.").arg(pathname, mime.name()));
         }
     }
     else
@@ -923,12 +915,10 @@ void HttpRequest::replyError(const UpnpError &error)
     {
         QByteArray data = error.toByteArray(-1);
 
-        QDateTime sdf;
-
         QStringList header;
         header << QString("Content-Type: text/xml; charset=\"utf-8\"");
         header << QString("Content-Length: %1").arg(data.size());
-        header << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+        header << QString("DATE: %1").arg(QDateTime::currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
         header << QString("EXT:");
         if (!serverName().isEmpty())
             header << QString("SERVER: %1").arg(serverName());
@@ -985,12 +975,10 @@ void HttpRequest::replyAction(const SoapActionResponse &response)
     {
         QByteArray data = response.toByteArray();
 
-        QDateTime sdf;
-
         QStringList header;
         header << QString("Content-Type: text/xml; charset=\"utf-8\"");
         header << QString("Content-Length: %1").arg(data.size());
-        header << QString("DATE: %1").arg(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+        header << QString("DATE: %1").arg(QDateTime::currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
         header << QString("EXT:");
         if (!serverName().isEmpty())
             header << QString("SERVER: %1").arg(serverName());
@@ -1075,7 +1063,7 @@ void HttpRequest::logString(const QString &text)
 
 void HttpRequest::logMessage(const QString &message)
 {
-    logString(QString("%1: %2\r\n").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(message));
+    logString(QString("%1: %2\r\n").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"), message));
 }
 
 void HttpRequest::bytesWritten(const qint64 &size)

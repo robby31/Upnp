@@ -1,7 +1,6 @@
 #include "elapsedtimer.h"
 
 ElapsedTimer::ElapsedTimer():
-    timer(),
     m_elapsedBeforeStarting(0),
     m_elapsedFromStarting(0),
     isPaused(true),
@@ -45,8 +44,8 @@ qint64 ElapsedTimer::elapsed() const
 
     if (isPaused)
         return m_elapsedFromStarting;
-    else
-        return timer.elapsed()+m_elapsedFromStarting;
+
+    return timer.elapsed() + m_elapsedFromStarting;
 }
 
 qint64 ElapsedTimer::pausedCounter() const
