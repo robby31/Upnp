@@ -76,11 +76,7 @@ void HttpRangeTests::testCase1()
     QFETCH(QString, p_range);
     QFETCH(QString, p_size);
 
-    HttpRange *obj;
-    if (p_range.isNull())
-        obj = new HttpRange();
-    else
-        obj = new HttpRange(p_range);
+    QScopedPointer<HttpRange> obj(p_range.isNull() ? new HttpRange() : new HttpRange(p_range));
 
     if (!p_size.isNull())
         obj->setSize(p_size.toLong());
@@ -108,8 +104,6 @@ void HttpRangeTests::testCase1()
 
     QFETCH(long, size);
     QCOMPARE(obj->getSize(), size);
-
-    delete obj;
 }
 
 QTEST_MAIN(HttpRangeTests)

@@ -179,36 +179,39 @@ void UpnpDeviceTest::testUpnpDeviceFromDescription()
 
     auto device_descr = qobject_cast<UpnpDeviceDescription*>(device.description());
     QVERIFY(device_descr != Q_NULLPTR);
-    QCOMPARE(device_descr->devices().size(), 0);
-    QCOMPARE(device_descr->services().size(), 0);
+    if (device_descr)
+    {
+        QCOMPARE(device_descr->devices().size(), 0);
+        QCOMPARE(device_descr->services().size(), 0);
 
-    auto service_connectionmanager = new ServiceConnectionManager();
-    QCOMPARE(service_connectionmanager->serviceType(), "urn:schemas-upnp-org:service:ConnectionManager:1");
+        auto service_connectionmanager = new ServiceConnectionManager();
+        QCOMPARE(service_connectionmanager->serviceType(), "urn:schemas-upnp-org:service:ConnectionManager:1");
 
-    QCOMPARE(device.addService(service_connectionmanager), true);
-    QCOMPARE(device.devicesModel()->rowCount(), 0);
-    QCOMPARE(device.servicesModel()->rowCount(), 1);
-    QCOMPARE(device_descr->devices().size(), 0);
-    QCOMPARE(device_descr->services().size(), 1);
+        QCOMPARE(device.addService(service_connectionmanager), true);
+        QCOMPARE(device.devicesModel()->rowCount(), 0);
+        QCOMPARE(device.servicesModel()->rowCount(), 1);
+        QCOMPARE(device_descr->devices().size(), 0);
+        QCOMPARE(device_descr->services().size(), 1);
 
-    // add same service
-    QCOMPARE(device.addService(service_connectionmanager), false);
-    QCOMPARE(device.devicesModel()->rowCount(), 0);
-    QCOMPARE(device.servicesModel()->rowCount(), 1);
-    QCOMPARE(device_descr->devices().size(), 0);
-    QCOMPARE(device_descr->services().size(), 1);
+        // add same service
+        QCOMPARE(device.addService(service_connectionmanager), false);
+        QCOMPARE(device.devicesModel()->rowCount(), 0);
+        QCOMPARE(device.servicesModel()->rowCount(), 1);
+        QCOMPARE(device_descr->devices().size(), 0);
+        QCOMPARE(device_descr->services().size(), 1);
 
 
-    auto service_contentdirectory = new ServiceContentDirectory(Q_NULLPTR, Q_NULLPTR);
-    QCOMPARE(service_contentdirectory->serviceType(), "urn:schemas-upnp-org:service:ContentDirectory:1");
+        auto service_contentdirectory = new ServiceContentDirectory(Q_NULLPTR, Q_NULLPTR);
+        QCOMPARE(service_contentdirectory->serviceType(), "urn:schemas-upnp-org:service:ContentDirectory:1");
 
-    QCOMPARE(device.addService(service_contentdirectory), true);
-    QCOMPARE(device.devicesModel()->rowCount(), 0);
-    QCOMPARE(device.servicesModel()->rowCount(), 2);
-    QCOMPARE(device_descr->devices().size(), 0);
-    QCOMPARE(device_descr->services().size(), 2);
+        QCOMPARE(device.addService(service_contentdirectory), true);
+        QCOMPARE(device.devicesModel()->rowCount(), 0);
+        QCOMPARE(device.servicesModel()->rowCount(), 2);
+        QCOMPARE(device_descr->devices().size(), 0);
+        QCOMPARE(device_descr->services().size(), 2);
 
-    qDebug() << device.description()->stringDescription();
+        qDebug() << device.description()->stringDescription();
+    }
 }
 
 void UpnpDeviceTest::testUpnpDeviceFromXml()
