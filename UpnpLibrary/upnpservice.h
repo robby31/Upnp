@@ -54,7 +54,7 @@ public:
     QUrl controlUrl() const;
     QUrl eventSubUrl() const;
 
-    virtual void searchForST(const QHostAddress &host, const int &port, const QString &st, const QString &uuid);
+    virtual void searchForST(const QHostAddress &host, const quint16 &port, const QString &st, const QString &uuid);
 
     QStringList actionsModel() const;
     ListModel *stateVariablesModel();

@@ -384,7 +384,7 @@ void UpnpService::sendByeBye(const QString &uuid)
     emit byebyeMessage(uuid, serviceType());
 }
 
-void UpnpService::searchForST(const QHostAddress &host, const int &port, const QString &st, const QString &uuid)
+void UpnpService::searchForST(const QHostAddress &host, const quint16 &port, const QString &st, const QString &uuid)
 {
     if (status() != Ready)
     {

@@ -27,7 +27,7 @@ UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, const QString& macAdd
     setNetworkManager(nam);
 
     if (id().isEmpty())
-        setUuid(generateUuid());
+        setUuid(_generateUuid());
 
     initRoles();
 
@@ -117,7 +117,7 @@ QHostAddress UpnpRootDevice::host() const
     return QHostAddress(m_url.host());
 }
 
-int UpnpRootDevice::port() const
+quint16 UpnpRootDevice::port() const
 {
     return m_url.port();
 }
@@ -340,7 +340,7 @@ void UpnpRootDevice::sendByeBye()
     UpnpDevice::sendByeBye();
 }
 
-void UpnpRootDevice::searchForST(const QHostAddress &host, const int &port, const QString &st)
+void UpnpRootDevice::searchForST(const QHostAddress &host, const quint16 &port, const QString &st)
 {
     if (st == "ssdp:all" || st == UPNP_ROOTDEVICE)
         emit searchResponse(host, port, UPNP_ROOTDEVICE, QString("uuid:%1::%2").arg(uuid(), UPNP_ROOTDEVICE));
@@ -374,6 +374,11 @@ void UpnpRootDevice::replyRequest(HttpRequest *request)
 
 QString UpnpRootDevice::generateUuid()
 {
+    return _generateUuid();
+}
+
+QString UpnpRootDevice::_generateUuid()
+{
     if (m_macAddress.isEmpty())
     {
         qCritical() << "unable to generate uuid, invalid mac address.";
@@ -385,15 +390,15 @@ QString UpnpRootDevice::generateUuid()
     auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
 
     QString time_low;
-    time_low.sprintf("%8.8x", (unsigned int)(timestamp & 0xFFFFFFFF));
+    time_low.sprintf("%8.8x", static_cast<unsigned int>(timestamp & 0xFFFFFFFF));
 
     QString time_short;
-    time_short.sprintf("%4.4x", (unsigned short)((timestamp >> 32) & 0xFFFF));
+    time_short.sprintf("%4.4x", static_cast<unsigned short>((timestamp >> 32) & 0xFFFF));
 
     QString time_hi_and_version;
     unsigned short tmp = (timestamp >> 48) & 0x0FFF;
     tmp |= (1 << 12);
-    time_hi_and_version.sprintf("%4.4x", (unsigned short)(tmp));
+    time_hi_and_version.sprintf("%4.4x", static_cast<unsigned short>(tmp));
 
     unsigned short tmp_clock_seq = 0;
     QString clock_seq_low;
@@ -402,7 +407,7 @@ QString UpnpRootDevice::generateUuid()
     unsigned short tmp2 = (tmp_clock_seq & 0x3F00) >> 8;
     tmp2 |= 0x80;
     QString clock_seq_hi_and_reserved;
-    clock_seq_hi_and_reserved.sprintf("%2.2x", (unsigned short)(tmp2));
+    clock_seq_hi_and_reserved.sprintf("%2.2x", static_cast<unsigned short>(tmp2));
 
     QString node(m_macAddress);
     node = node.replace(":", "").toLower();

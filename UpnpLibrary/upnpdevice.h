@@ -45,7 +45,7 @@ public:
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
     UpnpService *getService(const QString &serviceId);
 
-    virtual void searchForST(const QHostAddress &host, const int &port, const QString &st);
+    virtual void searchForST(const QHostAddress &host, const quint16 &port, const QString &st);
 
     virtual void replyRequest(HttpRequest *request);
 

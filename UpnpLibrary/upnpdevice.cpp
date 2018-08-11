@@ -76,7 +76,7 @@ void UpnpDevice::setUuid(const QString &uuid)
 
 QString UpnpDevice::deviceType() const
 {
-    auto descr = (UpnpDeviceDescription*)description();
+    auto descr = qobject_cast<UpnpDeviceDescription*>(description());
     if (descr)
         return descr->deviceAttribute("deviceType");
 
@@ -85,7 +85,7 @@ QString UpnpDevice::deviceType() const
 
 QString UpnpDevice::friendlyName() const
 {
-    auto descr = (UpnpDeviceDescription*)description();
+    auto descr = qobject_cast<UpnpDeviceDescription*>(description());
     if (descr)
         return descr->deviceAttribute("friendlyName");
 
@@ -352,7 +352,7 @@ void UpnpDevice::sendByeBye()
     }
 }
 
-void UpnpDevice::searchForST(const QHostAddress &host, const int &port, const QString &st)
+void UpnpDevice::searchForST(const QHostAddress &host, const quint16 &port, const QString &st)
 {
     if (status() != Ready)
     {

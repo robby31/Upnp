@@ -37,7 +37,7 @@ public:
 
     int bootId() const;
     QHostAddress host() const Q_DECL_OVERRIDE;
-    int port() const Q_DECL_OVERRIDE;
+    quint16 port() const Q_DECL_OVERRIDE;
 
     QString configId() const;
 
@@ -54,12 +54,13 @@ public:
     void startAdvertising();
     void startServer();
 
-    void searchForST(const QHostAddress &host, const int &port, const QString &st) Q_DECL_OVERRIDE;
+    void searchForST(const QHostAddress &host, const quint16 &port, const QString &st) Q_DECL_OVERRIDE;
 
     QString generateUuid() Q_DECL_OVERRIDE;
 
 private:
     void initRoles();
+    QString _generateUuid();
 
 signals:
     void urlChanged();

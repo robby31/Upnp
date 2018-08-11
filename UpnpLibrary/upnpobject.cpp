@@ -179,12 +179,12 @@ QHostAddress UpnpObject::host() const
     return QHostAddress();
 }
 
-int UpnpObject::port() const
+quint16 UpnpObject::port() const
 {
     if (m_upnpParent)
         return m_upnpParent->port();
 
-    return -1;
+    return 0;
 }
 
 QString UpnpObject::serverName() const

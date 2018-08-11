@@ -51,7 +51,7 @@ public:
 
     virtual QHostAddress host() const;
 
-    virtual int port() const;
+    virtual quint16 port() const;
 
     virtual QString serverName() const;
 
@@ -82,7 +82,7 @@ signals:
     void aliveMessage(const QString &uuid, const QString &nt);
     void byebyeMessage(const QString &uuid, const QString &nt);
 
-    void searchResponse(const QHostAddress &address, const int &port, const QString &st, const QString &usn);
+    void searchResponse(const QHostAddress &address, const quint16 &port, const QString &st, const QString &usn);
 
 public slots:
 
