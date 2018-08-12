@@ -38,11 +38,11 @@ public:
     long getSize() const { return size; }
 
 private:
-    bool null;
+    bool null = true;
     QString unit;
-    long lowRange;
-    long highRange;
-    long size;
+    long lowRange = 0;
+    long highRange = 0;
+    long size = -1;
 
     QRegExp rxRange;
 

@@ -9,7 +9,7 @@ DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, const QSqlQuery &query
     cacheEnabled(cacheEnabled),
     limitSizeMax(maxSize)
 {
-    refreshContent();
+    needRefresh();
 }
 
 void DlnaCachedFolder::refreshContent()

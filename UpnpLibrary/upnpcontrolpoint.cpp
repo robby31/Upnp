@@ -698,8 +698,8 @@ void UpnpControlPoint::removeSidEventFromUuid(const QString &deviceUuid)
         QString uuid = it.value().deviceUuid;
         if (uuid == deviceUuid)
         {
-            it = m_sidEvent.erase(it);
             qDebug() << "remove sid" << it.key();
+            it = m_sidEvent.erase(it);
         }
         else
         {

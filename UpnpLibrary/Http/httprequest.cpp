@@ -56,11 +56,12 @@ HttpRequest::HttpRequest(QTcpSocket *client, QObject *parent):
         connect(m_client, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesWritten(qint64)));
 
         if (m_client->state() == QAbstractSocket::ConnectedState)
-            setData("connected", networkStatusRole);
+            m_status = "connected";
     }
     else
     {
-        setError(QString("invalid client"));
+        m_error = "invalid client";
+        m_status = "KO";
     }
 }
 

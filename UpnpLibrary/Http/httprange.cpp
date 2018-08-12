@@ -1,19 +1,11 @@
 #include "httprange.h"
 
 HttpRange::HttpRange() :
-    null(true),
-    lowRange(0),
-    highRange(0),
-    size(-1),
     rxRange(R"(range:\s+(\w+)=(\d*)-(\d*))", Qt::CaseInsensitive)
 {
 }
 
 HttpRange::HttpRange(const QString &range) :
-    null(true),
-    lowRange(0),
-    highRange(0),
-    size(-1),
     rxRange(R"(range:\s+(\w+)=(\d*)-(\d*))", Qt::CaseInsensitive)
 {
     if (rxRange.indexIn(range) != -1) {

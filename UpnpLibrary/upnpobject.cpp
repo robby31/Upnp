@@ -218,6 +218,9 @@ QString UpnpObject::valueFromDescription(const QString &param) const
 
 bool UpnpObject::setDescription(UpnpDescription *descr)
 {
+    if (m_description && m_description->parent() == this)
+        m_description->deleteLater();
+
     descr->setParent(this);
     m_description = descr;
     emit descriptionChanged();

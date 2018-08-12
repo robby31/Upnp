@@ -411,7 +411,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                 }
                 else
                 {
-                    HttpRange *range = request->range(dlna->size());
+                    QScopedPointer<HttpRange> range(request->range(dlna->size()));
 
                     qint64 timeSeekRangeStart = -1;
                     qint64 timeSeekRangeEnd = -1;
