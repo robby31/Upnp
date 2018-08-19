@@ -17,7 +17,7 @@ INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION  -lqmdnsengine
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION/lib  -lqmdnsengine
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
