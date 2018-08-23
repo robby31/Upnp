@@ -85,6 +85,7 @@ signals:
 
 private slots:
     void requestDlnaResources(QObject *sender, const QString& objectId, bool returnChildren, int start, int count, const QString& searchStr);
+    void contentUpdated();
 
 private:
     virtual void refreshContent() { qWarning() << "Resource" << getName() << "shall be refreshed, please define function refreshContent() herited from DlnaResource to do it."; }

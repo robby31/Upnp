@@ -11,6 +11,8 @@ DlnaResource::DlnaResource(QObject *parent):
 {
     ++objectCounter;
     qRegisterMetaType<QList<DlnaResource*> >("QList<DlnaResource*>");
+
+    connect(this, &DlnaResource::dlnaContentUpdated, this, &DlnaResource::contentUpdated);
 }
 
 DlnaResource::~DlnaResource() {
@@ -29,6 +31,9 @@ QString DlnaResource::getResourceId() const {
 
 DlnaResource* DlnaResource::search(const QString &searchId, const QString &searchStr, QObject *parent)
 {
+    if (m_needRefresh)
+        refreshContent();
+
     if (getResourceId() == searchId)
         return this;
 
@@ -63,11 +68,8 @@ QList<DlnaResource*> DlnaResource::getDLNAResources(const QString &objectId, boo
                     if (child)
                     {
                         if (child->m_needRefresh)
-                        {
                             child->refreshContent();
-                            ++child->updateId;
-                            child->m_needRefresh = false;
-                        }
+
                         resources.append(child);
                     }
                 }
@@ -190,3 +192,8 @@ void DlnaResource::setHostUrl(const QUrl &url)
     m_hostUrl = url;
 }
 
+void DlnaResource::contentUpdated()
+{
+    ++updateId;
+    m_needRefresh = false;
+}
