@@ -167,7 +167,7 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
     {
         QString connectionID = action.argumentValue("ConnectionID");
 
-        if (action.arguments().size() != 1 or !action.arguments().contains("ConnectionID"))
+        if (action.arguments().size() != 1 || !action.arguments().contains("ConnectionID"))
         {
             UpnpError error(UpnpError::INVALID_ARGS);
             request->replyError(error);

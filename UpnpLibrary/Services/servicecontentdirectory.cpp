@@ -219,7 +219,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
         if (m_renderersModel)
             renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
 
-        if (!action.arguments().contains("ObjectID") or action.arguments().size()!=6)
+        if (!action.arguments().contains("ObjectID") || action.arguments().size()!=6)
         {
             UpnpError error(UpnpError::INVALID_ARGS);
             request->replyError(error);
@@ -385,7 +385,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
     if (AbstractService::replyRequest(request))
         return true;
 
-    if ((request->operation() == QNetworkAccessManager::GetOperation  or request->operation() == QNetworkAccessManager::HeadOperation) && request->url().toString().startsWith("/get/"))
+    if ((request->operation() == QNetworkAccessManager::GetOperation  || request->operation() == QNetworkAccessManager::HeadOperation) && request->url().toString().startsWith("/get/"))
     {
         qDebug() << this << request->operationString() << request->url();
 
@@ -522,7 +522,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                             {
                                 if (range && !range->isNull())
                                     streamContent->setRange(range->getStartByte(), range->getEndByte());
-                                else if (timeSeekRangeStart != -1 or timeSeekRangeEnd != -1)
+                                else if (timeSeekRangeStart != -1 || timeSeekRangeEnd != -1)
                                     streamContent->setTimeSeek(timeSeekRangeStart, timeSeekRangeEnd);
 
                                 connect(socket, SIGNAL(disconnected()), streamContent, SLOT(close()));

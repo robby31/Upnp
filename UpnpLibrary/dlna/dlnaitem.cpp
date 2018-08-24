@@ -197,7 +197,7 @@ void DlnaItem::setSinkProtocol(const QStringList &protocol)
                 }
             }
         }
-        else if (format() == H264_AAC or format() == H264_AC3)
+        else if (format() == H264_AAC || format() == H264_AC3)
         {
             QString sink = getSink("video/mp4");
             if (!sink.isNull())

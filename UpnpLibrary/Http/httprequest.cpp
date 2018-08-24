@@ -714,7 +714,7 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
             }
         }
 
-        if (operation() == QNetworkAccessManager::HeadOperation or content_length == 0)
+        if (operation() == QNetworkAccessManager::HeadOperation || content_length == 0)
         {
             // no data expected so header is sent immediately
             if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
