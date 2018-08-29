@@ -34,7 +34,7 @@ public:
     qint64 sourceSize() const Q_DECL_OVERRIDE;
 
     qint64 metaDataBitrate()           const Q_DECL_OVERRIDE { return ffmpeg.getBitrate(); }
-    int metaDataDuration()             const Q_DECL_OVERRIDE;
+    qint64 metaDataDuration()             const Q_DECL_OVERRIDE;
     QString metaDataTitle()            const Q_DECL_OVERRIDE { return m_title; }
     QString metaDataGenre()            const Q_DECL_OVERRIDE { return QString(); }
     QString metaDataPerformer()        const Q_DECL_OVERRIDE { return QString(); }

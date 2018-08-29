@@ -85,7 +85,7 @@ QByteArray DlnaVideoFile::metaDataPicture() const {
     return ffmpeg.getPicture();
 }
 
-int DlnaVideoFile::metaDataDuration() const {
+qint64 DlnaVideoFile::metaDataDuration() const {
     return ffmpeg.getDuration();
 }
 

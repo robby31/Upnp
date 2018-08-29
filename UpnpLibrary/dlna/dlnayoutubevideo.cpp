@@ -169,7 +169,7 @@ qint64 DlnaYouTubeVideo::sourceSize() const
     return ffmpeg.size();
 }
 
-int DlnaYouTubeVideo::metaDataDuration() const
+qint64 DlnaYouTubeVideo::metaDataDuration() const
 {
     return ffmpeg.getDuration();
 }

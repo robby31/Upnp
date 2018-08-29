@@ -48,7 +48,7 @@ public:
 
     // return the length in seconds of the media
     int getLengthInSeconds() const;
-    int getLengthInMilliSeconds() const;
+    qint64 getLengthInMilliSeconds() const;
 
     // returns the samplerate of the audio track
     virtual int samplerate() const = 0;
@@ -63,7 +63,7 @@ public:
     virtual QHash<QString, double> volumeInfo(const int& timeout = 30000) = 0;
 
     virtual qint64 metaDataBitrate() const = 0;
-    virtual int metaDataDuration() const = 0;
+    virtual qint64 metaDataDuration() const = 0;
     virtual QString metaDataTitle() const = 0;
     virtual QString metaDataGenre() const = 0;
     virtual QString metaDataPerformer() const = 0;

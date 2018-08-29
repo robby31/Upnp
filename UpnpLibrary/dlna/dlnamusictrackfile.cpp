@@ -93,7 +93,7 @@ QByteArray DlnaMusicTrackFile::metaDataPicture() const {
     return ffmpeg.getPicture();
 }
 
-int DlnaMusicTrackFile::metaDataDuration() const {
+qint64 DlnaMusicTrackFile::metaDataDuration() const {
     return ffmpeg.getDuration();
 }
 

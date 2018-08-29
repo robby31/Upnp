@@ -23,7 +23,7 @@ int DlnaItem::getLengthInSeconds() const {
     return qRound(double(getLengthInMilliSeconds())/1000.0);
 }
 
-int DlnaItem::getLengthInMilliSeconds() const {
+qint64 DlnaItem::getLengthInMilliSeconds() const {
     if (metaDataDuration() > getResumeTime())
         return metaDataDuration() - getResumeTime();
 
