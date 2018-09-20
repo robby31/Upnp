@@ -522,7 +522,8 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                             {
                                 if (range && !range->isNull())
                                     streamContent->setRange(range->getStartByte(), range->getEndByte());
-                                else if (timeSeekRangeStart != -1 || timeSeekRangeEnd != -1)
+
+                                if (timeSeekRangeStart != -1 || timeSeekRangeEnd != -1)
                                     streamContent->setTimeSeek(timeSeekRangeStart, timeSeekRangeEnd);
 
                                 connect(socket, SIGNAL(disconnected()), streamContent, SLOT(close()));
