@@ -32,7 +32,7 @@ Item {
 
         Label {
             id: actionName
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: modelData
             Layout.fillWidth: true
             elide: Text.ElideRight

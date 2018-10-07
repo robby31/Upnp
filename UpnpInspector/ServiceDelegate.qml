@@ -34,7 +34,7 @@ Item {
 
         Label {
             id: urnLabel
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: servicetype
             Layout.fillWidth: true
             elide: Text.ElideRight

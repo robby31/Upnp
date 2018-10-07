@@ -10,7 +10,10 @@ ColumnLayout {
     property string rootIconUrl
 
     Row {
-        anchors { left: parent.left; leftMargin: 10; right: parent.right; rightMargin: 10 }
+        width: parent.width - 20
+        Layout.preferredWidth: width
+        Layout.alignment: Qt.AlignHCenter
+
         height: backButton.height + 20
         Layout.preferredHeight: height
         spacing: 10

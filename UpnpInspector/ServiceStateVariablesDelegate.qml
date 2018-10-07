@@ -32,7 +32,7 @@ Item {
 
         Label {
             id: variableName
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: model["name"]
             width: 400
             Layout.preferredWidth: width
