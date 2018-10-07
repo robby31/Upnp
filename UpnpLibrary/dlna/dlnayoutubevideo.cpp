@@ -118,7 +118,7 @@ void DlnaYouTubeVideo::videoUrl(const QString &url)
     emit streamUrlDefined(url);
 }
 
-bool DlnaYouTubeVideo::waitUrl(const int &timeout)
+bool DlnaYouTubeVideo::waitUrl(const unsigned long &timeout)
 {    
     QMutexLocker locker(&mutex);
 
@@ -171,7 +171,7 @@ qint64 DlnaYouTubeVideo::sourceSize() const
 
 qint64 DlnaYouTubeVideo::metaDataDuration() const
 {
-    return ffmpeg.getDuration();
+    return ffmpeg.getDurationInMicroSec()/1000;
 }
 
 int DlnaYouTubeVideo::samplerate() const

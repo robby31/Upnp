@@ -86,7 +86,7 @@ QByteArray DlnaVideoFile::metaDataPicture() const {
 }
 
 qint64 DlnaVideoFile::metaDataDuration() const {
-    return ffmpeg.getDuration();
+    return ffmpeg.getDurationInMicroSec()/1000;
 }
 
 qint64 DlnaVideoFile::metaDataBitrate() const {

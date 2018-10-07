@@ -68,7 +68,7 @@ public:
     void setNetworkAccessManager(QNetworkAccessManager *manager);
     QUrl url() const;
     void setUrl(const QUrl &url);
-    bool waitUrl(const int &timeout=30000);
+    bool waitUrl(const unsigned long &timeout=30000);
     void setPlaybackQuality(const QString &quality);
 
 protected:
