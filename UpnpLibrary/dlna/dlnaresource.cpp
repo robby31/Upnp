@@ -29,9 +29,9 @@ QString DlnaResource::getResourceId() const {
     return getId();
 }
 
-DlnaResource* DlnaResource::search(const QString &searchId, const QString &searchStr, QObject *parent)
+DlnaResource* DlnaResource::search(const QString &searchId, const QString &searchStr, const bool &refreshIfNeeded, QObject *parent)
 {
-    if (m_needRefresh)
+    if (m_needRefresh && getResourceId() == searchId && (refreshIfNeeded or getChildrenSize() < 0))
         refreshContent();
 
     if (getResourceId() == searchId)
@@ -44,7 +44,7 @@ DlnaResource* DlnaResource::search(const QString &searchId, const QString &searc
         if ((child_index >= 0) && (child_index < getChildrenSize())) {
             DlnaResource *child = getChild(child_index, parent);
             if (child)
-                return child->search(searchId, searchStr, parent);
+                return child->search(searchId, searchStr, refreshIfNeeded, parent);
         }
     }
 
@@ -53,7 +53,7 @@ DlnaResource* DlnaResource::search(const QString &searchId, const QString &searc
 
 QList<DlnaResource*> DlnaResource::getDLNAResources(const QString &objectId, bool returnChildren, int start, int count, const QString &searchStr, QObject *parent) {
     QList<DlnaResource*> resources;
-    DlnaResource* dlna = search(objectId, searchStr, parent);
+    DlnaResource* dlna = search(objectId, searchStr, !returnChildren, parent);
     if (dlna)
     {
         if (!returnChildren) {

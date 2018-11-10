@@ -69,7 +69,7 @@ public:
     virtual int getChildrenSize() const = 0;
 
     // Recursive function that searches for a given ID such as 0$2$13.
-    DlnaResource* search(const QString& searchId, const QString& searchStr, QObject *parent = Q_NULLPTR);
+    DlnaResource* search(const QString& searchId, const QString& searchStr, const bool &refreshIfNeeded, QObject *parent = Q_NULLPTR);
 
     // Search for an item matching the given objectID if returnChildren is false.
     // if returnChildren is true it returns all children of the objectID.
