@@ -31,7 +31,7 @@ QString DlnaResource::getResourceId() const {
 
 DlnaResource* DlnaResource::search(const QString &searchId, const QString &searchStr, const bool &refreshIfNeeded, QObject *parent)
 {
-    if (m_needRefresh && getResourceId() == searchId && (refreshIfNeeded or getChildrenSize() < 0))
+    if (m_needRefresh && ((getResourceId() == searchId && refreshIfNeeded) or getChildrenSize() < 0))
         refreshContent();
 
     if (getResourceId() == searchId)
