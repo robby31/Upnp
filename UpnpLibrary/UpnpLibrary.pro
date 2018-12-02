@@ -30,7 +30,6 @@ INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/multimedia
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
 
 INCLUDEPATH += /opt/local/include
-LIBS += -L/opt/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
