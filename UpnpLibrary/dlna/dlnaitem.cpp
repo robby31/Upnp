@@ -164,6 +164,7 @@ void DlnaItem::setSinkProtocol(const QStringList &protocol)
                 if (!l_params.isEmpty())
                 {
                     l_params.insert(1, "DLNA.ORG_OP=10");
+                    setdlnaOrgOpFlags("10");
                     l_params.append("DLNA.ORG_CI=1");
                     m_protocolInfo = l_params.join(";");
                 }
@@ -178,6 +179,7 @@ void DlnaItem::setSinkProtocol(const QStringList &protocol)
                 if (!l_params.isEmpty())
                 {
                     l_params.insert(1, "DLNA.ORG_OP=10");
+                    setdlnaOrgOpFlags("10");
                     l_params.append("DLNA.ORG_CI=1");
                     m_protocolInfo = l_params.join(";");
                 }
@@ -191,7 +193,23 @@ void DlnaItem::setSinkProtocol(const QStringList &protocol)
                 QStringList l_params = sink.split(";");
                 if (!l_params.isEmpty())
                 {
+                    l_params.insert(3, "DLNA.ORG_OP=10");
+                    setdlnaOrgOpFlags("10");
+                    l_params.append("DLNA.ORG_CI=1");
+                    m_protocolInfo = l_params.join(";");
+                }
+            }
+        }
+        else if (format() == WAV)
+        {
+            QString sink = getSink("audio/wav");
+            if (!sink.isNull())
+            {
+                QStringList l_params = sink.split(";");
+                if (!l_params.isEmpty())
+                {
                     l_params.insert(1, "DLNA.ORG_OP=10");
+                    setdlnaOrgOpFlags("10");
                     l_params.append("DLNA.ORG_CI=1");
                     m_protocolInfo = l_params.join(";");
                 }
@@ -206,6 +224,7 @@ void DlnaItem::setSinkProtocol(const QStringList &protocol)
                 if (!l_params.isEmpty())
                 {
                     l_params.insert(1, "DLNA.ORG_OP=10");
+                    setdlnaOrgOpFlags("10");
                     l_params.append("DLNA.ORG_CI=1");
                     m_protocolInfo = l_params.join(";");
                 }
@@ -218,6 +237,7 @@ void DlnaItem::setSinkProtocol(const QStringList &protocol)
         if (!l_params.isEmpty())
         {
             l_params.insert(1, "DLNA.ORG_OP=01");
+            setdlnaOrgOpFlags("01");
             l_params.append("DLNA.ORG_CI=0");
             m_protocolInfo = l_params.join(";");
         }
@@ -234,21 +254,18 @@ QStringList DlnaItem::sinkProtocol() const
 
 QString DlnaItem::getSink(const QString &mime_type)
 {
-    QString sinkFound;
-
+    QRegularExpression pattern("([^:]+):([^:]+):([^:]+):([^:]+)");
     foreach (const QString &sink, sinkProtocol())
     {
-        QStringList args = sink.split(":");
-        if (args.size() > 2 && args.at(2) == mime_type)
+        QRegularExpressionMatch match = pattern.match(sink);
+        if (match.hasMatch())
         {
-            if (sinkFound.isEmpty())
-                sinkFound = sink;
-//            else
-//                qWarning() << "several sink compatible" << sink << "first returned" << sinkFound;
+            if (mime_type == match.captured(3))
+                return sink;
         }
     }
 
-    return sinkFound;
+    return QString();
 }
 
 bool DlnaItem::isSourceSinkCompatible() const
