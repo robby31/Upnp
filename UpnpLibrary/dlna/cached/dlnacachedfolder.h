@@ -20,7 +20,7 @@ public:
                               const QString& name, bool cacheEnabled = false, int maxSize = -1, QObject *parent = Q_NULLPTR);
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
-    int getChildrenSize() const Q_DECL_OVERRIDE { return nbChildren; }
+    int getChildrenSize() const Q_DECL_OVERRIDE;
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.

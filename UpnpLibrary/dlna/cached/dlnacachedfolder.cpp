@@ -12,6 +12,11 @@ DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, const QSqlQuery &query
     needRefresh();
 }
 
+int DlnaCachedFolder::getChildrenSize() const
+{
+    return nbChildren;
+}
+
 void DlnaCachedFolder::refreshContent()
 {
     cache.clear();
