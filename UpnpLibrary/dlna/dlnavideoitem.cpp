@@ -116,7 +116,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     return xml_obj;
 }
 
-int DlnaVideoItem::bitrate() const
+qint64 DlnaVideoItem::bitrate() const
 {
     // returns bitrate in bits/sec
     if (toTranscode())

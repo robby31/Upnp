@@ -126,7 +126,7 @@ void UpnpControlPoint::_processPendingUnicastDatagrams()
     while (udpSocketUnicast.hasPendingDatagrams())
     {
         QByteArray datagram;
-        datagram.resize(udpSocketUnicast.pendingDatagramSize());
+        datagram.resize(static_cast<int>(udpSocketUnicast.pendingDatagramSize()));
 
         QHostAddress remoteAddr;
         quint16 remotePort;
@@ -144,7 +144,7 @@ void UpnpControlPoint::_processPendingMulticastDatagrams()
     while (udpSocketMulticast.hasPendingDatagrams())
     {
         QByteArray datagram;
-        datagram.resize(udpSocketMulticast.pendingDatagramSize());
+        datagram.resize(static_cast<int>(udpSocketMulticast.pendingDatagramSize()));
 
         QHostAddress remoteAddr;
         quint16 remotePort;
@@ -268,7 +268,7 @@ void UpnpControlPoint::setNetworkManager(QNetworkAccessManager *nam)
         m_remoteRootDevice->setNetworkManager(nam);
 }
 
-void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message)
+void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, const quint16 &port, const SsdpMessage &message)
 {
     Q_UNUSED(port)
 
@@ -361,7 +361,7 @@ bool UpnpControlPoint::addLocalRootDevice(UpnpRootDevice *device)
     return false;
 }
 
-void UpnpControlPoint::_searchForST(const QHostAddress &host, const int &port, const QString &st)
+void UpnpControlPoint::_searchForST(const QHostAddress &host, const quint16 &port, const QString &st)
 {
     for (int i=0;i<m_localRootDevice->rowCount();++i)
     {

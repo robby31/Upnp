@@ -345,7 +345,7 @@ QVariant HttpRequest::data(int role) const
     case durationRole:
     {
         if (isClosed())
-            return QTime(0, 0).addMSecs(m_date.msecsTo(m_closeDate)).toString("hh:mm:ss.zzz");
+            return QTime(0, 0).addMSecs(static_cast<int>(m_date.msecsTo(m_closeDate))).toString("hh:mm:ss.zzz");
 
         return QString();
     }
@@ -1202,7 +1202,7 @@ void HttpRequest::timerEvent(QTimerEvent *event)
                     if (networkSpeed != 0)
                         bufferTime = m_maxBufferSize/(networkSpeed*1024);
 
-                    QString netStatus = QString("Time: %5 Buffer: %1% (%4 KB - %3 seconds), Speed: %2 KB/s").arg(int(100.0*double(bytesToWrite)/double(m_maxBufferSize))).arg(networkSpeed).arg(bufferTime).arg(m_maxBufferSize/1024).arg(QTime(0, 0).addMSecs(clockSending.elapsedFromBeginning()).toString("hh:mm:ss"));
+                    QString netStatus = QString("Time: %5 Buffer: %1% (%4 KB - %3 seconds), Speed: %2 KB/s").arg(int(100.0*double(bytesToWrite)/double(m_maxBufferSize))).arg(networkSpeed).arg(bufferTime).arg(m_maxBufferSize/1024).arg(QTime(0, 0).addMSecs(static_cast<int>(clockSending.elapsedFromBeginning())).toString("hh:mm:ss"));
                     setData(netStatus, networkStatusRole);
                 }
             }

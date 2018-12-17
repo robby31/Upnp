@@ -57,7 +57,7 @@ public:
     virtual int channelCount() const = 0;
 
     // returns the bitrate in bits/sec
-    virtual int bitrate() const = 0;
+    virtual qint64 bitrate() const = 0;
 
     // returns volume information
     virtual QHash<QString, double> volumeInfo(const int& timeout = 30000) = 0;

@@ -23,7 +23,7 @@ public:
     QString sourceMimeType() const Q_DECL_OVERRIDE;
 
     // returns the bitrate of the movie
-    int bitrate() const Q_DECL_OVERRIDE;
+    qint64 bitrate() const Q_DECL_OVERRIDE;
 
     // return true if the track shall be transcoded
     bool toTranscode() const Q_DECL_OVERRIDE { return true; }

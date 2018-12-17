@@ -15,7 +15,7 @@ public:
     QString getUpnpClass() const Q_DECL_OVERRIDE { return QString("object.item.audioItem.musicTrack"); }
 
     // returns the bitrate of the audio track
-    int bitrate() const Q_DECL_OVERRIDE;
+    qint64 bitrate() const Q_DECL_OVERRIDE;
 
     // Returns the mimeType for this DLNA node.
     QString mimeType() const Q_DECL_OVERRIDE;

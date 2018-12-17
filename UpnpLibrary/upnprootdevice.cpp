@@ -119,7 +119,7 @@ QHostAddress UpnpRootDevice::host() const
 
 quint16 UpnpRootDevice::port() const
 {
-    return m_url.port();
+    return static_cast<quint16>(m_url.port());
 }
 
 void UpnpRootDevice::setNetworkManager(QNetworkAccessManager *nam)

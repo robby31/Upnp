@@ -27,7 +27,7 @@ void DlnaMusicTrack::updateDLNAOrgPn() {
     }
 }
 
-int DlnaMusicTrack::bitrate() const
+qint64 DlnaMusicTrack::bitrate() const
 {
     // returns bitrate in bits/sec
     if (toTranscode())

@@ -462,18 +462,18 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                     if (timeSeekRangeStart >= 0 && dlna->getLengthInMilliSeconds() > 0)
                     {
                         QTime start_time(0, 0, 0);
-                        start_time = start_time.addSecs(timeSeekRangeStart);
+                        start_time = start_time.addSecs(static_cast<int>(timeSeekRangeStart));
 
                         QTime end_time(0, 0, 0);
                         if (timeSeekRangeEnd != -1)
                         {
-                            end_time = end_time.addSecs(timeSeekRangeEnd);
+                            end_time = end_time.addSecs(static_cast<int>(timeSeekRangeEnd));
                         } else {
-                            end_time = end_time.addMSecs(dlna->getLengthInMilliSeconds());
+                            end_time = end_time.addMSecs(static_cast<int>(dlna->getLengthInMilliSeconds()));
                         }
 
                         QTime length_time(0, 0, 0);
-                        length_time = length_time.addMSecs(dlna->getLengthInMilliSeconds());
+                        length_time = length_time.addMSecs(static_cast<int>(dlna->getLengthInMilliSeconds()));
 
                         m_header << QString("TimeSeekRange.dlna.org: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z"), end_time.toString("hh:mm:ss,z"), length_time.toString("hh:mm:ss,z"));
                         m_header << QString("X-Seek-Range: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z"), end_time.toString("hh:mm:ss,z"), length_time.toString("hh:mm:ss,z"));
@@ -489,7 +489,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                             else
                                 request->logMessage(QString("Stream media %1 %2").arg(dlna->metaDataFormat(), dlna->mimeType()));
 
-                            request->logMessage(QString("%1 bytes to send in %2.").arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")));
+                            request->logMessage(QString("%1 bytes to send in %2.").arg(dlna->size()).arg(QTime(0, 0).addMSecs(static_cast<int>(dlna->getLengthInMilliSeconds())).toString("hh:mm:ss.zzz")));
 
                             QString mediaFilename = dlna->getSystemName();
                             request->setRequestedResource(mediaFilename);

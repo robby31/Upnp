@@ -26,7 +26,7 @@ typedef struct {
 
 typedef struct {
     QHostAddress host;
-    int port;
+    quint16 port;
     QString st;
 } T_SEARCH_ANSWER;
 
@@ -91,14 +91,14 @@ private slots:
     void _sendAliveMessage(const QString &uuid, const QString &nt);
     void _sendByeByeMessage(const QString &uuid, const QString &nt);
 
-    void _searchForST(const QHostAddress &host, const int &port, const QString &st);
+    void _searchForST(const QHostAddress &host, const quint16 &port, const QString &st);
     void _sendSearchResponse(const QHostAddress &host, const quint16 &port, const QString &st, const QString &usn);
 
     // Function called when a request is received
     void _processPendingMulticastDatagrams();
     void _processPendingUnicastDatagrams();
 
-    void _processSsdpMessageReceived(const QHostAddress &host, const int &port, const SsdpMessage &message);
+    void _processSsdpMessageReceived(const QHostAddress &host, const quint16 &port, const SsdpMessage &message);
 
     void subscribeEventing(QNetworkRequest request, const QString &uuid, const QString &serviceId);
     void subscribeEventingFinished();
