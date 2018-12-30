@@ -230,6 +230,21 @@ void DlnaItem::setSinkProtocol(const QStringList &protocol)
                 }
             }
         }
+        else if (format() == MPEG2_AC3)
+        {
+            QString sink = getSink("video/mpeg");
+            if (!sink.isNull())
+            {
+                QStringList l_params = sink.split(";");
+                if (!l_params.isEmpty())
+                {
+                    l_params.insert(1, "DLNA.ORG_OP=10");
+                    setdlnaOrgOpFlags("10");
+                    l_params.append("DLNA.ORG_CI=1");
+                    m_protocolInfo = l_params.join(";");
+                }
+            }
+        }
     }
     else
     {
