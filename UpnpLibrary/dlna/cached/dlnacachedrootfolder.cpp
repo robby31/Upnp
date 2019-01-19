@@ -143,6 +143,7 @@ void DlnaCachedRootFolder::addResource(const QUrl &url)
     auto movie = new DlnaYouTubeVideo(this);
     movie->setDlnaParent(this);
     connect(movie, SIGNAL(streamUrlDefined(QString)), this, SLOT(networkLinkAnalyzed(QString)));
+    connect(movie, SIGNAL(videoUrlErrorSignal(QString)), this, SLOT(networkLinkError(QString)));
     movie->setNetworkAccessManager(m_nam);
     movie->setUrl(url.toString());
 }
