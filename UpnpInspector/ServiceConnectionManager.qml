@@ -189,11 +189,11 @@ Item {
         Connections {
             onFinished: {
                 var response = target.response
-                var arguments = response.arguments
+                var args = response.arguments
 
                 connectionInfoModel.clear()
                 for (var i in response.arguments)
-                    connectionInfoModel.append({ param: arguments[i], value: response.value(arguments[i]) })
+                    connectionInfoModel.append({ param: args[i], value: response.value(args[i]) })
             }
 
         }
