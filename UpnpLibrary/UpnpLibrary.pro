@@ -21,13 +21,10 @@ CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 }
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Youtube
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(youtube)
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Streaming
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/multimedia
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
 
 INCLUDEPATH += /opt/local/include
 
@@ -90,7 +87,8 @@ SOURCES += \
     Devices/devicesmodel.cpp \
     Devices/mediarenderer.cpp \
     Devices/mediarenderermodel.cpp \
-    upnpactionreply.cpp
+    upnpactionreply.cpp \
+    dlna/dlnanetworkvideo.cpp
 
 HEADERS += \
     upnpcontrolpoint.h \
@@ -140,7 +138,8 @@ HEADERS += \
     Devices/devicesmodel.h \
     Devices/mediarenderer.h \
     Devices/mediarenderermodel.h \
-    upnpactionreply.h
+    upnpactionreply.h \
+    dlna/dlnanetworkvideo.h
 
 DISTFILES += \
     doc/AVTransport/UPnP-av-AVTransport-v1-Service-20020625.pdf \
