@@ -4,129 +4,91 @@ qint64 DlnaYouTubeVideo::objectCounter = 0;
 
 DlnaYouTubeVideo::DlnaYouTubeVideo(QObject *parent) :
     DlnaVideoItem(parent),
-    m_analyzeStream(true),
-    m_videoUrlInProgress(false),
-    m_unavailableMessage(),
-    m_title(),
-    m_streamUrl(),
-    m_youtube(Q_NULLPTR),
-    m_error()
+    m_analyzeStream(true)
 {
     ++objectCounter;
 }
 
 DlnaYouTubeVideo::~DlnaYouTubeVideo()
 {
-    // if mutex is locked, wait until it is unlocked
-    QMutexLocker locker(&mutex);
-
     --objectCounter;
+}
+
+QString DlnaYouTubeVideo::unavailableMessage()
+{
+    if (m_youtube)
+        return m_youtube->unavailableMessage();
+
+    return QString();
 }
 
 void DlnaYouTubeVideo::setNetworkAccessManager(QNetworkAccessManager *manager)
 {
-    if (manager)
+    if (m_youtube)
     {
-        QMutexLocker locker(&mutex);
-
-        m_youtube = new YouTube();
+        qCritical() << "youtube already initialised";
+    }
+    else if (manager)
+    {
+        m_youtube = new Youtube(manager);
         connect(this, SIGNAL(destroyed()), m_youtube, SLOT(deleteLater()));
-
-        m_youtube->setNetworkAccessManager(manager);
-        m_youtube->moveToThread(manager->thread());
-        connect(manager->thread(), SIGNAL(finished()), m_youtube, SLOT(deleteLater()));
-
-        connect(this, SIGNAL(getVideoUrl(QString)), m_youtube, SLOT(getVideoUrl(QString)));
-        connect(m_youtube, SIGNAL(videoNotAvailable(QString)), this, SLOT(videoNotAvailable(QString)));
-        connect(m_youtube, SIGNAL(gotVideoTitle(QString)), this, SLOT(videoTitle(QString)));
-        connect(m_youtube, SIGNAL(gotVideoUrl(QString)), this, SLOT(videoUrl(QString)));
-        connect(m_youtube, SIGNAL(videoUrlError(QString)), this, SLOT(videoUrlError(QString)));
+        connect(m_youtube, &Youtube::mediaReady, this, &DlnaYouTubeVideo::videoUrl);
     }
 }
 
 void DlnaYouTubeVideo::setPlaybackQuality(const QString &quality)
 {
-    QMutexLocker locker(&mutex);
     if (m_youtube)
-        m_youtube->setPlaybackQuality(quality);
+        m_youtube->setQuality(quality);
     else
-        qCritical() << "Unable to set playback quality because Youtube is not initialized (call setNetworkAccessManager before).";
+        qCritical() << "Unable to set quality because Youtube is not initialized (call setNetworkAccessManager before).";
 }
 
 QUrl DlnaYouTubeVideo::url() const
 {
-    return m_url;
+    if (m_youtube)
+        return m_youtube->url();
+
+    return QUrl();
 }
 
 void DlnaYouTubeVideo::setUrl(const QUrl &url)
 {
-    QMutexLocker locker(&mutex);
-
-    m_videoUrlInProgress = false;
-
-    QRegularExpression youtubeUrl("^http.*watch\\?v=(.*)$");
-    QRegularExpressionMatch match = youtubeUrl.match(url.toString());
-    if (match.hasMatch())
+    if (m_youtube)
     {
-        m_url = url;
-        m_videoUrlInProgress = true;
-        QString videoId = match.captured(1);
-        emit getVideoUrl(videoId);
+        m_youtube->setUrl(url);
     }
     else
     {
-        qWarning() << "ERROR, invalid URL" << url;
+        qCritical() << "ERROR, unable to set url" << m_youtube;
     }
 }
 
-void DlnaYouTubeVideo::videoUrlError(const QString &message)
+void DlnaYouTubeVideo::videoUrl()
 {
-    QMutexLocker locker(&mutex);
-
-    m_error = message;
-
-    if (m_videoUrlInProgress)
+    if (!m_streamUrl.isEmpty())
     {
-        m_videoUrlInProgress = false;
-        replyWaitCondition.wakeAll();
+        qCritical() << "url already received" << m_streamUrl;
     }
-
-    emit videoUrlErrorSignal(message);
-}
-
-void DlnaYouTubeVideo::videoTitle(const QString &title)
-{
-    QMutexLocker locker(&mutex);
-    m_title = title;
-}
-
-void DlnaYouTubeVideo::videoUrl(const QString &url)
-{
-    QMutexLocker locker(&mutex);
-
-    m_streamUrl = url;
-
-    if (m_analyzeStream)
-        ffmpeg.open(url);
-
-    if (m_videoUrlInProgress)
+    else
     {
-        m_videoUrlInProgress = false;
-        replyWaitCondition.wakeAll();
-    }
+        QList<QUrl> urls = m_youtube->mediaUrl();
+        if (!urls.isEmpty())
+            m_streamUrl = urls.at(0);
+        else
+            m_streamUrl.clear();
 
-    emit streamUrlDefined(url);
+        if (m_streamUrl.isValid() && m_analyzeStream)
+            ffmpeg.open(m_streamUrl.url());
+
+        emit streamUrlDefined(m_streamUrl.url());
+    }
 }
 
 bool DlnaYouTubeVideo::waitUrl(const unsigned long &timeout)
-{    
-    QMutexLocker locker(&mutex);
-
-    if (m_videoUrlInProgress)
-    {
-        // waiting reply with timeout
-        return replyWaitCondition.wait(locker.mutex(), timeout);
-    }
+{
+    if (m_youtube)
+        return m_youtube->waitReady(static_cast<int>(timeout));
 
     return true;
 }
@@ -143,7 +105,7 @@ TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
     transcodeProcess->setFrameRate(framerate());
     transcodeProcess->setAudioChannelCount(channelCount());
     transcodeProcess->setAudioSampleRate(samplerate());
-    transcodeProcess->setUrl(streamUrl());
+    transcodeProcess->setUrl(streamUrl().url());
     return transcodeProcess;
 }
 
@@ -192,4 +154,20 @@ QString DlnaYouTubeVideo::resolution() const
 QString DlnaYouTubeVideo::framerate() const
 {
     return QString().sprintf("%2.3f", ffmpeg.getVideoFrameRate());
+}
+
+QString DlnaYouTubeVideo::metaDataTitle() const
+{
+    if (m_youtube)
+        return m_youtube->title();
+
+    return QString();
+}
+
+QString DlnaYouTubeVideo::error() const
+{
+    if (m_youtube)
+        return m_youtube->error();
+
+    return QString();
 }

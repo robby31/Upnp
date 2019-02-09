@@ -17,15 +17,16 @@ public:
     explicit DlnaYouTubeVideo(QObject *parent = Q_NULLPTR);
     ~DlnaYouTubeVideo() Q_DECL_OVERRIDE;
 
-    bool isValid() { return m_unavailableMessage.isEmpty() && !m_title.isEmpty() && !resolution().isEmpty() && metaDataDuration()>0; }
-    QString unavailableMessage() { return m_unavailableMessage; }
-    QString lastError() { return m_error; }
+    bool isValid() { return unavailableMessage().isEmpty() && !metaDataTitle().isEmpty() && !resolution().isEmpty() && metaDataDuration()>0; }
+    QString unavailableMessage();
+
+    QString error() const;
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
     QString getName() const Q_DECL_OVERRIDE { return metaDataTitle(); }
 
-    QString getSystemName() const Q_DECL_OVERRIDE { return m_url.toString();  }
+    QString getSystemName() const Q_DECL_OVERRIDE { return url().url();  }
 
     // Returns the DisplayName that is shown to the Renderer.
     QString getDisplayName() const Q_DECL_OVERRIDE { return metaDataTitle(); }
@@ -34,8 +35,8 @@ public:
     qint64 sourceSize() const Q_DECL_OVERRIDE;
 
     qint64 metaDataBitrate()           const Q_DECL_OVERRIDE { return ffmpeg.getBitrate(); }
-    qint64 metaDataDuration()             const Q_DECL_OVERRIDE;
-    QString metaDataTitle()            const Q_DECL_OVERRIDE { return m_title; }
+    qint64 metaDataDuration()          const Q_DECL_OVERRIDE;
+    QString metaDataTitle()            const Q_DECL_OVERRIDE;
     QString metaDataGenre()            const Q_DECL_OVERRIDE { return QString(); }
     QString metaDataPerformer()        const Q_DECL_OVERRIDE { return QString(); }
     QString metaDataPerformerSort()    const Q_DECL_OVERRIDE { return QString(); }
@@ -61,7 +62,7 @@ public:
     QStringList audioLanguages() const Q_DECL_OVERRIDE { return QStringList(); }
     QString framerate() const Q_DECL_OVERRIDE;
 
-    QString streamUrl() const { return m_streamUrl; }
+    QUrl streamUrl() const { return m_streamUrl; }
 
     void setAnalyzeStream(const bool &flag) { m_analyzeStream = flag; }
 
@@ -84,26 +85,15 @@ signals:
     void streamUrlDefined(const QString &url);
 
 private slots:
-    void videoUrl(const QString &url);
-    void videoTitle(const QString &title);
-    void videoUrlError(const QString &message);
-    void videoNotAvailable(const QString &message) { m_unavailableMessage  = message; }
+    void videoUrl();
 
 private:
-    QUrl m_url;
     bool m_analyzeStream;
-    bool m_videoUrlInProgress;
-    QString m_unavailableMessage;
-    QString m_title;
-    QString m_streamUrl;
+    QUrl m_streamUrl;
 
     QFfmpegInputMedia ffmpeg;
 
-    YouTube *m_youtube;
-    QMutex mutex;
-    QWaitCondition replyWaitCondition;
-
-    QString m_error;
+    Youtube *m_youtube = Q_NULLPTR;
 
 public:
     static qint64 objectCounter;
