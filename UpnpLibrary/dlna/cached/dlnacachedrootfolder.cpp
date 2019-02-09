@@ -140,20 +140,20 @@ void DlnaCachedRootFolder::addNetworkLink(const QString &url)
 
 void DlnaCachedRootFolder::addResource(const QUrl &url)
 {
-    auto movie = new DlnaYouTubeVideo(this);
+    auto movie = new DlnaNetworkVideo(this);
     movie->setDlnaParent(this);
-    connect(movie, SIGNAL(streamUrlDefined(QString)), this, SLOT(networkLinkAnalyzed(QString)));
-    connect(movie, SIGNAL(videoUrlErrorSignal(QString)), this, SLOT(networkLinkError(QString)));
+    connect(movie, &DlnaNetworkVideo::streamUrlDefined, this, &DlnaCachedRootFolder::networkLinkAnalyzed);
+    connect(movie, &DlnaNetworkVideo::videoUrlErrorSignal, this, &DlnaCachedRootFolder::networkLinkError);
     movie->setNetworkAccessManager(m_nam);
-    movie->setUrl(url.toString());
+    movie->setUrl(url.url());
 }
 
 
-void DlnaCachedRootFolder::networkLinkAnalyzed(const QString &streamingUrl)
+void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
 {
-    Q_UNUSED(streamingUrl)
+    Q_UNUSED(urls)
 
-    auto movie = qobject_cast<DlnaYouTubeVideo*>(sender());
+    auto movie = qobject_cast<DlnaNetworkVideo*>(sender());
     if (movie)
     {
         QHash<QString, QVariant> data;
@@ -216,7 +216,7 @@ void DlnaCachedRootFolder::networkLinkError(const QString &message)
 {
     qCritical() << "ERROR, link not added" << message;
 
-    auto movie = qobject_cast<DlnaYouTubeVideo*>(sender());
+    auto movie = qobject_cast<DlnaNetworkVideo*>(sender());
     if (movie)
     {
         emit error_addNetworkLink(movie->url().toString());

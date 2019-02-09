@@ -11,7 +11,7 @@
 #include "dlnacachedfolder.h"
 #include "dlnacachedgroupedfoldermetadata.h"
 #include "../dlnarootfolder.h"
-#include "../dlnayoutubevideo.h"
+#include "../dlnanetworkvideo.h"
 
 class DlnaCachedRootFolder : public DlnaRootFolder
 {
@@ -46,7 +46,7 @@ private slots:
 
     void addNetworkLink(const QString &url);
 
-    void networkLinkAnalyzed(const QString &streamingUrl);
+    void networkLinkAnalyzed(const QList<QUrl> &urls);
     void networkLinkError(const QString &message);
 
 public slots:
