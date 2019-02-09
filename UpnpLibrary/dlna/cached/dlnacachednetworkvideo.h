@@ -3,7 +3,7 @@
 
 #include "dlnacachedvideo.h"
 #include "ffmpegtranscoding.h"
-#include "../dlnayoutubevideo.h"
+#include "../dlnanetworkvideo.h"
 
 class DlnaCachedNetworkVideo : public DlnaCachedVideo
 {

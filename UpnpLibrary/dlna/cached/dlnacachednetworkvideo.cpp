@@ -13,21 +13,21 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 
     QString sysName = getSystemName();
 
-    if (sysName.startsWith("http") && sysName.contains("youtube"))
+    if (sysName.startsWith("http"))
     {
-        // YOUTUBE stream
+        // Network stream
         if (!m_nam)
         {
-            qCritical() << "network not initialised, cannot manage Youtube stream.";
+            qCritical() << "network not initialised.";
             return Q_NULLPTR;
         }
 
         transcodeProcess = new FfmpegTranscoding();
 
-        // request from Youtube url for streaming
-        auto movie = new DlnaYouTubeVideo(transcodeProcess);
+        // request from network url for streaming
+        auto movie = new DlnaNetworkVideo(transcodeProcess);
         movie->setDlnaParent(this);
-        connect(movie, SIGNAL(streamUrlDefined(QString)), transcodeProcess, SLOT(setUrl(QString)));
+        connect(movie, &DlnaNetworkVideo::streamUrlDefined, transcodeProcess, &FfmpegTranscoding::setUrls);
         connect(movie, SIGNAL(videoUrlErrorSignal(QString)), transcodeProcess, SLOT(urlError(QString)));
         movie->setAnalyzeStream(false);
         movie->setNetworkAccessManager(m_nam);
@@ -62,7 +62,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 Device *DlnaCachedNetworkVideo::getOriginalStreaming()
 {
     QString sysName = getSystemName();
-    if (sysName.startsWith("http") && sysName.contains("youtube"))
+    if (sysName.startsWith("http"))
     {
         TranscodeProcess *process = getTranscodeProcess();
         process->setFormat(COPY);
