@@ -222,8 +222,7 @@ TranscodeProcess *DlnaNetworkVideo::getTranscodeProcess()
     transcodeProcess->setFrameRate(framerate());
     transcodeProcess->setAudioChannelCount(channelCount());
     transcodeProcess->setAudioSampleRate(samplerate());
-    if (!mediaUrl().isEmpty())
-        transcodeProcess->setUrl(mediaUrl().at(0).url());
+    transcodeProcess->setUrls(mediaUrl());
     return transcodeProcess;
 }
 
