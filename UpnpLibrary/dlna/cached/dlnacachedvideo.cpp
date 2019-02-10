@@ -78,3 +78,16 @@ Device *DlnaCachedVideo::getOriginalStreaming()
 {
     return new StreamingFile(getSystemName());
 }
+
+qint64 DlnaCachedVideo::metaDataDuration() const
+{
+    qint64 duration = 0;
+
+    if (library)
+        duration = library->getmetaData("duration", idMedia).toInt();
+
+    if (duration <= 0)
+        duration = 5*3600000;  // default duration when live video are unlimited
+
+    return duration;
+}
