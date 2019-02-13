@@ -66,7 +66,7 @@ public:
     QUrl url() const;
     void setUrl(const QUrl &url);
     bool waitUrl(const unsigned long &timeout=30000);
-    void setPlaybackQuality(const QString &quality);
+    void setMaxVideoHeight(const int &height);
 
 protected:
     // Returns the process for transcoding

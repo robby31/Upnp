@@ -201,13 +201,12 @@ bool DlnaNetworkVideo::waitUrl(const unsigned long &timeout)
     return true;
 }
 
-void DlnaNetworkVideo::setPlaybackQuality(const QString &quality)
-{
-//    QMutexLocker locker(&mutex);
-//    if (m_youtube)
-//        m_youtube->setPlaybackQuality(quality);
-//    else
-//        qCritical() << "Unable to set playback quality because Youtube is not initialized (call setNetworkAccessManager before).";
+void DlnaNetworkVideo::setMaxVideoHeight(const int &height)
+{  
+    if (m_media)
+        m_media->setMaxHeight(height);
+    else
+        qCritical() << "Unable to set playback quality because Network Stream is not initialized (call setUrl before).";
 }
 
 TranscodeProcess *DlnaNetworkVideo::getTranscodeProcess()

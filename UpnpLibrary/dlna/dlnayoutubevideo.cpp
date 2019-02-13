@@ -36,10 +36,10 @@ void DlnaYouTubeVideo::setNetworkAccessManager(QNetworkAccessManager *manager)
     }
 }
 
-void DlnaYouTubeVideo::setPlaybackQuality(const QString &quality)
+void DlnaYouTubeVideo::setMaxVideoHeight(const int &height)
 {
     if (m_youtube)
-        m_youtube->setQuality(quality);
+        m_youtube->setMaxHeight(height);
     else
         qCritical() << "Unable to set quality because Youtube is not initialized (call setNetworkAccessManager before).";
 }
