@@ -8,6 +8,7 @@ const QString DlnaVideoItem::WMV_TYPEMIME = "video/x-ms-wmv";
 const QString DlnaVideoItem::ASF_TYPEMIME = "video/x-ms-asf";
 const QString DlnaVideoItem::MATROSKA_TYPEMIME = "video/x-matroska";
 const QString DlnaVideoItem::VIDEO_TRANSCODE = "video/transcode";
+const QString DlnaVideoItem::M3U8_TYPEMIME = "application/x-mpegURL";
 
 DlnaVideoItem::DlnaVideoItem(QObject *parent):
     DlnaItem(parent)
@@ -92,7 +93,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
         res.setAttribute("resolution", resolution());
     }
 
-    if (properties.contains("*") || properties.contains("res@duration")) {
+    if ((properties.contains("*") || properties.contains("res@duration")) && getLengthInSeconds() > 0) {
         res.setAttribute("duration", QString("%1").arg(duration.addSecs(getLengthInSeconds()).toString("hh:mm:ss")));
     }
 
@@ -162,6 +163,9 @@ QString DlnaVideoItem::sourceMimeType() const
 
     if (format == "asf")
         return ASF_TYPEMIME;
+
+    if (format == "hls,applehttp")
+        return M3U8_TYPEMIME;
 
     qCritical() << "Unable to define mimeType of DlnaVideoItem: " << format << " " << getSystemName();
 

@@ -43,6 +43,7 @@ public:
     static const QString WMV_TYPEMIME;
     static const QString ASF_TYPEMIME;
     static const QString MATROSKA_TYPEMIME;
+    static const QString M3U8_TYPEMIME;
     static const QString VIDEO_TRANSCODE;
 
 private:
