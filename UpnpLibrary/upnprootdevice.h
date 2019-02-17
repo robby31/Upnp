@@ -24,16 +24,13 @@ public:
     };
 
     explicit UpnpRootDevice(QObject *parent = Q_NULLPTR);
-    explicit UpnpRootDevice(QNetworkAccessManager *nam, const QString& macAddress, const QString& uuid, QObject *parent = Q_NULLPTR);
+    explicit UpnpRootDevice(const QString& macAddress, const QString& uuid, QObject *parent = Q_NULLPTR);
 
     QVariant data(int role) const Q_DECL_OVERRIDE;
 
     UpnpRootDeviceDescription *description() const;
 
     QString version() const;
-
-    QNetworkAccessManager *networkManager() const Q_DECL_OVERRIDE;
-    void setNetworkManager(QNetworkAccessManager *nam);
 
     int bootId() const;
     QHostAddress host() const Q_DECL_OVERRIDE;
@@ -88,7 +85,6 @@ public:
     static const QString UPNP_ROOTDEVICE;
 
 private:
-    QNetworkAccessManager *netManager = Q_NULLPTR;
     QString m_servername;
     int m_bootId = 0;
     QUrl m_url;

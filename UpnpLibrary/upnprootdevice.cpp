@@ -15,7 +15,7 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     initRoles();   
 }
 
-UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, const QString& macAddress, const QString &uuid, QObject *parent) :
+UpnpRootDevice::UpnpRootDevice(const QString& macAddress, const QString &uuid, QObject *parent) :
     UpnpDevice(uuid, Q_NULLPTR, parent),
     m_servername(),
     m_iconUrl(),
@@ -24,7 +24,6 @@ UpnpRootDevice::UpnpRootDevice(QNetworkAccessManager *nam, const QString& macAdd
     m_macAddress(macAddress)
 {
     setType(T_RootDevice);
-    setNetworkManager(nam);
 
     if (id().isEmpty())
         setUuid(_generateUuid());
@@ -93,11 +92,6 @@ QVariant UpnpRootDevice::data(int role) const
     }
 }
 
-QNetworkAccessManager *UpnpRootDevice::networkManager() const
-{
-    return netManager;
-}
-
 QString UpnpRootDevice::iconUrl() const
 {
     return m_iconUrl;
@@ -120,21 +114,6 @@ QHostAddress UpnpRootDevice::host() const
 quint16 UpnpRootDevice::port() const
 {
     return static_cast<quint16>(m_url.port());
-}
-
-void UpnpRootDevice::setNetworkManager(QNetworkAccessManager *nam)
-{
-    if (nam)
-    {
-        if (thread() != nam->thread())
-            qWarning() << "NetworkManager and UpnpObject are in different thread.";
-
-        netManager = nam;
-    }
-    else
-    {
-        qCritical() << "invalid network access manager" << nam;
-    }
 }
 
 QString UpnpRootDevice::serverName() const

@@ -37,7 +37,6 @@ private slots:
     void mDnsServiceAdded(const QMdnsEngine::Service& service);
 
 private:
-    QNetworkAccessManager netManager;
     UpnpControlPoint *m_upnp;
     ListModel *m_messageModel;
     QMdnsEngine::Server m_mDnsServer;

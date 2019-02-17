@@ -14,7 +14,6 @@ public:
     explicit DevicesModel(QObject *parent = Q_NULLPTR);
     ~DevicesModel() Q_DECL_OVERRIDE = default;
 
-    void setNetworkManager(QNetworkAccessManager *nam);
     void setMacAddress(const QString &m_address);
 
     UpnpObject *getUpnpObjectFromUSN(const QString &usn);
@@ -39,7 +38,6 @@ public slots:
     void _rootDeviceAvailableChanged();
 
 private:
-    QNetworkAccessManager *m_nam = Q_NULLPTR;
     QString m_macAddress;
 };
 

@@ -15,7 +15,6 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     m_upnp = new UpnpControlPoint(this);
     connect(m_upnp, &UpnpControlPoint::messageReceived, this, &MyApplication::messageReceived);
-    m_upnp->setNetworkManager(&netManager);
     m_upnp->startDiscover();
 
     connect(&m_mDnsBrowser, &QMdnsEngine::Browser::serviceAdded, this, &MyApplication::mDnsServiceAdded);

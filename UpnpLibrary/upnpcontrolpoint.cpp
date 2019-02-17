@@ -257,17 +257,6 @@ void UpnpControlPoint::sendDiscover(const QString &search_target)
     _sendMulticastSsdpMessage(message);
 }
 
-void UpnpControlPoint::setNetworkManager(QNetworkAccessManager *nam)
-{
-    if (thread() != nam->thread())
-        qWarning() << "NetworkManager and UpnpControlPoint are in different thread.";
-
-    netManager = nam;
-
-    if (m_remoteRootDevice)
-        m_remoteRootDevice->setNetworkManager(nam);
-}
-
 void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, const quint16 &port, const SsdpMessage &message)
 {
     Q_UNUSED(port)
@@ -324,7 +313,7 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
 
 UpnpRootDevice *UpnpControlPoint::addLocalRootDevice(UpnpRootDeviceDescription *description, int port, const QString &url)
 {
-    UpnpRootDevice *device = new UpnpRootDevice(netManager, m_macAddress, QString(), m_localRootDevice);
+    UpnpRootDevice *device = new UpnpRootDevice(m_macAddress, QString(), m_localRootDevice);
     connect(device, &UpnpRootDevice::aliveMessage, this, &UpnpControlPoint::_sendAliveMessage);
     connect(device, &UpnpRootDevice::byebyeMessage, this, &UpnpControlPoint::_sendByeByeMessage);
     connect(device, &UpnpRootDevice::searchResponse, this, &UpnpControlPoint::_sendSearchResponse);
@@ -418,7 +407,7 @@ void UpnpControlPoint::subscribeEventing(QNetworkRequest request, const QString 
         request.setRawHeader("HOST", QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
         request.setRawHeader("CALLBACK", QString("<http://%1:%2/event/%3/%4>").arg(host().toString()).arg(m_eventPort).arg(uuid, serviceId).toUtf8());
 
-        QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
+        QNetworkReply *reply = MyNetwork::manager().sendCustomRequest(request, "SUBSCRIBE");
         connect(reply, &QNetworkReply::finished, this, &UpnpControlPoint::subscribeEventingFinished);
         reply->setProperty("deviceUuid", uuid);
         reply->setProperty("serviceId", serviceId);
@@ -636,7 +625,7 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
                         request.setRawHeader("SID", it.key().toUtf8());
                         request.setRawHeader("TIMEOUT", "Second-300");
 
-                        QNetworkReply *reply = netManager->sendCustomRequest(request, "SUBSCRIBE");
+                        QNetworkReply *reply = MyNetwork::manager().sendCustomRequest(request, "SUBSCRIBE");
                         connect(reply, &QNetworkReply::finished, this, &UpnpControlPoint::subscribeEventingFinished);
                         reply->setProperty("deviceUuid", deviceUuid);
                         reply->setProperty("serviceId", serviceId);

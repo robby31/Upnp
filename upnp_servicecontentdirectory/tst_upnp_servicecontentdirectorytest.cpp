@@ -44,7 +44,6 @@ private:
     void initContentDirectory();
 
 private:
-    QNetworkAccessManager nam;
     UpnpControlPoint *m_upnp = Q_NULLPTR;
     UpnpRootDevice *m_root = Q_NULLPTR;
     ServiceContentDirectory *m_contentDirectory = Q_NULLPTR;
@@ -60,7 +59,6 @@ void Upnp_servicecontentdirectoryTest::initTestCase()
     EVENT_PORT = 6000;
 
     m_upnp = new UpnpControlPoint(EVENT_PORT);
-    m_upnp->setNetworkManager(&nam);
 
     initRootDevice();
 
@@ -87,7 +85,7 @@ void Upnp_servicecontentdirectoryTest::initRootDevice()
 {
     if (m_root == Q_NULLPTR)
     {
-        m_root = new UpnpRootDevice(&nam, m_upnp->macAddress(), QString());
+        m_root = new UpnpRootDevice(m_upnp->macAddress(), QString());
 
         QUrl tmp(QString("http://%1:%2").arg(m_upnp->host().toString()).arg(UPNP_PORT));
         m_root->setUrl(tmp.resolved(QString("/description/fetch")));
@@ -197,7 +195,7 @@ void Upnp_servicecontentdirectoryTest::test_get_service_description()
     QUrl url(QString("http://%1:%2/UPnP_AV_ContentDirectory_1.0.xml").arg(m_upnp->host().toString()).arg(UPNP_PORT));
 
     QNetworkRequest request(url);
-    QNetworkReply *reply = nam.get(request);
+    QNetworkReply *reply = MyNetwork::manager().get(request);
 
     int timeout = 10;
     while (timeout>0 && !reply->isFinished())

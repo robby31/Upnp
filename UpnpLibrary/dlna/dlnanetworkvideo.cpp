@@ -163,11 +163,6 @@ void DlnaNetworkVideo::setAnalyzeStream(const bool &flag)
     m_analyzeStream = flag;
 }
 
-void DlnaNetworkVideo::setNetworkAccessManager(QNetworkAccessManager *manager)
-{
-    m_nam = manager;
-}
-
 QUrl DlnaNetworkVideo::url() const
 {
     return m_url;
@@ -179,7 +174,7 @@ void DlnaNetworkVideo::setUrl(const QUrl &url)
 
     delete m_media;
 
-    MediaStreaming streaming(m_nam);
+    MediaStreaming streaming;
     m_media = streaming.get_media(url);
 
     if (m_media)

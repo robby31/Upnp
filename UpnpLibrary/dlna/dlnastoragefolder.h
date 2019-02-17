@@ -9,6 +9,7 @@ class DlnaStorageFolder : public DlnaResource
 
 public:
     explicit DlnaStorageFolder(QObject *parent = Q_NULLPTR);
+    ~DlnaStorageFolder() Q_DECL_OVERRIDE;
 
     // Return upnp class
     QString getUpnpClass() const Q_DECL_OVERRIDE { return QString("object.container.storageFolder"); }
@@ -20,6 +21,9 @@ public:
 
     // Returns album art in jpeg format
     QImage getAlbumArt() const Q_DECL_OVERRIDE { return QImage(); }
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // DLNASTORAGEFOLDER_H

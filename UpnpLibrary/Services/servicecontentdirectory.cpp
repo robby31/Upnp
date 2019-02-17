@@ -12,8 +12,6 @@ ServiceContentDirectory::ServiceContentDirectory(MediaRendererModel *model, Upnp
     if (upnpParent)
         rootFolder.setHostUrl(upnpParent->url());
 
-    rootFolder.setNetworkAccessManager(networkManager());
-
     connect(&rootFolder, SIGNAL(scanFolder(QString)), this, SIGNAL(scanFolder(QString)));
 
     connect(this, SIGNAL(folderAdded(QString)), this, SLOT(folderAddedSlot(QString)));

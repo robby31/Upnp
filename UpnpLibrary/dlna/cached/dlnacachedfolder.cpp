@@ -1,5 +1,7 @@
 #include "dlnacachedfolder.h"
 
+qint64 DlnaCachedFolder::objectCounter = 0;
+
 DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, const QSqlQuery &query, const QString& name, bool cacheEnabled, int maxSize, QObject *parent):
     DlnaStorageFolder(parent),
     library(library),
@@ -9,7 +11,14 @@ DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, const QSqlQuery &query
     cacheEnabled(cacheEnabled),
     limitSizeMax(maxSize)
 {
+    ++objectCounter;
+
     needRefresh();
+}
+
+DlnaCachedFolder::~DlnaCachedFolder()
+{
+    --objectCounter;
 }
 
 int DlnaCachedFolder::getChildrenSize() const
@@ -80,9 +89,9 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
 
     } else if (type_media == "video")
     {
-        if (filename.startsWith("http"))
+        if (library && !library->isLocalUrl(filename))
         {
-            child= new DlnaCachedNetworkVideo(m_nam, library, id_media,
+            child= new DlnaCachedNetworkVideo(library, id_media,
                                               parent != Q_NULLPTR ? parent : this);
         }
         else

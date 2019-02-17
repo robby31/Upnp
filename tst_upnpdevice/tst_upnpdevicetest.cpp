@@ -21,9 +21,6 @@ private Q_SLOTS:
     void testUpnpRootDeviceFromXml();
     void testUpnpDeviceFromDescription();
     void testUpnpDeviceFromXml();
-
-private:
-    QNetworkAccessManager nam;
 };
 
 void UpnpDeviceTest::initTestCase()
@@ -83,7 +80,7 @@ void UpnpDeviceTest::testUpnpRootDeviceFromDescription()
     QCOMPARE(deviceDescription->xmlDescription().childNodes().at(1).toElement().tagName(), "device");
     QCOMPARE(deviceDescription->xmlDescription().childNodes().at(1).childNodes().size(), 15);
 
-    UpnpRootDevice device(&nam, "macaddress", "uuid-1-2", Q_NULLPTR);
+    UpnpRootDevice device("macaddress", "uuid-1-2", Q_NULLPTR);
     device.setDescription(deviceDescription);
     QCOMPARE(device.version(), QString("2.1"));
     QCOMPARE(device.deviceType(), QString("urn:schemas-upnp-org:device:MediaServer:1"));
@@ -112,7 +109,7 @@ void UpnpDeviceTest::testUpnpRootDeviceFromXml()
     QCOMPARE(description->xmlDescription().childNodes().at(1).toElement().tagName(), "device");
     QCOMPARE(description->xmlDescription().childNodes().at(1).childNodes().size(), 14);
 
-    UpnpRootDevice device(&nam, "macaddress", "uuid-1-2", Q_NULLPTR);
+    UpnpRootDevice device("macaddress", "uuid-1-2", Q_NULLPTR);
     device.setDescription(description);
     QCOMPARE(device.version(), QString("1.0"));
     QCOMPARE(device.deviceType(), QString("urn:schemas-upnp-org:device:MediaServer:1"));

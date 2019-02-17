@@ -16,6 +16,7 @@ public:
                                       const QString& stringQueryForChild,
                                       const QString& name,
                                       QObject *parent = Q_NULLPTR);
+    ~DlnaCachedFolderMetaData() Q_DECL_OVERRIDE;
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
     int getChildrenSize() const Q_DECL_OVERRIDE { return nbChildren; }
@@ -29,8 +30,6 @@ public:
     // Returns the DisplayName that is shown to the Renderer.
     QString getDisplayName() const Q_DECL_OVERRIDE { return m_name; }
 
-    void setNetworkAccessManager(QNetworkAccessManager *manager) { m_nam = manager; }
-
 
 private:
     MediaLibrary* library;
@@ -38,7 +37,9 @@ private:
     QSqlQuery query;
     QString stringQueryForChild;
     int nbChildren;
-    QNetworkAccessManager *m_nam;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // DLNACACHEDFOLDERMETADATA_H

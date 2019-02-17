@@ -1,8 +1,16 @@
 #include "dlnastoragefolder.h"
 
+qint64 DlnaStorageFolder::objectCounter = 0;
+
 DlnaStorageFolder::DlnaStorageFolder(QObject *parent):
     DlnaResource(parent)
 {
+    ++objectCounter;
+}
+
+DlnaStorageFolder::~DlnaStorageFolder()
+{
+    --objectCounter;
 }
 
 /*

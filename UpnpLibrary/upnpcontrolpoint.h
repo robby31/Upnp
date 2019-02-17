@@ -54,8 +54,6 @@ public:
     QString serverName() const;
     QHostAddress host() const;
 
-    void setNetworkManager(QNetworkAccessManager *nam);
-
     ListModel *localRootDevices() const;
     DevicesModel *remoteRootDevices() const;
 
@@ -107,8 +105,6 @@ private slots:
     void removeSidEventFromUuid(const QString &deviceUuid);
 
 private:
-    QNetworkAccessManager *netManager = Q_NULLPTR;
-
     HttpServer eventServer;
     quint16 m_eventPort;
     QHash<QString, T_EVENT> m_sidEvent;

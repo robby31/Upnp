@@ -62,7 +62,6 @@ public:
 
     void setAnalyzeStream(const bool &flag);
 
-    void setNetworkAccessManager(QNetworkAccessManager *manager);
     QUrl url() const;
     void setUrl(const QUrl &url);
     bool waitUrl(const unsigned long &timeout=30000);
@@ -84,7 +83,6 @@ private slots:
 
 private:
     bool m_analyzeStream;
-    QNetworkAccessManager *m_nam = Q_NULLPTR;
     QUrl m_url;
     QList<QFfmpegInputMedia*> ffmpeg;
     AbstractMedia *m_media = Q_NULLPTR;

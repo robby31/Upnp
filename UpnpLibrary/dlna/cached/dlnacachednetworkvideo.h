@@ -10,7 +10,7 @@ class DlnaCachedNetworkVideo : public DlnaCachedVideo
     Q_OBJECT
 
 public:
-    explicit DlnaCachedNetworkVideo(QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QObject *parent = Q_NULLPTR);
+    explicit DlnaCachedNetworkVideo(MediaLibrary* library, int idMedia, QObject *parent = Q_NULLPTR);
 
     //returns the size of the source
     qint64 sourceSize() const Q_DECL_OVERRIDE { return (double)metaDataDuration()*(double)metaDataBitrate()/8000.0; }
@@ -28,7 +28,6 @@ protected:
     Device* getOriginalStreaming() Q_DECL_OVERRIDE;
 
 private:
-    QNetworkAccessManager *m_nam = Q_NULLPTR;
     QString m_streamUrl;
 };
 

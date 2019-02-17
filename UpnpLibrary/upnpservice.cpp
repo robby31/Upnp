@@ -766,19 +766,12 @@ void UpnpService::sendEvent(const QString &uuid)
             }
         }
 
-        if (networkManager())
-        {
-            QNetworkReply *reply = networkManager()->sendCustomRequest(request, "NOTIFY", event.toString().toUtf8());
-            connect(reply, SIGNAL(finished()), this, SLOT(sendEventReply()));
+        QNetworkReply *reply = MyNetwork::manager().sendCustomRequest(request, "NOTIFY", event.toString().toUtf8());
+        connect(reply, SIGNAL(finished()), this, SLOT(sendEventReply()));
 
-            // check answer is received (30 seconds timeout)
-            int timerId = startTimer(30000);
-            m_checkSendEvent[timerId].reply = reply;
-        }
-        else
-        {
-            qCritical() << "unable to send reply, network manager not initialised.";
-        }
+        // check answer is received (30 seconds timeout)
+        int timerId = startTimer(30000);
+        m_checkSendEvent[timerId].reply = reply;
     }
 }
 

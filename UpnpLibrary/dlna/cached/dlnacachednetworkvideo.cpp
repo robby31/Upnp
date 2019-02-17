@@ -1,8 +1,7 @@
 #include "dlnacachednetworkvideo.h"
 
-DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QObject *parent):
+DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(MediaLibrary* library, int idMedia, QObject *parent):
     DlnaCachedVideo(library, idMedia, parent),
-    m_nam(manager),
     m_streamUrl()
 {
 }
@@ -13,15 +12,8 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 
     QString sysName = getSystemName();
 
-    if (sysName.startsWith("http"))
+    if (!library->isLocalUrl(sysName))
     {
-        // Network stream
-        if (!m_nam)
-        {
-            qCritical() << "network not initialised.";
-            return Q_NULLPTR;
-        }
-
         transcodeProcess = new FfmpegTranscoding();
 
         // request from network url for streaming
@@ -30,7 +22,6 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
         connect(movie, &DlnaNetworkVideo::streamUrlDefined, transcodeProcess, &FfmpegTranscoding::setUrls);
         connect(movie, SIGNAL(videoUrlErrorSignal(QString)), transcodeProcess, SLOT(urlError(QString)));
         movie->setAnalyzeStream(false);
-        movie->setNetworkAccessManager(m_nam);
         movie->setUrl(sysName);
     }
     else if (!m_streamUrl.isEmpty())
@@ -62,7 +53,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 Device *DlnaCachedNetworkVideo::getOriginalStreaming()
 {
     QString sysName = getSystemName();
-    if (sysName.startsWith("http"))
+    if (library && !library->isLocalUrl(sysName))
     {
         TranscodeProcess *process = getTranscodeProcess();
         process->setFormat(COPY);

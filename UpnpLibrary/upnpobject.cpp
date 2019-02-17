@@ -52,14 +52,6 @@ void UpnpObject::setUpnpParent(UpnpObject *parent)
     }
 }
 
-QNetworkAccessManager *UpnpObject::networkManager() const
-{
-    if (m_upnpParent)
-        return m_upnpParent->networkManager();
-
-    return Q_NULLPTR;
-}
-
 UpnpObject::TypeObject UpnpObject::type() const
 {
     return m_type;
@@ -132,43 +124,21 @@ void UpnpObject::update(const SsdpMessage &message)
 
 QNetworkReply *UpnpObject::get(QNetworkRequest request)
 {
-    QNetworkAccessManager *netManager = networkManager();
+    request.setRawHeader("Connection", "close");
+    request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
 
-    if (!netManager)
-    {
-        qCritical() << "NetManager not initialized.";
-    }
-    else
-    {
-        request.setRawHeader("Connection", "close");
-        request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
-
-        return netManager->get(request);
-    }
-
-    return Q_NULLPTR;
+    return MyNetwork::manager().get(request);
 }
 
 QNetworkReply *UpnpObject::post(QNetworkRequest request, const QByteArray &data)
 {
-    QNetworkAccessManager *netManager = networkManager();
+    request.setRawHeader("Connection", "close");
 
-    if (!netManager)
-    {
-        qCritical() << "NetManager not initialized.";
-    }
-    else
-    {
-        request.setRawHeader("Connection", "close");
+    request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
 
-        request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
+    request.setRawHeader(QByteArray("USER-AGENT"), serverName().toUtf8());
 
-        request.setRawHeader(QByteArray("USER-AGENT"), serverName().toUtf8());
-
-        return netManager->post(request, data);
-    }
-
-    return Q_NULLPTR;
+    return MyNetwork::manager().post(request, data);
 }
 
 QHostAddress UpnpObject::host() const

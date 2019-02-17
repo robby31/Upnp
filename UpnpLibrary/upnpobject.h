@@ -10,6 +10,7 @@
 #include "ssdpmessage.h"
 #include "Models/listitem.h"
 #include "upnpdescription.h"
+#include "mynetwork.h"
 
 class UpnpObject : public ListItem
 {
@@ -37,8 +38,6 @@ public:
 
     UpnpObject *upnpParent() const;
     void setUpnpParent(UpnpObject *parent);
-
-    virtual QNetworkAccessManager *networkManager() const;
 
     Status status() const;
 

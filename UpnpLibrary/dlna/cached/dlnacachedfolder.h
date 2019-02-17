@@ -18,6 +18,7 @@ public:
     explicit DlnaCachedFolder(MediaLibrary* library,
                               const QSqlQuery& query,
                               const QString& name, bool cacheEnabled = false, int maxSize = -1, QObject *parent = Q_NULLPTR);
+    ~DlnaCachedFolder() Q_DECL_OVERRIDE;
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
     int getChildrenSize() const Q_DECL_OVERRIDE;
@@ -33,8 +34,6 @@ public:
 
     void setLimitSizeMax(const int &size) { limitSizeMax = size; refreshContent(); }
 
-    void setNetworkAccessManager(QNetworkAccessManager *manager) { m_nam = manager; }
-
 private:
     void refreshContent() Q_DECL_OVERRIDE;
 
@@ -46,7 +45,9 @@ private:
     bool cacheEnabled;
     QList<int> cache;
     int limitSizeMax;
-    QNetworkAccessManager *m_nam = Q_NULLPTR;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // DLNACACHEDFOLDER_H

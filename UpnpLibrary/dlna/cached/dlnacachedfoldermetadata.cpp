@@ -1,20 +1,28 @@
 #include "dlnacachedfoldermetadata.h"
 
+qint64 DlnaCachedFolderMetaData::objectCounter = 0;
+
 DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(MediaLibrary *library, const QString& stringQuery, const QString& stringQueryForChild, const QString& name, QObject *parent):
     DlnaStorageFolder(parent),
     library(library),
     m_name(name),
     query(stringQuery, library ? library->database() : QSqlDatabase()),
     stringQueryForChild(stringQueryForChild),
-    nbChildren(-1),
-    m_nam(Q_NULLPTR)
+    nbChildren(-1)
 {
+    ++objectCounter;
+
     if (query.isSelect() && query.isActive()) {
         if (query.last())
             nbChildren = query.at() + 1;
         else
             nbChildren = 0;
     }
+}
+
+DlnaCachedFolderMetaData::~DlnaCachedFolderMetaData()
+{
+    --objectCounter;
 }
 
 DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
@@ -51,7 +59,6 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
     if (child)
     {
         child->setId(QString("%1").arg(index+1));
-        child->setNetworkAccessManager(m_nam);
         child->setDlnaParent(this);
     }
 

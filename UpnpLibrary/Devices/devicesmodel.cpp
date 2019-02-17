@@ -44,7 +44,7 @@ void DevicesModel::addRootDevice(const SsdpMessage &message)
 
         if (device == Q_NULLPTR)
         {
-            device = new UpnpRootDevice(m_nam, m_macAddress, uuid, this);
+            device = new UpnpRootDevice(m_macAddress, uuid, this);
             connect(device, &UpnpRootDevice::availableChanged, this, &DevicesModel::_rootDeviceAvailableChanged);
             connect(device, &UpnpRootDevice::statusChanged, this, &DevicesModel::_rootDeviceStatusChanged);
             connect(device, &UpnpRootDevice::subscribeEventingSignal, this, &DevicesModel::subscribeEventing);
@@ -160,11 +160,6 @@ void DevicesModel::ssdpMessageReceived(const QHostAddress &host, const int &port
             qCritical() << message.toStringList();
         }
     }
-}
-
-void DevicesModel::setNetworkManager(QNetworkAccessManager *nam)
-{
-    m_nam = nam;
 }
 
 void DevicesModel::setMacAddress(const QString &m_address)
