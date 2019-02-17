@@ -4,9 +4,12 @@ qint64 DlnaYouTubeVideo::objectCounter = 0;
 
 DlnaYouTubeVideo::DlnaYouTubeVideo(QObject *parent) :
     DlnaVideoItem(parent),
-    m_analyzeStream(true)
+    m_analyzeStream(true),
+    m_youtube(this)
 {
     ++objectCounter;
+
+    connect(&m_youtube, &Youtube::mediaReady, this, &DlnaYouTubeVideo::videoUrl);
 }
 
 DlnaYouTubeVideo::~DlnaYouTubeVideo()
@@ -16,52 +19,22 @@ DlnaYouTubeVideo::~DlnaYouTubeVideo()
 
 QString DlnaYouTubeVideo::unavailableMessage()
 {
-    if (m_youtube)
-        return m_youtube->unavailableMessage();
-
-    return QString();
-}
-
-void DlnaYouTubeVideo::setNetworkAccessManager(QNetworkAccessManager *manager)
-{
-    if (m_youtube)
-    {
-        qCritical() << "youtube already initialised";
-    }
-    else if (manager)
-    {
-        m_youtube = new Youtube(manager);
-        connect(this, SIGNAL(destroyed()), m_youtube, SLOT(deleteLater()));
-        connect(m_youtube, &Youtube::mediaReady, this, &DlnaYouTubeVideo::videoUrl);
-    }
+    return m_youtube.unavailableMessage();
 }
 
 void DlnaYouTubeVideo::setMaxVideoHeight(const int &height)
 {
-    if (m_youtube)
-        m_youtube->setMaxHeight(height);
-    else
-        qCritical() << "Unable to set quality because Youtube is not initialized (call setNetworkAccessManager before).";
+    m_youtube.setMaxHeight(height);
 }
 
 QUrl DlnaYouTubeVideo::url() const
 {
-    if (m_youtube)
-        return m_youtube->url();
-
-    return QUrl();
+    return m_youtube.url();
 }
 
 void DlnaYouTubeVideo::setUrl(const QUrl &url)
 {
-    if (m_youtube)
-    {
-        m_youtube->setUrl(url);
-    }
-    else
-    {
-        qCritical() << "ERROR, unable to set url" << m_youtube;
-    }
+    m_youtube.setUrl(url);
 }
 
 void DlnaYouTubeVideo::videoUrl()
@@ -72,7 +45,7 @@ void DlnaYouTubeVideo::videoUrl()
     }
     else
     {
-        QList<QUrl> urls = m_youtube->mediaUrl();
+        QList<QUrl> urls = m_youtube.mediaUrl();
         if (!urls.isEmpty())
             m_streamUrl = urls.at(0);
         else
@@ -87,10 +60,7 @@ void DlnaYouTubeVideo::videoUrl()
 
 bool DlnaYouTubeVideo::waitUrl(const unsigned long &timeout)
 {
-    if (m_youtube)
-        return m_youtube->waitReady(static_cast<int>(timeout));
-
-    return true;
+    return m_youtube.waitReady(static_cast<int>(timeout));
 }
 
 TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
@@ -158,16 +128,10 @@ QString DlnaYouTubeVideo::framerate() const
 
 QString DlnaYouTubeVideo::metaDataTitle() const
 {
-    if (m_youtube)
-        return m_youtube->title();
-
-    return QString();
+    return m_youtube.title();
 }
 
 QString DlnaYouTubeVideo::error() const
 {
-    if (m_youtube)
-        return m_youtube->error();
-
-    return QString();
+    return m_youtube.error();
 }

@@ -66,7 +66,6 @@ public:
 
     void setAnalyzeStream(const bool &flag) { m_analyzeStream = flag; }
 
-    void setNetworkAccessManager(QNetworkAccessManager *manager);
     QUrl url() const;
     void setUrl(const QUrl &url);
     bool waitUrl(const unsigned long &timeout=30000);
@@ -93,7 +92,7 @@ private:
 
     QFfmpegInputMedia ffmpeg;
 
-    Youtube *m_youtube = Q_NULLPTR;
+    Youtube m_youtube;
 
 public:
     static qint64 objectCounter;

@@ -12,24 +12,31 @@
 #include "dlnacachedgroupedfoldermetadata.h"
 #include "../dlnarootfolder.h"
 #include "../dlnanetworkvideo.h"
+#include "../dlnanetworkplaylist.h"
+#include "dlnacachedplaylists.h"
 
 class DlnaCachedRootFolder : public DlnaRootFolder
 {
     Q_OBJECT
+
+    typedef struct {
+        QUrl url;
+        int playListId;
+    } T_URL;
 
 public:
     explicit DlnaCachedRootFolder(QObject *parent = Q_NULLPTR);
 
     QSqlQuery getAllNetworkLinks() { return library.getAllNetworkLinks(); }
 
-    void setNetworkAccessManager(QNetworkAccessManager *nam);
-
     void readDirectory(const QDir& folder);
 
 private:
-
     void addResource(const QFileInfo& fileinfo);
-    void addResource(const QUrl& url);
+    void addResource(const QUrl &url, const int &playlistId = -1);
+    void addPlaylist(DlnaNetworkPlaylist *playlist);
+    void addNextResource();
+    void queueResource(const QUrl &url, const int &playlistId = -1);
 
 signals:
     void linkAdded(QString url);
@@ -60,8 +67,9 @@ private:
     DlnaCachedFolder *resumeChild = Q_NULLPTR;
     DlnaCachedFolder *favoritesChild = Q_NULLPTR;
     DlnaCachedFolder *lastAddedChild = Q_NULLPTR;
+    DlnaCachedPlaylists *playlists = Q_NULLPTR;
     DlnaCachedGroupedFolderMetaData *youtube = Q_NULLPTR;
-    QNetworkAccessManager *m_nam = Q_NULLPTR;
+    QList<T_URL> urlToAdd;
 };
 
 #endif // DLNACACHEDROOTFOLDER_H

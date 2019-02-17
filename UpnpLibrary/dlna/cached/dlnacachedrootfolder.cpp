@@ -29,6 +29,9 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(QObject *parent):
     favoritesChild->setDlnaParent(this);
     addChild(favoritesChild);
 
+    playlists = new DlnaCachedPlaylists(&library, this);
+    addChild(playlists);
+
     QSqlQuery query = library.getMediaType();
     while (query.next()) {
         int id_type = query.value(0).toInt();
@@ -135,17 +138,57 @@ bool DlnaCachedRootFolder::addFolderSlot(const QString &path)
 
 void DlnaCachedRootFolder::addNetworkLink(const QString &url)
 {
-    addResource(QUrl(url));
+    auto playlist = new DlnaNetworkPlaylist(QUrl(url), this);
+    if (playlist->isValid())
+    {
+        addPlaylist(playlist);
+    }
+    else
+    {
+        addResource(QUrl(url));
+    }
+
+    playlist->deleteLater();
 }
 
-void DlnaCachedRootFolder::addResource(const QUrl &url)
+void DlnaCachedRootFolder::addPlaylist(DlnaNetworkPlaylist *playlist)
+{
+    if (!playlist)
+    {
+        emit error_addNetworkLink("playlist invalid");
+        return;
+    }
+
+    int id_playlist = library.add_playlist(playlist->getName(), playlist->url());
+    if (id_playlist == -1)
+    {
+        emit error_addNetworkLink("unable to create playlist");
+        return;
+    }
+
+    for (int index=0;index<playlist->getChildrenSize();index++)
+    {
+        QUrl url = playlist->getChildUrl(index);
+        queueResource(url, id_playlist);
+    }
+
+    addNextResource();
+
+    playlists->needRefresh();
+
+    emit linkAdded(playlist->getName());
+}
+
+void DlnaCachedRootFolder::addResource(const QUrl &url, const int &playlistId)
 {
     auto movie = new DlnaNetworkVideo(this);
     movie->setDlnaParent(this);
     connect(movie, &DlnaNetworkVideo::streamUrlDefined, this, &DlnaCachedRootFolder::networkLinkAnalyzed);
     connect(movie, &DlnaNetworkVideo::videoUrlErrorSignal, this, &DlnaCachedRootFolder::networkLinkError);
-    movie->setNetworkAccessManager(m_nam);
     movie->setUrl(url.url());
+
+    if (playlistId != -1)
+        movie->setProperty("playlistId", playlistId);
 }
 
 
@@ -183,14 +226,15 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
         else
         {
             if (movie->metaDataDuration()<=0)
-                qWarning() << QString("invalid duration %3 for %1 (%2).").arg(movie->metaDataTitle(), movie->url().toString()).arg(movie->metaDataDuration());
+                qCritical() << QString("invalid duration %3 for %1 (%2).").arg(movie->metaDataTitle(), movie->url().toString()).arg(movie->metaDataDuration());
             if (movie->resolution().isEmpty())
-                qWarning() << QString("invalid resolution %3 for %1 (%2).").arg(movie->metaDataTitle(), movie->url().toString(), movie->resolution());
+                qCritical() << QString("invalid resolution %3 for %1 (%2).").arg(movie->metaDataTitle(), movie->url().toString(), movie->resolution());
 
             if (!data.isEmpty())
             {
                 qDebug() << QString("Resource to add: %1").arg(movie->metaDataTitle());
-                if (!library.add_media(data, data_album, data_artist))
+                int id_media = library.add_media(data, data_album, data_artist);
+                if (id_media == -1)
                 {
                     qCritical() << QString("unable to add or update resource %1 (%2)").arg(movie->url().toString(), "video");
                     emit error_addNetworkLink(movie->metaDataTitle());
@@ -198,7 +242,21 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
                 else
                 {
                     lastAddedChild->needRefresh();
-                    emit linkAdded(movie->metaDataTitle());
+
+                    int playlistId = -1;
+                    if (movie->property("playlistId").isValid())
+                        movie->property("playlistId").toInt();
+                    if (playlistId != -1)
+                    {
+                        if (library.add_media_to_playlist(id_media, playlistId) == -1)
+                            emit error_addNetworkLink("unable to add media to playlist");
+                        else
+                            emit linkAdded(movie->metaDataTitle());
+                    }
+                    else
+                    {
+                        emit linkAdded(movie->metaDataTitle());
+                    }
                 }
             }
         }
@@ -209,8 +267,27 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
     {
         qCritical() << "invalid sender" << sender();
     }
+
+    addNextResource();
 }
 
+void DlnaCachedRootFolder::addNextResource()
+{
+    if (!urlToAdd.isEmpty())
+    {
+        T_URL new_url = urlToAdd.at(0);
+        urlToAdd.removeFirst();
+        addResource(new_url.url, new_url.playListId);
+    }
+}
+
+void DlnaCachedRootFolder::queueResource(const QUrl &url, const int &playlistId)
+{
+    T_URL new_url;
+    new_url.url = url;
+    new_url.playListId = playlistId;
+    urlToAdd << new_url;
+}
 
 void DlnaCachedRootFolder::networkLinkError(const QString &message)
 {
@@ -226,6 +303,8 @@ void DlnaCachedRootFolder::networkLinkError(const QString &message)
     {
         qCritical() << "invalid sender" << sender();
     }
+
+    addNextResource();
 }
 
 void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
@@ -244,6 +323,7 @@ void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
         data.insert("type", mime_type.split("/").at(0));
         data.insert("mime_type", mime_type);
         data.insert("last_modified", fileinfo.lastModified());
+        data.insert("is_reachable", 1);
 
         if (mime_type.startsWith("audio/"))
         {
@@ -316,7 +396,7 @@ void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
 
         if (!data.isEmpty())
         {
-            if (!library.add_media(data, data_album, data_artist))
+            if (library.add_media(data, data_album, data_artist) == -1)
                 qCritical() << QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath(), mime_type);
         }
     }
@@ -362,7 +442,7 @@ void DlnaCachedRootFolder::updateLibraryFromId(const int &id, const QHash<QStrin
     if (data.contains("filename"))
     {
         // refresh the media
-        if (data["filename"].toString().startsWith("http"))
+        if (!library.isLocalUrl(data["filename"].toString()))
             addResource(QUrl(data["filename"].toString()));
         else
             addResource(QFileInfo(data["filename"].toString()));
@@ -376,28 +456,6 @@ void DlnaCachedRootFolder::incrementCounterPlayed(const QString &filename)
     recentlyPlayedChild->needRefresh();
     resumeChild->needRefresh();
     favoritesChild->needRefresh();
-}
-
-void DlnaCachedRootFolder::setNetworkAccessManager(QNetworkAccessManager *nam)
-{
-    m_nam = nam;
-
-    if (recentlyPlayedChild)
-        recentlyPlayedChild->setNetworkAccessManager(nam);
-
-    if (resumeChild)
-        resumeChild->setNetworkAccessManager(nam);
-
-    if (favoritesChild)
-        favoritesChild->setNetworkAccessManager(nam);
-
-    if (lastAddedChild)
-        lastAddedChild->setNetworkAccessManager(nam);
-
-    if (youtube)
-        youtube->setNetworkAccessManager(nam);
-    else
-        qCritical() << "Unable to set NetWorkManager for Youtube.";
 }
 
 void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
