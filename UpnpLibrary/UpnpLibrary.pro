@@ -88,7 +88,9 @@ SOURCES += \
     Devices/mediarenderer.cpp \
     Devices/mediarenderermodel.cpp \
     upnpactionreply.cpp \
-    dlna/dlnanetworkvideo.cpp
+    dlna/dlnanetworkvideo.cpp \
+    dlna/dlnanetworkplaylist.cpp \
+    dlna/cached/dlnacachedplaylists.cpp
 
 HEADERS += \
     upnpcontrolpoint.h \
@@ -139,7 +141,9 @@ HEADERS += \
     Devices/mediarenderer.h \
     Devices/mediarenderermodel.h \
     upnpactionreply.h \
-    dlna/dlnanetworkvideo.h
+    dlna/dlnanetworkvideo.h \
+    dlna/dlnanetworkplaylist.h \
+    dlna/cached/dlnacachedplaylists.h
 
 DISTFILES += \
     doc/AVTransport/UPnP-av-AVTransport-v1-Service-20020625.pdf \
