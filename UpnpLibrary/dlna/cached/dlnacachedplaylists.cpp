@@ -13,7 +13,11 @@ DlnaCachedPlaylists::DlnaCachedPlaylists(MediaLibrary* library, QObject *parent)
     if (library)
     {
         query = QSqlQuery(library->database());
-        query.prepare("SELECT id, name from playlists");
+        query.prepare("SELECT DISTINCT playlists.id, playlists.name FROM playlists "
+                      "LEFT OUTER JOIN media_in_playlists ON media_in_playlists.playlist=playlists.id "
+                      "LEFT OUTER JOIN media ON media.id=media_in_playlists.media "
+                      "LEFT OUTER JOIN type ON media.type=type.id "
+                      "WHERE media.is_reachable=1");
     }
 }
 

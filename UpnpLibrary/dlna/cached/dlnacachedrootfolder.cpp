@@ -245,7 +245,7 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
 
                     int playlistId = -1;
                     if (movie->property("playlistId").isValid())
-                        movie->property("playlistId").toInt();
+                        playlistId = movie->property("playlistId").toInt();
                     if (playlistId != -1)
                     {
                         if (library.add_media_to_playlist(id_media, playlistId) == -1)
