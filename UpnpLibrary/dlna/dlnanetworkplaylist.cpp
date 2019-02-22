@@ -14,7 +14,7 @@ DlnaNetworkPlaylist::DlnaNetworkPlaylist(const QUrl &url, QObject *parent):
     if (m_playlist)
     {
         m_playlist->waitReady(5000);
-        qInfo() << "playlist" << url << "created in" << timer.elapsed() << m_playlist->mediaUrl().size() << "medias.";
+        qDebug() << "playlist" << url << "created in" << timer.elapsed() << m_playlist->mediaUrl().size() << "medias.";
     }
 }
 
@@ -95,7 +95,7 @@ DlnaResource *DlnaNetworkPlaylist::getChild(int index, QObject *parent)
 
         l_children[index] = child;
 
-        qInfo() << "playlist, child created in" << timer.elapsed();
+        qDebug() << "playlist, child created in" << timer.elapsed();
         return child;
     }
 

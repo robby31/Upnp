@@ -17,8 +17,7 @@ public:
     explicit DlnaYouTubeVideo(QObject *parent = Q_NULLPTR);
     ~DlnaYouTubeVideo() Q_DECL_OVERRIDE;
 
-    bool isValid() { return unavailableMessage().isEmpty() && !metaDataTitle().isEmpty() && !resolution().isEmpty() && metaDataDuration()>0; }
-    QString unavailableMessage();
+    bool isValid() { return error().isEmpty() && !metaDataTitle().isEmpty() && !resolution().isEmpty() && metaDataDuration()>0; }
 
     QString error() const;
 

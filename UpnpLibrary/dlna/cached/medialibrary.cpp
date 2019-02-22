@@ -1034,5 +1034,5 @@ bool MediaLibrary::resetLibrary(const QString &pathname)
 
 bool MediaLibrary::isLocalUrl(const QString &url)
 {
-    return !url.startsWith("http")  && !url.startsWith("francetv:");
+    return !url.startsWith("http")  && !url.startsWith("francetv:") && !url.startsWith("wat:");
 }

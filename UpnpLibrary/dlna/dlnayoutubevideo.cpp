@@ -17,11 +17,6 @@ DlnaYouTubeVideo::~DlnaYouTubeVideo()
     --objectCounter;
 }
 
-QString DlnaYouTubeVideo::unavailableMessage()
-{
-    return m_youtube.unavailableMessage();
-}
-
 void DlnaYouTubeVideo::setMaxVideoHeight(const int &height)
 {
     m_youtube.setMaxHeight(height);
