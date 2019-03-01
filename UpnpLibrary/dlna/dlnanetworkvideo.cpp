@@ -61,6 +61,13 @@ qint64 DlnaNetworkVideo::sourceSize() const
     foreach (QFfmpegInputMedia *media, ffmpeg)
         size += media->size();
 
+    if (size == 0 && m_media)
+    {
+        AbstractStream *stream = m_media->getStream();
+        if (stream)
+            return stream->size();
+    }
+
     return size;
 }
 
@@ -70,6 +77,13 @@ qint64 DlnaNetworkVideo::metaDataBitrate() const
 
     foreach (QFfmpegInputMedia *media, ffmpeg)
         bitrate += media->getBitrate();
+
+    if (m_media)
+    {
+        AbstractStream *stream = m_media->getStream();
+        if (stream)
+            return stream->bitrate();
+    }
 
     return bitrate;
 }
@@ -82,6 +96,13 @@ qint64 DlnaNetworkVideo::metaDataDuration() const
     foreach (QFfmpegInputMedia *media, ffmpeg)
         if (media->getDurationInMicroSec() > 0)
             return media->getDurationInMicroSec()/1000;
+
+    if (m_media)
+    {
+        AbstractStream *stream = m_media->getStream();
+        if (stream)
+            return stream->duration();
+    }
 
     return 0;
 }
@@ -100,6 +121,13 @@ QString DlnaNetworkVideo::metaDataFormat() const
         if (!media->getFormat().isEmpty())
             return media->getFormat();
 
+    if (m_media)
+    {
+        AbstractStream *stream = m_media->getStream();
+        if (stream)
+            return stream->format();
+    }
+
     return QString();
 }
 
@@ -109,6 +137,13 @@ int DlnaNetworkVideo::samplerate() const
         if (media->audioStream())
             return media->getAudioSamplerate();
 
+    if (m_media)
+    {
+        AbstractStream *stream = m_media->getStream();
+        if (stream)
+            return stream->sampleRate();
+    }
+
     return -1;
 }
 
@@ -117,6 +152,13 @@ int DlnaNetworkVideo::channelCount() const
     foreach (QFfmpegInputMedia *media, ffmpeg)
         if (media->audioStream())
             return media->getAudioChannelCount();
+
+    if (m_media)
+    {
+        AbstractStream *stream = m_media->getStream();
+        if (stream)
+            return stream->channels();
+    }
 
     return -1;
 }
@@ -137,6 +179,9 @@ QString DlnaNetworkVideo::resolution() const
         if (media->videoStream())
             return media->getVideoResolution();
 
+    if (m_media)
+        return m_media->resolution();
+
     return QString();
 }
 
@@ -145,6 +190,13 @@ QString DlnaNetworkVideo::framerate() const
     foreach (QFfmpegInputMedia *media, ffmpeg)
         if (media->videoStream())
             return  QString().sprintf("%2.3f", media->getVideoFrameRate());
+
+    if (m_media)
+    {
+        AbstractStream *stream = m_media->getStream();
+        if (stream)
+            return stream->frameRate();
+    }
 
     return QString();
 }
@@ -238,8 +290,10 @@ void DlnaNetworkVideo::parse_video()
         foreach (const QUrl &url, urls)
         {
             auto tmp = new QFfmpegInputMedia();
-            tmp->open(url.toString());
-            ffmpeg << tmp;
+            if (!tmp->open(url.toString()))
+                qCritical() << "unable to open url" << url << tmp->error();
+            else
+                ffmpeg << tmp;
         }
     }
 
