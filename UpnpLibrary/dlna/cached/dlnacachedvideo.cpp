@@ -5,6 +5,25 @@ DlnaCachedVideo::DlnaCachedVideo(MediaLibrary* library, int idMedia, QObject *pa
     library(library),
     idMedia(idMedia)
 {
+    if (library)
+    {
+        QUrl url = library->get_param_value(idMedia, "thumbnailUrl").toUrl();
+
+        if (url.isValid())
+        {
+            QNetworkRequest request(url);
+            m_replyPicture = MyNetwork::manager().get(request);
+            if (m_replyPicture)
+            {
+                connect(m_replyPicture, &QNetworkReply::finished, this, &DlnaCachedVideo::pictureReceived);
+                connect(m_replyPicture, &QNetworkReply::finished, &m_loopPicture, &QEventLoop::quit);
+            }
+            else
+            {
+                qCritical() << "unable to get thumbnail" << url;
+            }
+        }
+    }
 }
 
 TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
@@ -90,4 +109,40 @@ qint64 DlnaCachedVideo::metaDataDuration() const
         duration = 5*3600000;  // default duration when live video are unlimited
 
     return duration;
+}
+
+QUrl DlnaCachedVideo::thumbnailUrl() const
+{
+    if (library)
+        return library->get_param_value(idMedia, "thumbnailUrl").toUrl();
+
+    return QUrl();
+}
+
+void DlnaCachedVideo::pictureReceived()
+{
+    auto reply = qobject_cast<QNetworkReply*>(sender());
+    if (reply)
+    {
+        m_picture = reply->readAll();
+        reply->deleteLater();
+        m_replyPicture = Q_NULLPTR;
+    }
+}
+
+QByteArray DlnaCachedVideo::metaDataPicture()
+{
+    waitPicture(2000);
+    return m_picture;
+}
+
+bool DlnaCachedVideo::waitPicture(const int &timeout)
+{
+    if (m_replyPicture)
+    {
+        QTimer::singleShot(timeout, &m_loopPicture, &QEventLoop::quit);
+        m_loopPicture.exec();
+    }
+
+    return true;
 }
