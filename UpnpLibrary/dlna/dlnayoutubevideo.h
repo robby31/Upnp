@@ -45,7 +45,7 @@ public:
     int metaDataTrackPosition()        const Q_DECL_OVERRIDE { return 0; }
     int metaDataDisc()                 const Q_DECL_OVERRIDE { return 0; }
     QString metaDataFormat()           const Q_DECL_OVERRIDE;
-    QByteArray metaDataPicture()       const Q_DECL_OVERRIDE { return QByteArray(); }
+    QByteArray metaDataPicture()             Q_DECL_OVERRIDE { return QByteArray(); }
     QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { return QString(); }
 
     // returns the samplerate of the video track

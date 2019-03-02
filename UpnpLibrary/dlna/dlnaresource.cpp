@@ -108,7 +108,7 @@ QString DlnaResource::getStringContentDirectory(const QStringList &properties)  
     return strRes;
 }
 
-QByteArray DlnaResource::getByteAlbumArt() const {
+QByteArray DlnaResource::getByteAlbumArt() {
     QImage picture = getAlbumArt();
 
     if (!picture.isNull()) {

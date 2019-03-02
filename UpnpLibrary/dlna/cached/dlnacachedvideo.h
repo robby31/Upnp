@@ -4,6 +4,8 @@
 #include "../dlnavideoitem.h"
 #include "ffmpegtranscoding.h"
 #include "medialibrary.h"
+#include "mynetwork.h"
+#include <QNetworkReply>
 
 class DlnaCachedVideo : public DlnaVideoItem
 {
@@ -38,7 +40,8 @@ public:
     int metaDataTrackPosition()        const Q_DECL_OVERRIDE { return 0; }
     int metaDataDisc()                 const Q_DECL_OVERRIDE { return 0; }
     QString metaDataFormat()           const Q_DECL_OVERRIDE { if (library) return library->getmetaData("format", idMedia).toString(); return QString(); }
-    QByteArray metaDataPicture()       const Q_DECL_OVERRIDE { return QByteArray(); }
+    QByteArray metaDataPicture()             Q_DECL_OVERRIDE;
+    QUrl thumbnailUrl() const Q_DECL_OVERRIDE;
     QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("last_modified", idMedia).toString(); return QString(); }
 
     // returns the samplerate of the video track
@@ -54,6 +57,11 @@ public:
     QStringList audioLanguages()    const Q_DECL_OVERRIDE { if (library) return library->getmetaData("audiolanguages", idMedia).toString().split(","); return QStringList(); }
     QString framerate()             const Q_DECL_OVERRIDE;
 
+    bool waitPicture(const int &timeout = 30000);
+
+private slots:
+    void pictureReceived();
+
 protected:
     // Returns the process for transcoding
     TranscodeProcess* getTranscodeProcess() Q_DECL_OVERRIDE;
@@ -63,6 +71,10 @@ protected:
 
     MediaLibrary* library;
     int idMedia;
+
+    QEventLoop m_loopPicture;
+    QNetworkReply *m_replyPicture = Q_NULLPTR;
+    QByteArray m_picture;
 };
 
 #endif // DLNACACHEDVIDEO_H

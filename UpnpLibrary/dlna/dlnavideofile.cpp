@@ -81,7 +81,7 @@ QString DlnaVideoFile::metaDataFormat() const {
     return ffmpeg.getFormat();
 }
 
-QByteArray DlnaVideoFile::metaDataPicture() const {
+QByteArray DlnaVideoFile::metaDataPicture() {
     return ffmpeg.getPicture();
 }
 

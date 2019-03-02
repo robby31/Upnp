@@ -74,8 +74,12 @@ public:
     virtual int metaDataTrackPosition() const = 0;
     virtual int metaDataDisc() const = 0;
     virtual QString metaDataFormat() const = 0;
-    virtual QByteArray metaDataPicture() const = 0;
+    virtual QByteArray metaDataPicture() = 0;
+    virtual QUrl thumbnailUrl() const;
     virtual QString metaDataLastModifiedDate() const = 0;
+
+    // Returns album art in jpeg format
+    QImage getAlbumArt() Q_DECL_OVERRIDE;
 
     QString getProtocolInfo() const;
 

@@ -34,7 +34,7 @@ public:
     int metaDataTrackPosition()        const Q_DECL_OVERRIDE { if (library) return library->getmetaData("trackposition", idMedia).toInt(); return 0; }
     int metaDataDisc()                 const Q_DECL_OVERRIDE { if (library) return library->getmetaData("disc", idMedia).toInt(); return 0; }
     QString metaDataFormat()           const Q_DECL_OVERRIDE { if (library) return library->getmetaData("format", idMedia).toString(); return QString(); }
-    QByteArray metaDataPicture()       const Q_DECL_OVERRIDE { if (library) return QByteArray::fromHex(library->getmetaData("picture", idMedia).toByteArray()); return QByteArray(); }
+    QByteArray metaDataPicture()             Q_DECL_OVERRIDE { if (library) return QByteArray::fromHex(library->getmetaData("picture", idMedia).toByteArray()); return QByteArray(); }
     QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("last_modified", idMedia).toDateTime().toString("yyyy-MM-dd"); return QString(); }
 
     // returns the samplerate of the audio track

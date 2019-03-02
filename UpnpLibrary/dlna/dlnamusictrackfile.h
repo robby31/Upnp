@@ -40,7 +40,7 @@ public:
     int metaDataTrackPosition() const Q_DECL_OVERRIDE;
     int metaDataDisc() const Q_DECL_OVERRIDE;
     QString metaDataFormat() const Q_DECL_OVERRIDE;
-    QByteArray metaDataPicture() const Q_DECL_OVERRIDE;
+    QByteArray metaDataPicture() Q_DECL_OVERRIDE;
     QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { return fileinfo.lastModified().toString("yyyy-MM-dd"); }
 
     // returns the samplerate of the audio track

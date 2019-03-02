@@ -89,7 +89,7 @@ QString DlnaMusicTrackFile::metaDataFormat() const {
     return ffmpeg.getAudioFormat();
 }
 
-QByteArray DlnaMusicTrackFile::metaDataPicture() const {
+QByteArray DlnaMusicTrackFile::metaDataPicture() {
     return ffmpeg.getPicture();
 }
 

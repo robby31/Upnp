@@ -76,8 +76,8 @@ public:
     QList<DlnaResource*> getDLNAResources(const QString& objectId, bool returnChildren, int start, int count, const QString& searchStr, QObject *parent = Q_NULLPTR);
 
     // Returns album art in jpeg format
-    virtual QImage getAlbumArt() const = 0;
-    QByteArray getByteAlbumArt() const;
+    virtual QImage getAlbumArt() = 0;
+    QByteArray getByteAlbumArt();
 
 signals:
     void dlnaResources(QObject* sender, QList<DlnaResource*>);

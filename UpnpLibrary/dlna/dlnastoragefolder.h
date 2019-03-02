@@ -20,7 +20,7 @@ public:
     QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) Q_DECL_OVERRIDE;
 
     // Returns album art in jpeg format
-    QImage getAlbumArt() const Q_DECL_OVERRIDE { return QImage(); }
+    QImage getAlbumArt() Q_DECL_OVERRIDE { return QImage(); }
 
 public:
     static qint64 objectCounter;
