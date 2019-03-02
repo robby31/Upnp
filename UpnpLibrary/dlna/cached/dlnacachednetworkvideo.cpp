@@ -62,3 +62,11 @@ Device *DlnaCachedNetworkVideo::getOriginalStreaming()
 
     return new StreamingFile(getSystemName());
 }
+
+QString DlnaCachedNetworkVideo::metaDataTitle() const
+{
+    if (library)
+        return library->getmetaData("title", idMedia).toString();
+
+    return QString();
+}

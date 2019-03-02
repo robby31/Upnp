@@ -54,6 +54,9 @@ public:
     bool updateFromId(const int &id, const QHash<QString, QVariant> &data);
     bool incrementCounterPlayed(const QString &filename);
 
+    bool add_param(const int &idMedia, const QString &param, const QVariant &value);
+    QVariant get_param_value(const int &idMedia, const QString &param);
+
     bool resetLibrary(const QString &pathname);
 
 private:

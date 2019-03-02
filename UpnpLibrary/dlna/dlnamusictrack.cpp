@@ -255,14 +255,3 @@ QString DlnaMusicTrack::sourceMimeType() const
     // returns unknown mimeType
     return UNKNOWN_AUDIO_TYPEMIME;
 }
-
-QImage DlnaMusicTrack::getAlbumArt() const
-{
-    QImage picture;
-
-    QByteArray bytesPicture = metaDataPicture();
-    if (picture.loadFromData(bytesPicture))
-        return picture;
-
-    return picture;
-}

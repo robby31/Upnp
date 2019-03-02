@@ -292,3 +292,19 @@ bool DlnaItem::toTranscode() const
 {
     return !isSourceSinkCompatible();
 }
+
+QUrl DlnaItem::thumbnailUrl() const
+{
+    return QUrl();
+}
+
+QImage DlnaItem::getAlbumArt()
+{
+    QImage picture;
+
+    QByteArray bytesPicture = metaDataPicture();
+    if (picture.loadFromData(bytesPicture))
+        return picture;
+
+    return picture;
+}

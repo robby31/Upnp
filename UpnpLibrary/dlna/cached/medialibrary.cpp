@@ -1036,3 +1036,80 @@ bool MediaLibrary::isLocalUrl(const QString &url)
 {
     return !url.startsWith("http")  && !url.startsWith("francetv:") && !url.startsWith("wat:");
 }
+
+bool MediaLibrary::add_param(const int &idMedia, const QString &param, const QVariant &value)
+{
+    QSqlDatabase db = database();
+
+    QSqlQuery query(db);
+
+    int paramId = -1;
+    query.prepare("SELECT id from param_name WHERE name=:name");
+    query.bindValue(":name", param);
+    bool ret = query.exec();
+    if (ret)
+    {
+        if (query.next())
+        {
+            paramId = query.record().value("id").toInt();
+        }
+        else
+        {
+            // add new param
+            query.prepare("INSERT INTO param_name (name) VALUES (:name)");
+            query.bindValue(":name", param);
+            ret = query.exec();
+            if (!ret)
+            {
+                qCritical() << "unable to add param" << param;
+                return false;
+            }
+
+            paramId = query.lastInsertId().toInt();
+        }
+    }
+    else
+    {
+        qCritical() << "ERROR unable to find param name" << param << query.lastError().text();
+        return false;
+    }
+
+    query.prepare("INSERT INTO param_value (name, media, value) VALUES (:name, :media, :value)");
+    query.bindValue(":name", paramId);
+    query.bindValue(":media", idMedia);
+    query.bindValue(":value", value);
+
+    ret = query.exec();
+    if (!ret)
+    {
+        qCritical() << "ERROR" << query.lastError().text();
+        return false;
+    }
+
+    return true;
+}
+
+QVariant MediaLibrary::get_param_value(const int &idMedia, const QString &param)
+{
+    QSqlDatabase db = database();
+
+    QSqlQuery query(db);
+
+    query.prepare("SELECT value FROM param_value "
+                  "JOIN param_name ON param_value.name=param_name.id "
+                  "WHERE param_name.name=:name and param_value.media=:media");
+    query.bindValue(":name", param);
+    query.bindValue(":media", idMedia);
+
+    if (query.exec())
+    {
+        if (query.next())
+            return query.value("value");
+    }
+    else
+    {
+        qCritical() << "unable to get param value" << idMedia << param << query.lastError().text();
+    }
+
+    return QVariant();
+}

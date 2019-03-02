@@ -12,10 +12,7 @@ class DlnaCachedNetworkVideo : public DlnaCachedVideo
 public:
     explicit DlnaCachedNetworkVideo(MediaLibrary* library, int idMedia, QObject *parent = Q_NULLPTR);
 
-    //returns the size of the source
-    qint64 sourceSize() const Q_DECL_OVERRIDE { return (double)metaDataDuration()*(double)metaDataBitrate()/8000.0; }
-
-    QString metaDataTitle() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("title", idMedia).toString(); return QString(); }
+    QString metaDataTitle() const Q_DECL_OVERRIDE;
 
     // return true if the track shall be transcoded
     bool toTranscode() const Q_DECL_OVERRIDE { return true; }

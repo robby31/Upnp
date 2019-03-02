@@ -176,7 +176,7 @@ void DlnaCachedRootFolder::addPlaylist(DlnaNetworkPlaylist *playlist)
 
     playlists->needRefresh();
 
-    emit linkAdded(playlist->getName());
+    emit linkAdded(QString("Playlist %1").arg(playlist->getName()));
 }
 
 void DlnaCachedRootFolder::addResource(const QUrl &url, const int &playlistId)
@@ -242,6 +242,13 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
                 else
                 {
                     lastAddedChild->needRefresh();
+
+                    if (movie->thumbnailUrl().isValid())
+                    {
+                        // add thumbnail url
+                        if (!library.add_param(id_media, "thumbnailUrl", movie->thumbnailUrl()))
+                            qCritical() << "unable to add url picture" << id_media << movie->thumbnailUrl();
+                    }
 
                     int playlistId = -1;
                     if (movie->property("playlistId").isValid())

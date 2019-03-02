@@ -26,9 +26,6 @@ public:
     // Returns the XML (DIDL) representation of the DLNA node.
     QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) Q_DECL_OVERRIDE;
 
-    // Returns album art in jpeg format
-    QImage getAlbumArt() const Q_DECL_OVERRIDE;
-
     static const QString UNKNOWN_AUDIO_TYPEMIME;
     static const QString AUDIO_MP3_TYPEMIME;
     static const QString AUDIO_MP4_TYPEMIME;

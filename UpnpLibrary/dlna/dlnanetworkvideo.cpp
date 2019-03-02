@@ -309,3 +309,12 @@ void DlnaNetworkVideo::parse_video()
         emit videoUrlErrorSignal(message);
     }
 }
+
+QUrl DlnaNetworkVideo::thumbnailUrl() const
+{
+    if (m_media)
+        return m_media->thumbnail();
+
+    return QUrl();
+}
+

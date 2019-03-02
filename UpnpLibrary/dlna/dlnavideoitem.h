@@ -28,9 +28,6 @@ public:
     // return true if the track shall be transcoded
     bool toTranscode() const Q_DECL_OVERRIDE { return true; }
 
-    // Returns album art in jpeg format
-    QImage getAlbumArt() const Q_DECL_OVERRIDE { return QImage(); }
-
     virtual QString resolution() const = 0;
     virtual QStringList subtitleLanguages() const = 0;
     virtual QStringList audioLanguages() const = 0;
