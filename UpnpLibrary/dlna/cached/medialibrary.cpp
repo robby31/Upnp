@@ -1074,7 +1074,17 @@ bool MediaLibrary::add_param(const int &idMedia, const QString &param, const QVa
         return false;
     }
 
-    query.prepare("INSERT INTO param_value (name, media, value) VALUES (:name, :media, :value)");
+    query.prepare("SELECT id FROM param_value WHERE name=:name and media=:media");
+    query.bindValue(":name", paramId);
+    query.bindValue(":media", idMedia);
+    if (query.exec() && query.next())
+    {
+        query.prepare("UPDATE param_value SET value=:value WHERE name=:name and media=:media");
+    }
+    else
+    {
+        query.prepare("INSERT INTO param_value (name, media, value) VALUES (:name, :media, :value)");
+    }
     query.bindValue(":name", paramId);
     query.bindValue(":media", idMedia);
     query.bindValue(":value", value);
