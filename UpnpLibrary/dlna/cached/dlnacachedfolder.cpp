@@ -101,7 +101,7 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
         }
 
     } else {
-        qWarning() << QString("Unkwown format %1: %2").arg(type_media, filename);
+        qCritical() << QString("Unknown format %1: %2").arg(type_media, filename);
     }
 
 
