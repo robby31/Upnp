@@ -90,7 +90,10 @@ SOURCES += \
     upnpactionreply.cpp \
     dlna/dlnanetworkvideo.cpp \
     dlna/dlnanetworkplaylist.cpp \
-    dlna/cached/dlnacachedplaylists.cpp
+    dlna/cached/dlnacachedplaylists.cpp \
+    dlna/protocol.cpp \
+    dlna/dlnaprofile.cpp \
+    dlna/protocolinfo.cpp
 
 HEADERS += \
     upnpcontrolpoint.h \
@@ -143,7 +146,10 @@ HEADERS += \
     upnpactionreply.h \
     dlna/dlnanetworkvideo.h \
     dlna/dlnanetworkplaylist.h \
-    dlna/cached/dlnacachedplaylists.h
+    dlna/cached/dlnacachedplaylists.h \
+    dlna/protocol.h \
+    dlna/dlnaprofile.h \
+    dlna/protocolinfo.h
 
 DISTFILES += \
     doc/AVTransport/UPnP-av-AVTransport-v1-Service-20020625.pdf \
