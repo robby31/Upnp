@@ -12,6 +12,7 @@ void MediaRendererModel::addMediaRenderer(UpnpRootDevice *device)
     if (!renderer)
     {
         renderer = new MediaRenderer(device, this);
+        renderer->setDlnaProfiles(m_dlnaProfiles);
         connect(renderer, SIGNAL(removeRenderer()), this, SLOT(removeRenderer()));
         appendRow(renderer);
     }
@@ -56,4 +57,14 @@ MediaRenderer *MediaRendererModel::rendererFromIp(const QString &ip)
     }
 
     return Q_NULLPTR;
+}
+
+void MediaRendererModel::setDlnaProfiles(const Protocol &profiles)
+{
+    m_dlnaProfiles = profiles;
+}
+
+Protocol MediaRendererModel::dlnaProfiles() const
+{
+    return m_dlnaProfiles;
 }

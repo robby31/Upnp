@@ -3,6 +3,7 @@
 
 #include "Models/listmodel.h"
 #include "upnprootdevice.h"
+#include "dlna/protocol.h"
 
 
 class MediaRenderer : public ListItem
@@ -33,6 +34,9 @@ public:
 
     QStringList sinkProtocols() const;
 
+    void setDlnaProfiles(const Protocol &profiles);
+    Protocol dlnaProfiles() const;
+
 signals:
     void removeRenderer();
 
@@ -50,6 +54,7 @@ private:
     QString status;
 
     QStringList m_sinkProtocol;
+    Protocol m_dlnaProfiles;
 };
 
 #endif // MEDIARENDERER_H

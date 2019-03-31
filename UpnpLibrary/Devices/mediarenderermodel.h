@@ -5,6 +5,7 @@
 #include "mediarenderer.h"
 #include "Models/listmodel.h"
 #include <QHostAddress>
+#include "dlna/protocol.h"
 
 class MediaRendererModel : public ListModel
 {
@@ -15,6 +16,9 @@ public:
 
     MediaRenderer *rendererFromIp(const QString &ip);
 
+    void setDlnaProfiles(const Protocol &profiles);
+    Protocol dlnaProfiles() const;
+
 signals:
     void mediaRendererDestroyed(const QString &hostaddress);
 
@@ -24,6 +28,9 @@ public slots:
 
     // the renderer is serving a new media
     void serving(const QString &ip, const QString &mediaName);
+
+private:
+    Protocol m_dlnaProfiles;
 };
 
 #endif // MEDIARENDERERMODEL_H
