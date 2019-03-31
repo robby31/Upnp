@@ -307,7 +307,10 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 {
                     auto dlnaItem = qobject_cast<DlnaItem*>(resource);
                     if (dlnaItem && renderer)
+                    {
+                        dlnaItem->setDlnaProfiles(renderer->dlnaProfiles());
                         dlnaItem->setSinkProtocol(renderer->sinkProtocols());
+                    }
 
                     didlDoc.addElement(resource->getXmlContentDirectory(&didlDoc, filter.split(",")));
                 }
@@ -401,7 +404,10 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                     renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
 
                 if (renderer)
+                {
+                    dlna->setDlnaProfiles(renderer->dlnaProfiles());
                     dlna->setSinkProtocol(renderer->sinkProtocols());
+                }
 
                 if (request->url().fileName(QUrl::FullyEncoded).startsWith("thumbnail0000"))
                 {
@@ -426,6 +432,8 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
 
                     if (!request->header("transferMode.dlna.org").isEmpty())
                         m_header << QString("transferMode.dlna.org: %1").arg(request->header("transferMode.dlna.org"));
+                    else
+                        m_header << QString("transferMode.dlna.org: Streaming");
 
                     if (!request->header("GETMEDIAINFO.SEC").isEmpty())
                         m_header << QString("MediaInfo.sec: SEC_Duration=%1;").arg(dlna->getLengthInMilliSeconds());
@@ -438,7 +446,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
 
                     HttpRequest::HttpStatus replyStatus = HttpRequest::HTTP_200_OK;
 
-                    if (range)
+                    if (range && dlna->getdlnaOrgOpFlags().at(1) == '1')
                     {
                         replyStatus = HttpRequest::HTTP_206_Partial_Content;
                         m_header << QString("Content-Range: bytes %1-%2/%3").arg(range->getStartByte()).arg(range->getEndByte()).arg(dlna->size());
@@ -544,7 +552,8 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                                 connect(request, SIGNAL(requestStreamingData(qint64)), streamContent, SLOT(requestData(qint64)));
                                 connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), request, SLOT(sendPartialData(QByteArray)));
 
-                                connect(request, &HttpRequest::servingSignal, this, &ServiceContentDirectory::servingMedia);
+                                if (dlna->getLengthInSeconds() > 0)
+                                    connect(request, &HttpRequest::servingSignal, this, &ServiceContentDirectory::servingMedia);
 
                                 connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SIGNAL(servingFinishedSignal(QString,QString,int)));
                                 connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingFinished(QString,QString,int)));

@@ -128,3 +128,18 @@ Device *DlnaVideoFile::getOriginalStreaming()
 {
     return new StreamingFile(getSystemName());
 }
+
+QString DlnaVideoFile::sourceContainer() const
+{
+    return ffmpeg.getFormat();
+}
+
+QString DlnaVideoFile::sourceAudioFormat() const
+{
+    return ffmpeg.getAudioFormat();
+}
+
+QString DlnaVideoFile::sourceVideoFormat() const
+{
+    return ffmpeg.getVideoFormat();
+}

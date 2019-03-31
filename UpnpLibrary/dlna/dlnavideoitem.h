@@ -16,9 +16,6 @@ public:
     // Returns the XML (DIDL) representation of the DLNA node.
     QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) Q_DECL_OVERRIDE;
 
-    // Returns the mimeType for this DLNA node.
-    QString mimeType() const Q_DECL_OVERRIDE;
-
     // Returns the mimeType of the source.
     QString sourceMimeType() const Q_DECL_OVERRIDE;
 
@@ -32,19 +29,6 @@ public:
     virtual QStringList subtitleLanguages() const = 0;
     virtual QStringList audioLanguages() const = 0;
     virtual QString framerate() const = 0;
-
-    static const QString UNKNOWN_VIDEO_TYPEMIME;
-    static const QString MPEG_TYPEMIME;
-    static const QString MP4_TYPEMIME;
-    static const QString AVI_TYPEMIME;
-    static const QString WMV_TYPEMIME;
-    static const QString ASF_TYPEMIME;
-    static const QString MATROSKA_TYPEMIME;
-    static const QString M3U8_TYPEMIME;
-    static const QString VIDEO_TRANSCODE;
-
-private:
-    void updateDLNAOrgPn() Q_DECL_OVERRIDE;
 };
 
 #endif // DLNAVIDEOITEM_H

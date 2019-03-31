@@ -37,6 +37,10 @@ public:
     QByteArray metaDataPicture()             Q_DECL_OVERRIDE { if (library) return QByteArray::fromHex(library->getmetaData("picture", idMedia).toByteArray()); return QByteArray(); }
     QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("last_modified", idMedia).toDateTime().toString("yyyy-MM-dd"); return QString(); }
 
+    QString sourceContainer() const Q_DECL_OVERRIDE;
+    QString sourceAudioFormat() const Q_DECL_OVERRIDE;
+    QString sourceVideoFormat() const Q_DECL_OVERRIDE;
+
     // returns the samplerate of the audio track
     int samplerate() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("samplerate", idMedia).toInt(); return -1; }
 

@@ -1,15 +1,5 @@
 #include "dlnavideoitem.h"
 
-const QString DlnaVideoItem::UNKNOWN_VIDEO_TYPEMIME = "video/mpeg";
-const QString DlnaVideoItem::MPEG_TYPEMIME = "video/mpeg";
-const QString DlnaVideoItem::MP4_TYPEMIME = "video/mp4";
-const QString DlnaVideoItem::AVI_TYPEMIME = "video/avi";
-const QString DlnaVideoItem::WMV_TYPEMIME = "video/x-ms-wmv";
-const QString DlnaVideoItem::ASF_TYPEMIME = "video/x-ms-asf";
-const QString DlnaVideoItem::MATROSKA_TYPEMIME = "video/x-matroska";
-const QString DlnaVideoItem::VIDEO_TRANSCODE = "video/transcode";
-const QString DlnaVideoItem::M3U8_TYPEMIME = "application/x-mpegURL";
-
 DlnaVideoItem::DlnaVideoItem(QObject *parent):
     DlnaItem(parent)
 {
@@ -74,6 +64,19 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
 
     }
 
+    if (properties.contains("*") || properties.contains("upnp:albumArtURI"))
+    {
+        if (thumbnailUrl().isValid())
+        {
+            QDomElement upnpAlbumArtURI = xml->createElement("upnp:albumArtURI");
+            upnpAlbumArtURI.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
+            upnpAlbumArtURI.setAttribute("dlna:profileID", "JPEG_TN");
+//            upnpAlbumArtURI.appendChild(xml->createTextNode(QString("http://%1:%2/get/%3/thumbnail0000%4&").arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getResourceId(), getDisplayName().toUtf8().toPercentEncoding().constData())));
+            upnpAlbumArtURI.appendChild(xml->createTextNode(thumbnailUrl().url()));
+            xml_obj.appendChild(upnpAlbumArtURI);
+        }
+    }
+
     // add <res> element
 
     QTime duration(0, 0, 0);
@@ -131,24 +134,6 @@ qint64 DlnaVideoItem::bitrate() const
     return metaDataBitrate();
 }
 
-QString DlnaVideoItem::mimeType() const
-{
-    if (toTranscode())
-    {
-        if (transcodeFormat == MPEG2_AC3)
-            return MPEG_TYPEMIME;
-
-        if (transcodeFormat == H264_AAC || transcodeFormat == H264_AC3)
-            return MP4_TYPEMIME;
-
-        qCritical() << "Unable to define mimeType of DlnaVideoItem: " << getSystemName();
-        // returns unknown mimeType
-        return UNKNOWN_VIDEO_TYPEMIME;
-    }
-
-    return sourceMimeType();
-}
-
 QString DlnaVideoItem::sourceMimeType() const
 {
     QString format = metaDataFormat();
@@ -167,12 +152,8 @@ QString DlnaVideoItem::sourceMimeType() const
     if (format == "hls,applehttp")
         return M3U8_TYPEMIME;
 
-    qCritical() << "Unable to define mimeType of DlnaVideoItem: " << format << " " << getSystemName();
+    qCritical() << "Unable to define mimeType of DlnaVideoItem: " << format << getSystemName();
 
     // returns unknown mimeType
     return UNKNOWN_VIDEO_TYPEMIME;
-}
-
-void DlnaVideoItem::updateDLNAOrgPn() {
-    setdlnaOrgPN("MPEG_PS_PAL");
 }

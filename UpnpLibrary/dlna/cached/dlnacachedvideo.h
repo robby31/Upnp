@@ -44,6 +44,10 @@ public:
     QUrl thumbnailUrl() const Q_DECL_OVERRIDE;
     QString metaDataLastModifiedDate() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("last_modified", idMedia).toString(); return QString(); }
 
+    QString sourceContainer() const Q_DECL_OVERRIDE;
+    QString sourceAudioFormat() const Q_DECL_OVERRIDE;
+    QString sourceVideoFormat() const Q_DECL_OVERRIDE;
+
     // returns the samplerate of the video track
     int samplerate() const Q_DECL_OVERRIDE;
 

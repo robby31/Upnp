@@ -2,6 +2,7 @@
 #define DLNAITEM_H
 
 #include "dlnaresource.h"
+#include "protocol.h"
 
 #include "transcodeprocess.h"
 #include "streamingfile.h"
@@ -35,7 +36,7 @@ public:
     void setTranscodeFormat(TranscodeFormatAvailable format);
 
     // Returns the mimeType for this DLNA node.
-    virtual QString mimeType() const = 0;
+    QString mimeType() const;
 
     // Returns the mimeType of the source.
     virtual QString sourceMimeType() const = 0;
@@ -78,6 +79,15 @@ public:
     virtual QUrl thumbnailUrl() const;
     virtual QString metaDataLastModifiedDate() const = 0;
 
+    QString container() const;
+    virtual QString sourceContainer() const = 0;
+
+    QString audioFormat() const;
+    virtual QString sourceAudioFormat() const = 0;
+
+    QString videoFormat() const;
+    virtual QString sourceVideoFormat() const = 0;
+
     // Returns album art in jpeg format
     QImage getAlbumArt() Q_DECL_OVERRIDE;
 
@@ -95,10 +105,31 @@ public:
 
     void setStream(Device *stream);
 
+    void setDlnaProfiles(const Protocol &profiles);
     void setSinkProtocol(const QStringList &protocol);
-    QStringList sinkProtocol() const;
-    QString getSink(const QString &mime_type);
+    Protocol sinkProtocol() const;
+    ProtocolInfo getSink(const QString &dlna_org_pn = QString());
     bool isSourceSinkCompatible() const;
+
+    static const QString UNKNOWN_AUDIO_TYPEMIME;
+    static const QString AUDIO_MP3_TYPEMIME;
+    static const QString AUDIO_MP4_TYPEMIME;
+    static const QString AUDIO_WMA_TYPEMIME;
+    static const QString AUDIO_FLAC_TYPEMIME;
+    static const QString AUDIO_OGG_TYPEMIME;
+    static const QString AUDIO_LPCM_TYPEMIME;
+    static const QString AUDIO_TRANSCODE;
+
+    static const QString UNKNOWN_VIDEO_TYPEMIME;
+    static const QString MPEG_TYPEMIME;
+    static const QString MP4_TYPEMIME;
+    static const QString AVI_TYPEMIME;
+    static const QString WMV_TYPEMIME;
+    static const QString ASF_TYPEMIME;
+    static const QString MATROSKA_TYPEMIME;
+    static const QString M3U8_TYPEMIME;
+    static const QString MPEGTS_TYPEMIME;
+    static const QString VIDEO_TRANSCODE;
 
 protected:
     // Returns the process for transcoding
@@ -106,9 +137,6 @@ protected:
 
     // Returns the process for original streaming
     virtual Device* getOriginalStreaming() = 0;
-
-private:
-    virtual void updateDLNAOrgPn() = 0;
 
 signals:
     void userAgentChanged();
@@ -119,35 +147,6 @@ private slots:
 protected:
     TranscodeFormatAvailable transcodeFormat;
 
-    /*
-     * DLNA.ORG_OP flags
-     *
-     * Two booleans (binary digits) which determine what transport operations the renderer is allowed to
-     * perform (in the form of HTTP request headers): the first digit allows the renderer to send
-     * TimeSeekRange.DLNA.ORG (seek by time) headers; the second allows it to send RANGE (seek by byte)
-     * headers.
-     *
-     *    00 - no seeking (or even pausing) allowed
-     *    01 - seek by byte
-     *    10 - seek by time
-     *    11 - seek by both
-     *
-     * See here for an example of how these options can be mapped to keys on the renderer's controller:
-     * http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2908&p=12550#p12550
-     *
-     * Note that seek-by-byte is the preferred option for streamed files [1] and seek-by-time is the
-     * preferred option for transcoded files.
-     *
-     * [1] see http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841&p=76201#p76201
-     *
-     * seek-by-time requires a) support by the renderer (via the SeekByTime renderer conf option)
-     * and b) support by the transcode engine.
-     *
-     * The seek-by-byte fallback doesn't work well with transcoded files [2], but it's better than
-     * disabling seeking (and pausing) altogether.
-     *
-     * [2] http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=16567#p16567 (bottom post)
-     */
     QString dlnaOrgOpFlags;
 
     // DLNA.ORG_PN
@@ -155,10 +154,10 @@ protected:
 
     QString m_userAgent;
 
-    Device *m_stream;
+    Device *m_stream = Q_NULLPTR;
 
-    QStringList m_sinkProtocol;
-    QString m_compatibleSink;
+    Protocol m_sinkProtocol;
+    ProtocolInfo m_compatibleSink;
     QString m_protocolInfo;
 };
 

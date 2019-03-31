@@ -130,6 +130,54 @@ QString DlnaNetworkVideo::metaDataFormat() const
 
     return QString();
 }
+QString DlnaNetworkVideo::sourceContainer() const
+{
+    foreach (QFfmpegInputMedia *media, ffmpeg)
+        if (!media->getFormat().isEmpty())
+            return media->getFormat();
+
+    if (m_media)
+    {
+        AbstractStream *stream = m_media->getStream();
+        if (stream)
+            return stream->format();
+    }
+
+    return QString();
+}
+
+QString DlnaNetworkVideo::sourceAudioFormat() const
+{
+    foreach (QFfmpegInputMedia *media, ffmpeg)
+        if (!media->getAudioFormat().isEmpty())
+            return media->getAudioFormat();
+
+    if (m_media)
+    {
+        AbstractStream *stream = m_media->getStream();
+        if (stream)
+            return stream->audioCodec();
+    }
+
+    return QString();
+}
+
+QString DlnaNetworkVideo::sourceVideoFormat() const
+{
+    foreach (QFfmpegInputMedia *media, ffmpeg)
+        if (!media->getVideoFormat().isEmpty())
+            return media->getVideoFormat();
+
+    if (m_media)
+    {
+        AbstractStream *stream = m_media->getStream();
+        if (stream)
+            return stream->videoCodec();
+    }
+
+    return QString();
+}
+
 
 int DlnaNetworkVideo::samplerate() const
 {

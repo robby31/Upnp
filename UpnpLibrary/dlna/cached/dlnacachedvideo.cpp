@@ -146,3 +146,24 @@ bool DlnaCachedVideo::waitPicture(const int &timeout)
 
     return true;
 }
+
+QString DlnaCachedVideo::sourceContainer() const
+{
+    return metaDataFormat();
+}
+
+QString DlnaCachedVideo::sourceAudioFormat() const
+{
+    if (library)
+        return library->get_param_value(idMedia, "audio_format").toString();
+
+    return QString();
+}
+
+QString DlnaCachedVideo::sourceVideoFormat() const
+{
+    if (library)
+        return library->get_param_value(idMedia, "video_format").toString();
+
+    return QString();
+}

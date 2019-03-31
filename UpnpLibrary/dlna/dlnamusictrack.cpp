@@ -1,30 +1,8 @@
 #include "dlnamusictrack.h"
 
-const QString DlnaMusicTrack::UNKNOWN_AUDIO_TYPEMIME = "audio/mpeg";
-const QString DlnaMusicTrack::AUDIO_MP3_TYPEMIME = "audio/mpeg";
-const QString DlnaMusicTrack::AUDIO_MP4_TYPEMIME = "audio/mp4";
-const QString DlnaMusicTrack::AUDIO_WAV_TYPEMIME = "audio/wav";
-const QString DlnaMusicTrack::AUDIO_WMA_TYPEMIME = "audio/x-ms-wma";
-const QString DlnaMusicTrack::AUDIO_FLAC_TYPEMIME = "audio/x-flac";
-const QString DlnaMusicTrack::AUDIO_OGG_TYPEMIME = "audio/x-ogg";
-const QString DlnaMusicTrack::AUDIO_LPCM_TYPEMIME = "audio/L16";
-const QString DlnaMusicTrack::AUDIO_TRANSCODE = "audio/transcode";
-
 DlnaMusicTrack::DlnaMusicTrack(QObject *parent):
     DlnaItem(parent)
 {
-}
-
-void DlnaMusicTrack::updateDLNAOrgPn() {
-    if (mimeType() == AUDIO_MP3_TYPEMIME) {
-        setdlnaOrgPN("MP3");
-    } else if (mimeType() == AUDIO_MP4_TYPEMIME) {
-        setdlnaOrgPN("AAC_ISO_320");
-    } else if (mimeType().startsWith(AUDIO_LPCM_TYPEMIME)) {
-        setdlnaOrgPN("LPCM");
-    } else if (mimeType() == AUDIO_WAV_TYPEMIME) {
-        setdlnaOrgPN("WAV");
-    }
 }
 
 qint64 DlnaMusicTrack::bitrate() const
@@ -35,7 +13,7 @@ qint64 DlnaMusicTrack::bitrate() const
         if (transcodeFormat == MP3 || transcodeFormat == AAC)
             return 320000;
 
-        if (transcodeFormat == LPCM_S16BE || transcodeFormat == WAV || transcodeFormat == ALAC)
+        if (transcodeFormat == LPCM_S16BE || transcodeFormat == ALAC)
         {
             if (samplerate() == 44100)
                 return 1411200;
@@ -207,34 +185,6 @@ Device *DlnaMusicTrack::getOriginalStreaming()
     return new StreamingFile(getSystemName());
 }
 
-QString DlnaMusicTrack::mimeType() const
-{
-    if (toTranscode())
-    {
-        // Trancode music track
-        if (transcodeFormat == MP3)
-            return AUDIO_MP3_TYPEMIME;
-
-        if (transcodeFormat == AAC || transcodeFormat == ALAC)
-            return AUDIO_MP4_TYPEMIME;
-
-        if (transcodeFormat == LPCM_S16BE)
-            return QString("%1;rate=%2;channels=%3").arg(AUDIO_LPCM_TYPEMIME).arg(samplerate()).arg(channelCount());
-
-        if (transcodeFormat == WAV)
-            return AUDIO_WAV_TYPEMIME;
-
-        qCritical() << "Unable to define mimeType of DlnaMusicTrack Transcoding: " << getSystemName();
-    }
-    else
-    {
-        return sourceMimeType();
-    }
-
-    // returns unknown mimeType
-    return UNKNOWN_AUDIO_TYPEMIME;
-}
-
 QString DlnaMusicTrack::sourceMimeType() const
 {
     QString format = metaDataFormat();
@@ -244,11 +194,11 @@ QString DlnaMusicTrack::sourceMimeType() const
     if (format == "aac" || format == "alac")
         return AUDIO_MP4_TYPEMIME;
 
+    if (format == "pcm_s16le")
+        return "audio/wav";
+
     if (format == "pcm_s16be")
         return QString("%1;rate=%2;channels=%3").arg(AUDIO_LPCM_TYPEMIME).arg(samplerate()).arg(channelCount());
-
-    if (format == "pcm_s16le")
-        return AUDIO_WAV_TYPEMIME;
 
     qCritical() << QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName(), format);
 

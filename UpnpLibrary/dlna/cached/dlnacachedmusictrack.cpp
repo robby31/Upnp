@@ -31,3 +31,24 @@ QHash<QString, double> DlnaCachedMusicTrack::volumeInfo(const int& timeout)
     QHash<QString, double> result;
     return result;
 }
+
+QString DlnaCachedMusicTrack::sourceContainer() const
+{
+    return metaDataFormat();
+}
+
+QString DlnaCachedMusicTrack::sourceAudioFormat() const
+{
+    if (library)
+        return library->get_param_value(idMedia, "audio_format").toString();
+
+    return QString();
+}
+
+QString DlnaCachedMusicTrack::sourceVideoFormat() const
+{
+    if (library)
+        return library->get_param_value(idMedia, "video_format").toString();
+
+    return QString();
+}
