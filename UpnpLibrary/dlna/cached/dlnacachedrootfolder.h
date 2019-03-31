@@ -35,7 +35,6 @@ private:
     void addResource(const QFileInfo& fileinfo);
     void addResource(const QUrl &url, const int &playlistId = -1);
     void addPlaylist(DlnaNetworkPlaylist *playlist);
-    void addNextResource();
     void queueResource(const QUrl &url, const int &playlistId = -1);
 
 signals:
@@ -56,6 +55,8 @@ private slots:
     void networkLinkAnalyzed(const QList<QUrl> &urls);
     void networkLinkError(const QString &message);
 
+    void addNextResource();
+
 public slots:
     void reloadLibrary(const QStringList &localFolder);
 
@@ -70,6 +71,7 @@ private:
     DlnaCachedPlaylists *playlists = Q_NULLPTR;
     DlnaCachedGroupedFolderMetaData *youtube = Q_NULLPTR;
     QList<T_URL> urlToAdd;
+    bool url_inProgress = false;
 };
 
 #endif // DLNACACHEDROOTFOLDER_H

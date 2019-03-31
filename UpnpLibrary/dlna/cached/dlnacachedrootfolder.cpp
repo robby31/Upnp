@@ -7,25 +7,25 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(QObject *parent):
 {
     recentlyPlayedChild = new DlnaCachedFolder(&library,
                                                library.getMedia("last_played is not null", "last_played", "DESC"),
-                                               "Recently Played", true, 200, this);
+                                               "Recently Played", true, 50, this);
     recentlyPlayedChild->setDlnaParent(this);
     addChild(recentlyPlayedChild);
 
     resumeChild = new DlnaCachedFolder(&library,
                                        library.getMedia("progress_played>0", "last_played", "DESC"),
-                                       "Resume", true, 200, this);
+                                       "Resume", true, 50, this);
     resumeChild->setDlnaParent(this);
     addChild(resumeChild);
 
     lastAddedChild = new DlnaCachedFolder(&library,
                                           library.getMedia("addedDate is not null", "addedDate", "DESC"),
-                                          "Last Added", true, 200, this);
+                                          "Last Added", true, 50, this);
     lastAddedChild->setDlnaParent(this);
     addChild(lastAddedChild);
 
     favoritesChild = new DlnaCachedFolder(&library,
                                           library.getMedia("counter_played>0", "counter_played", "DESC"),
-                                          "Favorites", true, 200, this);
+                                          "Favorites", true, 50, this);
     favoritesChild->setDlnaParent(this);
     addChild(favoritesChild);
 
@@ -145,10 +145,13 @@ void DlnaCachedRootFolder::addNetworkLink(const QString &url)
     }
     else
     {
-        addResource(QUrl(url));
+        queueResource(QUrl(url));
     }
 
     playlist->deleteLater();
+
+    if (!url_inProgress)
+        addNextResource();
 }
 
 void DlnaCachedRootFolder::addPlaylist(DlnaNetworkPlaylist *playlist)
@@ -172,8 +175,6 @@ void DlnaCachedRootFolder::addPlaylist(DlnaNetworkPlaylist *playlist)
         queueResource(url, id_playlist);
     }
 
-    addNextResource();
-
     playlists->needRefresh();
 
     emit linkAdded(QString("Playlist %1").arg(playlist->getName()));
@@ -181,6 +182,8 @@ void DlnaCachedRootFolder::addPlaylist(DlnaNetworkPlaylist *playlist)
 
 void DlnaCachedRootFolder::addResource(const QUrl &url, const int &playlistId)
 {
+    url_inProgress = true;
+
     auto movie = new DlnaNetworkVideo(this);
     movie->setDlnaParent(this);
     connect(movie, &DlnaNetworkVideo::streamUrlDefined, this, &DlnaCachedRootFolder::networkLinkAnalyzed);
@@ -195,6 +198,8 @@ void DlnaCachedRootFolder::addResource(const QUrl &url, const int &playlistId)
 void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
 {
     Q_UNUSED(urls)
+
+    url_inProgress = false;
 
     auto movie = qobject_cast<DlnaNetworkVideo*>(sender());
     if (movie)
@@ -215,8 +220,8 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
         data.insert("subtitlelanguages", movie->subtitleLanguages().join(","));
         data.insert("framerate", movie->framerate());
         data.insert("bitrate", movie->metaDataBitrate());
-        data.insert("format", movie->metaDataFormat());
-        data.insert("mime_type", movie->mimeType());
+        data.insert("format", movie->sourceContainer());
+        data.insert("mime_type", movie->sourceMimeType());
 
         if (movie->metaDataTitle().isEmpty())
         {
@@ -243,6 +248,18 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
                 {
                     lastAddedChild->needRefresh();
 
+                    if (!movie->sourceAudioFormat().isEmpty())
+                    {
+                        if (!library.add_param(id_media, "audio_format", movie->sourceAudioFormat()))
+                            qCritical() << "unable to add audio format" << id_media << movie->sourceAudioFormat();
+                    }
+
+                    if (!movie->sourceVideoFormat().isEmpty())
+                    {
+                        if (!library.add_param(id_media, "video_format", movie->sourceVideoFormat()))
+                            qCritical() << "unable to add video format" << id_media << movie->sourceVideoFormat();
+                    }
+
                     if (movie->thumbnailUrl().isValid())
                     {
                         // add thumbnail url
@@ -268,23 +285,27 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
             }
         }
 
+        connect(movie, &DlnaNetworkVideo::destroyed, this, &DlnaCachedRootFolder::addNextResource);
         movie->deleteLater();
     }
     else
     {
         qCritical() << "invalid sender" << sender();
+        addNextResource();
     }
-
-    addNextResource();
 }
 
 void DlnaCachedRootFolder::addNextResource()
-{
+{    
     if (!urlToAdd.isEmpty())
     {
         T_URL new_url = urlToAdd.at(0);
         urlToAdd.removeFirst();
         addResource(new_url.url, new_url.playListId);
+    }
+    else
+    {
+        qCritical() << "no more resource to add";
     }
 }
 
@@ -300,18 +321,21 @@ void DlnaCachedRootFolder::networkLinkError(const QString &message)
 {
     qCritical() << "ERROR, link not added" << message;
 
+    url_inProgress = false;
+
     auto movie = qobject_cast<DlnaNetworkVideo*>(sender());
     if (movie)
     {
         emit error_addNetworkLink(movie->url().toString());
+
+        connect(movie, &DlnaNetworkVideo::destroyed, this, &DlnaCachedRootFolder::addNextResource);
         movie->deleteLater();
     }
     else
     {
         qCritical() << "invalid sender" << sender();
+        addNextResource();
     }
-
-    addNextResource();
 }
 
 void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
@@ -325,6 +349,8 @@ void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
         QHash<QString, QVariant> data;
         QHash<QString, QVariant> data_album;
         QHash<QString, QVariant> data_artist;
+        QString srcAudioFormat;
+        QString srcVideoFormat;
 
         data.insert("filename", fileinfo.absoluteFilePath());
         data.insert("type", mime_type.split("/").at(0));
@@ -345,8 +371,11 @@ void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
             data.insert("samplerate", track.samplerate());
             data.insert("channelcount", track.channelCount());
             data.insert("picture", track.getByteAlbumArt());
-            data.insert("format", track.metaDataFormat());
+            data.insert("format", track.sourceContainer());
             data.insert("bitrate", track.metaDataBitrate());
+
+            srcAudioFormat = track.sourceAudioFormat();
+            srcVideoFormat = track.sourceVideoFormat();
 
             if (!track.metaDataAlbum().isEmpty())
             {
@@ -377,7 +406,10 @@ void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
             data.insert("subtitlelanguages", movie.subtitleLanguages().join(","));
             data.insert("framerate", movie.framerate());
             data.insert("bitrate", movie.metaDataBitrate());
-            data.insert("format", movie.metaDataFormat());
+            data.insert("format", movie.sourceContainer());
+
+            srcAudioFormat = movie.sourceAudioFormat();
+            srcVideoFormat = movie.sourceVideoFormat();
 
             if (!movie.metaDataAlbum().isEmpty())
             {
@@ -403,8 +435,25 @@ void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
 
         if (!data.isEmpty())
         {
-            if (library.add_media(data, data_album, data_artist) == -1)
+            int id_media = library.add_media(data, data_album, data_artist);
+            if (id_media == -1)
+            {
                 qCritical() << QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath(), mime_type);
+            }
+            else
+            {
+                if (!srcAudioFormat.isEmpty())
+                {
+                    if (!library.add_param(id_media, "audio_format", srcAudioFormat))
+                        qCritical() << "unable to add audio format" << id_media << srcAudioFormat;
+                }
+
+                if (!srcVideoFormat.isEmpty())
+                {
+                    if (!library.add_param(id_media, "video_format", srcVideoFormat))
+                        qCritical() << "unable to add video format" << id_media << srcVideoFormat;
+                }
+            }
         }
     }
 }
