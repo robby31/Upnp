@@ -436,7 +436,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                         m_header << QString("transferMode.dlna.org: Streaming");
 
                     if (!request->header("GETMEDIAINFO.SEC").isEmpty())
-                        m_header << QString("MediaInfo.sec: SEC_Duration=%1;").arg(dlna->getLengthInMilliSeconds());
+                        m_header << QString("MediaInfo.sec: SEC_Duration=%1").arg(dlna->getLengthInSeconds());
 
                     if (dlna->getdlnaOrgOpFlags().at(1) == '1')
                         m_header << QString("Accept-Ranges: bytes");
