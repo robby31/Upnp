@@ -518,7 +518,7 @@ void Upnp_servicecontentdirectoryTest::test_browse_Root_MetaData()
 
     QCOMPARE(container.attributes().size(), 4);
     QCOMPARE(container.attribute("id"), "0");
-    QCOMPARE(container.attribute("childCount"), "5");
+    QCOMPARE(container.attribute("childCount"), "6");
     QCOMPARE(container.attribute("parentID"), "-1");
     QCOMPARE(container.attribute("restricted"), "true");
 
@@ -604,7 +604,7 @@ void Upnp_servicecontentdirectoryTest::test_browse_Root_DirectChildren()
 
     QDomElement rootResult = result.firstChildElement();
     QCOMPARE(rootResult.isNull(), false);
-    QCOMPARE(rootResult.childNodes().size(), 5);
+    QCOMPARE(rootResult.childNodes().size(), 6);
     QCOMPARE(rootResult.toElement().tagName(), "DIDL-Lite");
 
     QDomElement container = rootResult.firstChildElement();
@@ -678,6 +678,21 @@ void Upnp_servicecontentdirectoryTest::test_browse_Root_DirectChildren()
 
     QCOMPARE(container.childNodes().size(), 2);
     QCOMPARE(container.childNodes().at(0).toElement().tagName(), "title");
+    QCOMPARE(container.childNodes().at(0).toElement().firstChild().toText().data(), "Playlists");
+    QCOMPARE(container.childNodes().at(1).toElement().tagName(), "class");
+    QCOMPARE(container.childNodes().at(1).toElement().firstChild().toText().data(), "object.container.storageFolder");
+
+    container = container.nextSiblingElement();
+    QCOMPARE(container.tagName(), "container");
+
+    QCOMPARE(container.attributes().size(), 4);
+    QCOMPARE(container.attribute("id"), "0$6");
+    QCOMPARE(container.attribute("childCount"), "0");
+    QCOMPARE(container.attribute("parentID"), "0");
+    QCOMPARE(container.attribute("restricted"), "true");
+
+    QCOMPARE(container.childNodes().size(), 2);
+    QCOMPARE(container.childNodes().at(0).toElement().tagName(), "title");
     QCOMPARE(container.childNodes().at(0).toElement().firstChild().toText().data(), "root");
     QCOMPARE(container.childNodes().at(1).toElement().tagName(), "class");
     QCOMPARE(container.childNodes().at(1).toElement().firstChild().toText().data(), "object.container.storageFolder");
@@ -686,9 +701,9 @@ void Upnp_servicecontentdirectoryTest::test_browse_Root_DirectChildren()
     QCOMPARE(container.isNull(), true);
 
     QCOMPARE(answer.arguments().at(1), "NumberReturned");
-    QCOMPARE(answer.value("NumberReturned"), "5");
+    QCOMPARE(answer.value("NumberReturned"), "6");
     QCOMPARE(answer.arguments().at(2), "TotalMatches");
-    QCOMPARE(answer.value("TotalMatches"), "5");
+    QCOMPARE(answer.value("TotalMatches"), "6");
     QCOMPARE(answer.arguments().at(3), "UpdateID");
     QCOMPARE(answer.value("UpdateID"), "1");
 
