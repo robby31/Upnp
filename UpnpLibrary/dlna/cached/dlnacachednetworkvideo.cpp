@@ -23,6 +23,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
         connect(movie, SIGNAL(videoUrlErrorSignal(QString)), transcodeProcess, SLOT(urlError(QString)));
         movie->setAnalyzeStream(false);
         movie->setUrl(sysName);
+        movie->setMaxVideoHeight(720);
     }
     else if (!m_streamUrl.isEmpty())
     {
@@ -35,6 +36,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
     {
         transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
         transcodeProcess->setFormat(transcodeFormat);
+        transcodeProcess->setVariableBitrate(true);
         transcodeProcess->setBitrate(bitrate());
         transcodeProcess->setAudioLanguages(audioLanguages());
         transcodeProcess->setSubtitleLanguages(subtitleLanguages());

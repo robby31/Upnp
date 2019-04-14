@@ -32,6 +32,7 @@ TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
     transcodeProcess->setUrl(getSystemName());
     transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
     transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setVariableBitrate(true);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());
     transcodeProcess->setSubtitleLanguages(subtitleLanguages());

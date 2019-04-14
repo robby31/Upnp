@@ -500,7 +500,6 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                             QString mediaFilename = dlna->getSystemName();
                             request->setRequestedResource(mediaFilename);
                             request->setRequestedDisplayName(dlna->getDisplayName());
-                            servingMedia(mediaFilename, 0);
 
                             // recover resume time
                             qint64 resume = dlna->getResumeTime();

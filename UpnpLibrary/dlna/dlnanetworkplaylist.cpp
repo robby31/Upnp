@@ -86,6 +86,7 @@ DlnaResource *DlnaNetworkPlaylist::getChild(int index, QObject *parent)
         auto child = new DlnaNetworkVideo(this);
 
         child->setUrl(m_playlist->mediaUrl().at(index));
+        child->setMaxVideoHeight(720);
 
         if (!child->waitUrl(5000))
             qWarning() << "network media not ready" << child;

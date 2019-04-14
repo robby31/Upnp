@@ -268,7 +268,7 @@ QUrl DlnaNetworkVideo::url() const
     return m_url;
 }
 
-void DlnaNetworkVideo::setUrl(const QUrl &url)
+bool DlnaNetworkVideo::setUrl(const QUrl &url)
 {
     m_url = url;
 
@@ -285,7 +285,10 @@ void DlnaNetworkVideo::setUrl(const QUrl &url)
     {
         qCritical() << "ERROR, unable to set url" << url;
         m_error = QString("unable to set url %1").arg(url.url());
+        return false;
     }
+
+    return true;
 }
 
 bool DlnaNetworkVideo::waitUrl(const unsigned long &timeout)
@@ -310,6 +313,7 @@ TranscodeProcess *DlnaNetworkVideo::getTranscodeProcess()
 
     transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
     transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setVariableBitrate(true);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());
     transcodeProcess->setSubtitleLanguages(subtitleLanguages());

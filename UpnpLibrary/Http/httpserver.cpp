@@ -28,52 +28,62 @@ void HttpServer::incomingData()
     HttpRequest *request = Q_NULLPTR;
 
     auto clientConnection = qobject_cast<QTcpSocket*>(sender());
-
-    while (clientConnection->bytesAvailable() > 0)
+    if (clientConnection)
     {
-        qintptr socket = clientConnection->socketDescriptor();
-        if (m_request.contains(socket))
+        while (clientConnection->bytesAvailable() > 0)
         {
-            qDebug() << "read request" << socket;
-            request = m_request[socket];
-            request->incomingData();
-        }
-        else
-        {
-            qDebug() << "new request" << socket << clientConnection->peerAddress().toString();
-            request = new HttpRequest(clientConnection, this);
-            request->setDeviceUuid(deviceUuid());
-            request->setServerName(m_serverName);
-            request->incomingData();
-
-            if (request->operation() != QNetworkAccessManager::UnknownOperation)
+            qintptr socket = clientConnection->socketDescriptor();
+            if (m_request.contains(socket))
             {
-                m_request[socket] = request;
-                emit newRequest(request);
+                qDebug() << clientConnection << "read request" << socket;
+                request = m_request[socket];
+                if (!request->isFinished())
+                {
+                    request->incomingData();
+                }
+                else
+                {
+                    qWarning() << "incoming data but previous request not yet completed.";
+                    return;
+                }
             }
             else
             {
-                // invalid operation
-                request->deleteLater();
+                qDebug() << clientConnection << "new request" << socket << clientConnection->peerAddress().toString();
+                request = new HttpRequest(clientConnection, this);
+                request->setDeviceUuid(deviceUuid());
+                request->setServerName(m_serverName);
+                request->incomingData();
+
+                if (request->operation() != QNetworkAccessManager::UnknownOperation)
+                {
+                    m_request[socket] = request;
+                    emit newRequest(request);
+                }
+                else
+                {
+                    // invalid operation
+                    request->deleteLater();
+                }
+            }
+
+            if (request->isFinished())
+            {
+                qDebug() << clientConnection << "request finished" << request->socketDescriptor();
+                emit requestCompleted(request);
+                m_request.remove(request->socketDescriptor());
+            }
+            else
+            {
+                break;
             }
         }
 
-        if (request->isFinished())
+        if (clientConnection->bytesAvailable() > 0)
         {
-            qDebug() << "request finished" << request->socketDescriptor();
-            m_request.remove(request->socketDescriptor());
-            emit requestCompleted(request);
+            qCritical() << clientConnection->socketDescriptor() << "data are available :" << clientConnection->bytesAvailable() << "bytes.";
+            qDebug() << clientConnection->readAll();
         }
-        else
-        {
-            break;
-        }
-    }
-
-    if (clientConnection->bytesAvailable() > 0)
-    {
-        qCritical() << clientConnection->socketDescriptor() << "data are available :" << clientConnection->bytesAvailable() << "bytes.";
-        qDebug() << clientConnection->readAll();
     }
 }
 

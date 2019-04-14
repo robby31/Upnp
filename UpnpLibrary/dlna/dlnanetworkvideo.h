@@ -68,7 +68,7 @@ public:
     void setAnalyzeStream(const bool &flag);
 
     QUrl url() const;
-    void setUrl(const QUrl &url);
+    bool setUrl(const QUrl &url);
     bool waitUrl(const unsigned long &timeout=30000);
     void setMaxVideoHeight(const int &height);
 
