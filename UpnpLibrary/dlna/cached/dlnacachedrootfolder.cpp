@@ -188,10 +188,18 @@ void DlnaCachedRootFolder::addResource(const QUrl &url, const int &playlistId)
     movie->setDlnaParent(this);
     connect(movie, &DlnaNetworkVideo::streamUrlDefined, this, &DlnaCachedRootFolder::networkLinkAnalyzed);
     connect(movie, &DlnaNetworkVideo::videoUrlErrorSignal, this, &DlnaCachedRootFolder::networkLinkError);
-    movie->setUrl(url.url());
+    if (movie->setUrl(url.url()))
+    {
+        movie->setMaxVideoHeight(720);
 
-    if (playlistId != -1)
-        movie->setProperty("playlistId", playlistId);
+        if (playlistId != -1)
+            movie->setProperty("playlistId", playlistId);
+    }
+    else
+    {
+        connect(movie, &DlnaNetworkVideo::destroyed, this, &DlnaCachedRootFolder::addNextResource);
+        movie->deleteLater();
+    }
 }
 
 
