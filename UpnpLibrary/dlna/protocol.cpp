@@ -84,15 +84,24 @@ QList<ProtocolInfo> Protocol::compatible()
     qDebug() << "GET COMPATIBLE" << m_mimeType << m_container << m_videoCodec << m_audioCodec << m_channels << m_sampleRate << m_bitrate << m_dlna_org_pn;
     QList<ProtocolInfo> res;
 
+    QStringList protocolChecked;
+
     for (const ProtocolInfo &protocol : m_protocols)
     {
+        protocolChecked << protocol.pn();
+        qDebug() << "check" << protocol.toString();
+
         if (m_mimeType.startsWith("audio/L16"))
         {
             if (!protocol.mimeType().startsWith("audio/L16"))
+            {
+                qDebug() << "invalid mime type" << protocol.mimeType() << m_mimeType;
                 continue;
+            }
         }
         else if (!m_mimeType.isEmpty() && protocol.mimeType() != m_mimeType)
         {
+            qDebug() << "invalid mime type" << protocol.mimeType() << m_mimeType;
             continue;
         }
 
@@ -104,27 +113,45 @@ QList<ProtocolInfo> Protocol::compatible()
         }
 
         if (!m_container.isEmpty() && profile.container() != m_container)
+        {
+            qDebug() << "invalid container" << profile.container() << m_container;
             continue;
+        }
 
         if (!m_audioCodec.isEmpty() && !profile.codecAudio().contains(m_audioCodec))
+        {
+            qDebug() << "invalid audio codec" << profile.codecAudio() << m_audioCodec;
             continue;
+        }
 
         if (m_channels != -1 && !profile.channels().contains(m_channels))
+        {
+            qDebug() << "invalid channels" << profile.channels() << m_channels;
             continue;
+        }
 
         if (m_sampleRate != -1 && !profile.sampleRate().contains(m_sampleRate))
+        {
+            qDebug() << "invalid sample rate" << profile.sampleRate() << m_sampleRate;
             continue;
+        }
 
         if (m_mimeType.startsWith("video"))
         {
             if (!m_videoCodec.isEmpty() && !profile.codecVideo().contains(m_videoCodec))
+            {
+                qDebug() << "invalid video codec" << profile.codecVideo() << m_videoCodec;
                 continue;
+            }
         }
 
         if (!m_dlna_org_pn.isEmpty())
         {
             if (!protocol.pn().isEmpty() && protocol.pn() != m_dlna_org_pn)
+            {
+                qDebug() << "invalid PN" << protocol.pn() << m_dlna_org_pn;
                 continue;
+            }
         }
 
         ProtocolInfo foundProtocol;
@@ -136,7 +163,7 @@ QList<ProtocolInfo> Protocol::compatible()
     }
 
     if (res.isEmpty())
-        qDebug() << "NOT FOUND protocol compatible" << m_mimeType << m_container << m_videoCodec << m_audioCodec << m_channels << m_sampleRate << m_bitrate << m_dlna_org_pn;
+        qDebug() << "NOT FOUND protocol compatible" << m_mimeType << m_container << m_videoCodec << m_audioCodec << m_channels << m_sampleRate << m_bitrate << m_dlna_org_pn << "in following PN" << protocolChecked;
 
     return res;
 }
