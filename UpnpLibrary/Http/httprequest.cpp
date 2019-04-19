@@ -1042,7 +1042,7 @@ QString HttpRequest::errorString() const
 
 void HttpRequest::setError(const QString &message)
 {
-    qCritical() << message;
+    qCritical() << this << message;
     logMessage(QString("ERROR : %1.").arg(message));
     m_error = message;
     setData("KO", statusRole);
@@ -1170,12 +1170,8 @@ void HttpRequest::timerEvent(QTimerEvent *event)
             if (clockSending.isValid())
             {
                 // emit progress every 10 seconds
-                if (clockSending.elapsedFromBeginning()/1000 % 10 == 0)
+                if (clockSending.elapsedFromBeginning()>10000 && clockSending.elapsedFromBeginning()/1000 % 10 == 0)
                     emit servingSignal(m_requestedResource, clockSending.elapsedFromBeginning());
-            }
-            else
-            {
-                emit servingSignal(m_requestedResource, 0);
             }
 
             if (m_client)
