@@ -185,7 +185,9 @@ void DlnaCachedRootFolder::addResource(const QUrl &url, const int &playlistId)
     url_inProgress = true;
 
     auto movie = new DlnaNetworkVideo(this);
+
     movie->setDlnaParent(this);
+    connect(movie, &DlnaNetworkVideo::destroyed, this, &DlnaCachedRootFolder::addNextResource);
     connect(movie, &DlnaNetworkVideo::streamUrlDefined, this, &DlnaCachedRootFolder::networkLinkAnalyzed);
     connect(movie, &DlnaNetworkVideo::videoUrlErrorSignal, this, &DlnaCachedRootFolder::networkLinkError);
     if (movie->setUrl(url.url()))
@@ -197,7 +199,7 @@ void DlnaCachedRootFolder::addResource(const QUrl &url, const int &playlistId)
     }
     else
     {
-        connect(movie, &DlnaNetworkVideo::destroyed, this, &DlnaCachedRootFolder::addNextResource);
+        qCritical() << "invalid url" << url;
         movie->deleteLater();
     }
 }
@@ -210,6 +212,7 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
     url_inProgress = false;
 
     auto movie = qobject_cast<DlnaNetworkVideo*>(sender());
+
     if (movie)
     {
         QHash<QString, QVariant> data;
@@ -293,7 +296,6 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
             }
         }
 
-        connect(movie, &DlnaNetworkVideo::destroyed, this, &DlnaCachedRootFolder::addNextResource);
         movie->deleteLater();
     }
     else
@@ -307,13 +309,12 @@ void DlnaCachedRootFolder::addNextResource()
 {    
     if (!urlToAdd.isEmpty())
     {
-        T_URL new_url = urlToAdd.at(0);
-        urlToAdd.removeFirst();
+        T_URL new_url = urlToAdd.takeFirst();
         addResource(new_url.url, new_url.playListId);
     }
     else
     {
-        qCritical() << "no more resource to add";
+        qInfo() << "no more resource to add";
     }
 }
 
@@ -327,20 +328,20 @@ void DlnaCachedRootFolder::queueResource(const QUrl &url, const int &playlistId)
 
 void DlnaCachedRootFolder::networkLinkError(const QString &message)
 {
-    qCritical() << "ERROR, link not added" << message;
-
     url_inProgress = false;
 
     auto movie = qobject_cast<DlnaNetworkVideo*>(sender());
     if (movie)
     {
+        qCritical() << "ERROR, link not added" << movie->url() << message;
+
         emit error_addNetworkLink(movie->url().toString());
 
-        connect(movie, &DlnaNetworkVideo::destroyed, this, &DlnaCachedRootFolder::addNextResource);
         movie->deleteLater();
     }
     else
     {
+        qCritical() << "ERROR, link not added" << message;
         qCritical() << "invalid sender" << sender();
         addNextResource();
     }

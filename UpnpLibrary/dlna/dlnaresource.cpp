@@ -197,3 +197,13 @@ void DlnaResource::contentUpdated()
     ++updateId;
     m_needRefresh = false;
 }
+
+bool DlnaResource::isReady() const
+{
+    return m_isReady;
+}
+
+void DlnaResource::setReady(const bool &flag)
+{
+    m_isReady = flag;
+}

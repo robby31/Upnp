@@ -411,7 +411,8 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
 
                 if (request->url().fileName(QUrl::FullyEncoded).startsWith("thumbnail0000"))
                 {
-                    request->replyData(dlna->getByteAlbumArt(), "image/jpeg");
+                    if (dlna->isReady())
+                        request->replyData(dlna->getByteAlbumArt(), "image/jpeg");
                 }
                 else
                 {

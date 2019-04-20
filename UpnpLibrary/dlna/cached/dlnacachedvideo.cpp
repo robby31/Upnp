@@ -15,8 +15,8 @@ DlnaCachedVideo::DlnaCachedVideo(MediaLibrary* library, int idMedia, QObject *pa
             m_replyPicture = MyNetwork::manager().get(request);
             if (m_replyPicture)
             {
+                setReady(false);
                 connect(m_replyPicture, &QNetworkReply::finished, this, &DlnaCachedVideo::pictureReceived);
-                connect(m_replyPicture, &QNetworkReply::finished, &m_loopPicture, &QEventLoop::quit);
             }
             else
             {
@@ -122,6 +122,8 @@ QUrl DlnaCachedVideo::thumbnailUrl() const
 
 void DlnaCachedVideo::pictureReceived()
 {
+    setReady(true);
+
     auto reply = qobject_cast<QNetworkReply*>(sender());
     if (reply)
     {
@@ -133,19 +135,7 @@ void DlnaCachedVideo::pictureReceived()
 
 QByteArray DlnaCachedVideo::metaDataPicture()
 {
-    waitPicture(2000);
     return m_picture;
-}
-
-bool DlnaCachedVideo::waitPicture(const int &timeout)
-{
-    if (m_replyPicture)
-    {
-        QTimer::singleShot(timeout, &m_loopPicture, &QEventLoop::quit);
-        m_loopPicture.exec();
-    }
-
-    return true;
 }
 
 QString DlnaCachedVideo::sourceContainer() const

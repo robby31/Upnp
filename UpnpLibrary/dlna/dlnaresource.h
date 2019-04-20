@@ -18,6 +18,9 @@ public:
     explicit DlnaResource(QObject *parent = Q_NULLPTR);
     ~DlnaResource() Q_DECL_OVERRIDE;
 
+    bool isReady() const;
+    void setReady(const bool &flag);
+
     void setHostUrl(const QUrl &url);
     QUrl getHostUrl() const;
 
@@ -108,6 +111,8 @@ private:
     int updateId;
 
     QUrl m_hostUrl;
+
+    bool m_isReady = true;
 
 public:
     static qint64 objectCounter;

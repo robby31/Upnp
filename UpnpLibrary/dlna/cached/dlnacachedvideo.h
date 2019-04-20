@@ -61,8 +61,6 @@ public:
     QStringList audioLanguages()    const Q_DECL_OVERRIDE { if (library) return library->getmetaData("audiolanguages", idMedia).toString().split(","); return QStringList(); }
     QString framerate()             const Q_DECL_OVERRIDE;
 
-    bool waitPicture(const int &timeout = 30000);
-
 private slots:
     void pictureReceived();
 
@@ -76,7 +74,6 @@ protected:
     MediaLibrary* library;
     int idMedia;
 
-    QEventLoop m_loopPicture;
     QNetworkReply *m_replyPicture = Q_NULLPTR;
     QByteArray m_picture;
 };
