@@ -146,6 +146,8 @@ signals:
 
     void bytesSentChanged();
 
+    void closed();
+
 
 public slots:
     void setError(const QString &message);

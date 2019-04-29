@@ -632,6 +632,7 @@ void HttpRequest::close()
         }
 
         setData(QDateTime::currentDateTime(), closeDateRole);
+        emit closed();
     }
     else
     {
@@ -641,6 +642,8 @@ void HttpRequest::close()
 
 bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
 {
+    logMessage("send header");
+
     if (thread() != QThread::currentThread())
         qWarning() << "HttpRequest::sendHeader" << thread() << QThread::currentThread();
 
@@ -714,33 +717,30 @@ bool HttpRequest::sendHeader(const QStringList &header, HttpStatus status)
             }
         }
 
+        // header is sent immediately
+        if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
+        {
+            setError(QString("unable to send header data to client"));
+            close();
+            return false;
+        }
+
+        logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
+        emit headerSent();
+        m_replyHeaderSent = true;
+
+        setData("header set", statusRole);
+
         if (operation() == QNetworkAccessManager::HeadOperation || content_length == 0)
         {
-            // no data expected so header is sent immediately
-            if (m_client->write(m_replyHeader.join("\r\n").toUtf8()) == -1)
-            {
-                setError(QString("unable to send header data to client"));
-                close();
-                return false;
-            }
-
-            logMessage(QString("header reply sent (%1 bytes).").arg(m_replyHeader.size()));
-            emit headerSent();
-
             setData("OK", statusRole);
             close();
-
-            m_replyHeaderSent = true;
-        }
-        else
-        {
-            setData("header set", statusRole);
         }
 
         return true;
     }
 
-    setError(QString("unable to send header data to client (status is wrong or client invalid)."));
+    setError(QString("unable to send header data to client (status %1 is wrong or client %2 invalid)").arg(m_status).arg((qintptr)m_client));
     close();
     return false;
 }

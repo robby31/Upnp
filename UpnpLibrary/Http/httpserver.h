@@ -4,6 +4,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include "httprequest.h"
+#include <QTimer>
 
 class HttpServer : public QTcpServer
 {
@@ -19,6 +20,9 @@ public:
     QString deviceUuid() const;
     void setDeviceUuid(const QString &uuid);
 
+private:
+    void addRequestToReply(HttpRequest *request);
+
 signals:
     void newRequest(HttpRequest *request);
     void requestCompleted(HttpRequest *request);
@@ -26,10 +30,13 @@ signals:
 private slots:
     void newConnectionSlot();
     void incomingData();
+    void runRequestReply();
+    void requestHeaderSent();
 
 private:
     QString m_serverName;
-    QHash<qintptr, HttpRequest*> m_request;
+    QHash<qintptr, HttpRequest*> m_incomingRequest;
+    QHash<qintptr, QList<HttpRequest*>> m_requestToReply;
     QString m_uuid;
 };
 
