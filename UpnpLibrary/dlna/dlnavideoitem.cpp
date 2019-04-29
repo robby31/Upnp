@@ -3,7 +3,7 @@
 DlnaVideoItem::DlnaVideoItem(QObject *parent):
     DlnaItem(parent)
 {
-    setTranscodeFormat(H264_AC3);   // default transcode format
+    setTranscodeFormat(H264_AAC);   // default transcode format
 }
 
 /*
@@ -71,8 +71,8 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
             QDomElement upnpAlbumArtURI = xml->createElement("upnp:albumArtURI");
             upnpAlbumArtURI.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
             upnpAlbumArtURI.setAttribute("dlna:profileID", "JPEG_TN");
-//            upnpAlbumArtURI.appendChild(xml->createTextNode(QString("http://%1:%2/get/%3/thumbnail0000%4&").arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getResourceId(), getDisplayName().toUtf8().toPercentEncoding().constData())));
-            upnpAlbumArtURI.appendChild(xml->createTextNode(thumbnailUrl().url()));
+            upnpAlbumArtURI.appendChild(xml->createTextNode(QString("http://%1:%2/get/%3/thumbnail0000%4&").arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getResourceId(), getDisplayName().toUtf8().toPercentEncoding().constData())));
+//            upnpAlbumArtURI.appendChild(xml->createTextNode(thumbnailUrl().url()));
             xml_obj.appendChild(upnpAlbumArtURI);
         }
     }
@@ -126,7 +126,7 @@ qint64 DlnaVideoItem::bitrate() const
     if (toTranscode())
     {
         if (format() == H264_AC3 || format() == H264_AAC)
-            return 2500000;
+            return 6000000;
 
         return 4558800;
     }
