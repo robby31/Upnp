@@ -10,6 +10,7 @@ class DlnaCachedMusicTrack : public DlnaMusicTrack
 
 public:
     explicit DlnaCachedMusicTrack(MediaLibrary* library, int idMedia, QObject *parent = Q_NULLPTR);
+    ~DlnaCachedMusicTrack() Q_DECL_OVERRIDE;
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
@@ -52,6 +53,9 @@ public:
 private:
     MediaLibrary* library;
     int idMedia;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // DLNACACHEDMUSICTRACK_H

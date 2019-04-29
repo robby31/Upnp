@@ -1,9 +1,17 @@
 #include "dlnacachednetworkvideo.h"
 
+qint64 DlnaCachedNetworkVideo::objectCounter = 0;
+
 DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(MediaLibrary* library, int idMedia, QObject *parent):
     DlnaCachedVideo(library, idMedia, parent),
     m_streamUrl()
 {
+    ++objectCounter;
+}
+
+DlnaCachedNetworkVideo::~DlnaCachedNetworkVideo()
+{
+    --objectCounter;
 }
 
 TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
