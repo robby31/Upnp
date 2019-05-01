@@ -18,5 +18,6 @@
         <file>DeviceDetails.qml</file>
         <file>ServiceStateVariablesDelegate.qml</file>
         <file>ServiceConnectionManager.qml</file>
+        <file>XmlArea.qml</file>
     </qresource>
 </RCC>
