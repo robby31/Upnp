@@ -10,7 +10,9 @@ ColumnLayout {
     property string rootIconUrl
 
     Row {
-        anchors { left: parent.left; leftMargin: 10; right: parent.right; rightMargin: 10 }
+        Layout.fillWidth: true
+        Layout.leftMargin: 10
+        Layout.rightMargin: 10
         height: backButton.height + 20
         Layout.preferredHeight: height
         spacing: 10
@@ -61,18 +63,8 @@ ColumnLayout {
         Layout.fillHeight: true
         currentIndex: tabBar.currentIndex
 
-        Flickable {
-            id: flickable
-
-            boundsBehavior: Flickable.StopAtBounds
-
-            TextArea.flickable: TextArea {
-                text: item.device.description
-                wrapMode: TextArea.Wrap
-                selectByMouse: true
-            }
-
-            ScrollBar.vertical: ScrollBar { }
+        XmlArea {
+            text: item.device.description
         }
 
         ListView {

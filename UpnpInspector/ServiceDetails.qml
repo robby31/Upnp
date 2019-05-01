@@ -92,18 +92,8 @@ ColumnLayout {
             }
         }
 
-        Flickable {
-            id: flickable
-
-            boundsBehavior: Flickable.StopAtBounds
-
-            TextArea.flickable: TextArea {
-                text: item.service.description
-                wrapMode: TextArea.Wrap
-                selectByMouse: true
-            }
-
-            ScrollBar.vertical: ScrollBar { }
+        XmlArea {
+            text: item.service.description
         }
     }
 

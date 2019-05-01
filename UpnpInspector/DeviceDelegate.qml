@@ -34,7 +34,7 @@ Item {
 
         Label {
             id: hostLabel
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: host
             width: 150
             elide: Text.ElideRight
@@ -42,7 +42,7 @@ Item {
         }
 
         Label {
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: devicetype
             Layout.fillWidth: true
             elide: Text.ElideRight
