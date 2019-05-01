@@ -20,6 +20,8 @@ CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
     error("variable MYLIBRARY not set.")
 }
 
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/analyzer
+
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Streaming
