@@ -65,20 +65,9 @@ ColumnLayout {
         Layout.fillHeight: true
         currentIndex: tabBar.currentIndex
 
-        Flickable {
-            id: flickable
-
-            boundsBehavior: Flickable.StopAtBounds
-
-            TextArea.flickable: TextArea {
-                text: item.device.description
-                wrapMode: TextArea.Wrap
-                selectByMouse: true
-            }
-
-            ScrollBar.vertical: ScrollBar { }
+        XmlArea {
+            text: item.device.description
         }
-
 
         ListView {
             id: devicesView
