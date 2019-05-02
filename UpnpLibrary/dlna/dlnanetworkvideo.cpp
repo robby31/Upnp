@@ -343,9 +343,14 @@ void DlnaNetworkVideo::parse_video()
         {
             auto tmp = new QFfmpegInputMedia();
             if (!tmp->open(url.toString()))
+            {
                 qCritical() << "unable to open url" << url << tmp->error();
+                delete tmp;
+            }
             else
+            {
                 ffmpeg << tmp;
+            }
         }
     }
 
