@@ -21,6 +21,7 @@ class DlnaCachedRootFolder : public DlnaRootFolder
 
     typedef struct {
         QUrl url;
+        QString title;
         int playListId;
     } T_URL;
 
@@ -33,9 +34,10 @@ public:
 
 private:
     void addResource(const QFileInfo& fileinfo);
-    void addResource(const QUrl &url, const int &playlistId = -1);
+    void addResource(const QUrl &url, const int &playlistId = -1, const QString &title = QString());
     void addPlaylist(DlnaNetworkPlaylist *playlist);
     void queueResource(const QUrl &url, const int &playlistId = -1);
+    void queueResource(const QUrl &url, const QString &title, const int &playlistId = -1);
 
 signals:
     void linkAdded(QString url);
