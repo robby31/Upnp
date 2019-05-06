@@ -16,7 +16,7 @@ public:
     bool isValid() const;
 
     QUrl url() const;
-    QUrl getChildUrl(const int &index);
+    const AbstractPlaylist::T_URL *getMediaInfo(const int &index);
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
     int getChildrenSize() const Q_DECL_OVERRIDE;

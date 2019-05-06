@@ -61,14 +61,12 @@ int DlnaNetworkPlaylist::getChildrenSize() const
     return 0;
 }
 
-QUrl DlnaNetworkPlaylist::getChildUrl(const int &index)
+const AbstractPlaylist::T_URL *DlnaNetworkPlaylist::getMediaInfo(const int &index)
 {
     if (m_playlist && index >=0 && index < getChildrenSize())
-    {
-        return m_playlist->mediaUrl().at(index);
-    }
+        return m_playlist->media(index);
 
-    return QUrl();
+    return Q_NULLPTR;
 }
 
 DlnaResource *DlnaNetworkPlaylist::getChild(int index, QObject *parent)
