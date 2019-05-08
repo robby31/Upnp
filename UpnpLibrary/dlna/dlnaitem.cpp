@@ -143,7 +143,10 @@ void DlnaItem::setStream(Device *stream)
     if (stream)
     {
         if (m_stream)
-            m_stream->deleteLater();
+        {
+            qWarning() << this << "stream already defined" << m_stream << "replaced by" << stream;
+//            m_stream->deleteLater();
+        }
 
         connect(stream, SIGNAL(destroyed(QObject*)), this, SLOT(streamDestroyed(QObject*)));
         connect(this, SIGNAL(destroyed(QObject*)), stream, SLOT(deleteLater()));
