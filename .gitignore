@@ -4,3 +4,12 @@ build-UpnpLibrary*
 *.8-pre1
 UpnpLibrary/UpnpLibrary.pro.user.4.9-pre1
 *.9-pre1
+UpnpInspector/.xcode/*
+UpnpInspector/UpnpInspector.xcodeproj/*
+UpnpInspector/.qmake.stash
+UpnpInspector/Debug/*
+UpnpInspector/qrc_qml.cpp
+UpnpInspector/moc_predefs.h
+UpnpInspector/moc_myapplication.cpp
+UpnpInspector/moc_messageitem.cpp
+UpnpInspector/Info.plist
