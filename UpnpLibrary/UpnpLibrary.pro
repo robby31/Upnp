@@ -6,11 +6,12 @@
 
 QT       += network xml qml sql
 
-TARGET = UpnpLibrary
-TARGET = $$qtLibraryTarget($$TARGET)
+TARGET = $$qtLibraryTarget(UpnpLibrary)
 
 TEMPLATE = lib
-CONFIG += staticlib
+
+CONFIG += debug_and_release
+CONFIG += shared_and_static build_all
 
 CONFIG += c++14
 
@@ -21,14 +22,19 @@ CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 }
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/analyzer
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(analyzer)
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Streaming
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(streaming)
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/multimedia
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
 
 INCLUDEPATH += /opt/local/include
+LIBS += -L/opt/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
@@ -250,3 +256,14 @@ INSTALLS += dlna_cached
 
 RESOURCES += \
     schema.qrc
+
+macx {
+    CONFIG += lib_bundle
+
+    FRAMEWORK_HEADERS.version = Versions
+    FRAMEWORK_HEADERS.files = $${HEADERS}
+    FRAMEWORK_HEADERS.path = include
+    QMAKE_BUNDLE_DATA += FRAMEWORK_HEADERS
+
+    QMAKE_FRAMEWORK_BUNDLE_NAME = UpnpLibrary
+}
