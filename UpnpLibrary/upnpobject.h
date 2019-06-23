@@ -11,6 +11,7 @@
 #include "Models/listitem.h"
 #include "upnpdescription.h"
 #include "mynetwork.h"
+#include "debuginfo.h"
 
 class UpnpObject : public ListItem
 {
@@ -27,6 +28,7 @@ public:
 
     explicit UpnpObject(QObject *parent = Q_NULLPTR);
     explicit UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent = Q_NULLPTR);
+    ~UpnpObject() Q_DECL_OVERRIDE;
 
     TypeObject type() const;
     void setType(const TypeObject &type);

@@ -18,6 +18,7 @@
 #include <QThread>
 #include <QTimerEvent>
 #include "httprange.h"
+#include "debuginfo.h"
 
 
 class HttpRequest : public ListItem
@@ -55,6 +56,7 @@ public:
 
     explicit HttpRequest(QObject *parent = Q_NULLPTR);
     explicit HttpRequest(QTcpSocket *client, QObject *parent = Q_NULLPTR);
+    ~HttpRequest() Q_DECL_OVERRIDE;
 
     QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
     QVariant data(int role) const Q_DECL_OVERRIDE;

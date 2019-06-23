@@ -17,6 +17,7 @@
 #include "eventresponse.h"
 #include <QRandomGenerator>
 #include"Devices/devicesmodel.h"
+#include "debuginfo.h"
 
 typedef struct {
     QString deviceUuid;

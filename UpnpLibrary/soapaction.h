@@ -5,13 +5,16 @@
 #include <QDebug>
 #include <QHash>
 #include <QDomDocument>
+#include "debuginfo.h"
 
 class SoapAction : public QObject
 {
     Q_OBJECT
+
 public:
     explicit SoapAction(const QString& serviceType, const QString& actionName, QObject *parent = Q_NULLPTR);
     explicit SoapAction(const QByteArray& data, QObject *parent = Q_NULLPTR);
+    ~SoapAction() Q_DECL_OVERRIDE;
 
     bool isValid() const;
 

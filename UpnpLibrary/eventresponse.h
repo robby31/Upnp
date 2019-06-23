@@ -4,12 +4,14 @@
 #include <QObject>
 #include <QDebug>
 #include <QDomDocument>
+#include "debuginfo.h"
 
 class EventResponse : public QObject
 {
 
 public:
     explicit EventResponse(const QByteArray& data, QObject *parent = Q_NULLPTR);
+    ~EventResponse() Q_DECL_OVERRIDE;
 
     bool isValid() const;
 

@@ -2,6 +2,7 @@
 #define UPNPDESCRIPTION_H
 
 #include "xmldescription.h"
+#include "debuginfo.h"
 
 class UpnpDescription : public QObject
 {
@@ -9,6 +10,7 @@ class UpnpDescription : public QObject
 
 public:
     explicit UpnpDescription(const QString& rootName = "device", QObject *parent = Q_NULLPTR);
+    ~UpnpDescription() Q_DECL_OVERRIDE;
 
     bool setContent(const QByteArray &data);
     bool setContent(const QDomNode &data);

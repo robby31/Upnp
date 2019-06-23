@@ -21,6 +21,7 @@ HttpRequest::HttpRequest(QObject *parent):
     lastNetBytesSent(-1),
     netStatusTimerEvent(0)
 {
+    DebugInfo::add_object(this);
     initializeRoles();
 }
 
@@ -44,6 +45,8 @@ HttpRequest::HttpRequest(QTcpSocket *client, QObject *parent):
     lastNetBytesSent(-1),
     netStatusTimerEvent(0)
 {    
+    DebugInfo::add_object(this);
+
     initializeRoles();
 
     if (m_client)
@@ -63,6 +66,11 @@ HttpRequest::HttpRequest(QTcpSocket *client, QObject *parent):
         m_error = "invalid client";
         m_status = "KO";
     }
+}
+
+HttpRequest::~HttpRequest()
+{
+    DebugInfo::remove_object(this);
 }
 
 void HttpRequest::initializeRoles()

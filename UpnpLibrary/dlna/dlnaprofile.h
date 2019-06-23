@@ -1,15 +1,20 @@
 #ifndef DLNAPROFILE_H
 #define DLNAPROFILE_H
 
+#include <QObject>
 #include <QDebug>
 #include <QString>
 #include <QVariant>
+#include "debuginfo.h"
 
-class DlnaProfile
+class DlnaProfile : public QObject
 {
+    Q_OBJECT
+
 public:
-    DlnaProfile() = default;
-    DlnaProfile(const QString &pn);
+    explicit DlnaProfile(QObject *parent = Q_NULLPTR);
+    explicit DlnaProfile(const QString &pn, QObject *parent = Q_NULLPTR);
+    ~DlnaProfile() Q_DECL_OVERRIDE;
 
     bool isValid() const;
 

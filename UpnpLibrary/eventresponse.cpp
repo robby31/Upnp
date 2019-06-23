@@ -4,6 +4,8 @@ EventResponse::EventResponse(const QByteArray &data, QObject *parent):
     QObject(parent),
     m_valid(false)
 {
+    DebugInfo::add_object(this);
+
     m_xml.setContent(data, true);
 
     QDomElement elt = m_xml.documentElement();
@@ -31,6 +33,11 @@ EventResponse::EventResponse(const QByteArray &data, QObject *parent):
         if (childCorrect == l_nodes.size())
             m_valid = true;
     }
+}
+
+EventResponse::~EventResponse()
+{
+    DebugInfo::remove_object(this);
 }
 
 bool EventResponse::isValid() const

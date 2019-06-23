@@ -4,7 +4,7 @@ UpnpObject::UpnpObject(QObject *parent) :
     ListItem(parent),
     m_timeout(QDateTime::currentDateTime())
 {
-
+    DebugInfo::add_object(this);
 }
 
 UpnpObject::UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent) :
@@ -12,6 +12,8 @@ UpnpObject::UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent)
     m_type(type),
     m_timeout(QDateTime::currentDateTime())
 {
+    DebugInfo::add_object(this);
+
     setUpnpParent(upnpParent);
 
     connect(this, SIGNAL(descriptionChanged()), this, SLOT(parseObject()));
@@ -19,6 +21,11 @@ UpnpObject::UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent)
     connect(this, SIGNAL(statusChanged()), this, SIGNAL(availableChanged()));
 
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(timeout()));
+}
+
+UpnpObject::~UpnpObject()
+{
+    DebugInfo::remove_object(this);
 }
 
 void UpnpObject::setRoles(const QHash<int, QByteArray> &roles)

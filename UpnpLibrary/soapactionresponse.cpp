@@ -6,6 +6,8 @@ SoapActionResponse::SoapActionResponse(const QString &serviceType, const QString
     m_serviceType(serviceType),
     m_actionName(actionName)
 {
+    DebugInfo::add_object(this);
+
     m_xml.appendChild(m_xml.createProcessingInstruction("xml", "version=\"1.0\""));
 
     QDomElement envelope = m_xml.createElementNS("http://schemas.xmlsoap.org/soap/envelope/", "s:Envelope");
@@ -23,6 +25,8 @@ SoapActionResponse::SoapActionResponse(const QByteArray &data, QObject *parent):
     QObject(parent),
     m_valid(false)
 {
+    DebugInfo::add_object(this);
+
     if (m_xml.setContent(data, true))
     {
         QDomElement envelope = m_xml.firstChildElement("Envelope");
@@ -69,6 +73,11 @@ SoapActionResponse::SoapActionResponse(const QByteArray &data, QObject *parent):
         m_valid = false;
         qCritical() << "unable to set xml content";
     }
+}
+
+SoapActionResponse::~SoapActionResponse()
+{
+    DebugInfo::remove_object(this);
 }
 
 bool SoapActionResponse::isValid() const

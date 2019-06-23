@@ -6,6 +6,8 @@ SoapAction::SoapAction(const QString &serviceType, const QString &actionName, QO
     m_serviceType(serviceType),
     m_actionName(actionName)
 {
+    DebugInfo::add_object(this);
+
     m_xml.appendChild(m_xml.createProcessingInstruction("xml", "version=\"1.0\""));
 
     QDomElement envelope = m_xml.createElementNS("http://schemas.xmlsoap.org/soap/envelope/", "s:Envelope");
@@ -23,6 +25,8 @@ SoapAction::SoapAction(const QByteArray &data, QObject *parent):
     QObject(parent),
     m_valid(false)
 {    
+    DebugInfo::add_object(this);
+
     if (m_xml.setContent(data, true))
     {
         QDomElement root = m_xml.documentElement();
@@ -51,6 +55,11 @@ SoapAction::SoapAction(const QByteArray &data, QObject *parent):
             qCritical() << "invalid format, Envelope expected" << root.nodeName();
         }
     }
+}
+
+SoapAction::~SoapAction()
+{
+    DebugInfo::remove_object(this);
 }
 
 bool SoapAction::isValid() const

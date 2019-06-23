@@ -4,7 +4,12 @@ UpnpDescription::UpnpDescription(const QString &rootName, QObject *parent):
     QObject(parent),
     m_xml(rootName)
 {
+    DebugInfo::add_object(this);
+}
 
+UpnpDescription::~UpnpDescription()
+{
+    DebugInfo::remove_object(this);
 }
 
 bool UpnpDescription::setContent(const QByteArray &data)

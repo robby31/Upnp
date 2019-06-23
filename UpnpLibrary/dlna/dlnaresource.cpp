@@ -9,6 +9,8 @@ DlnaResource::DlnaResource(QObject *parent):
     m_needRefresh(false),
     updateId(1)
 {
+    DebugInfo::add_object(this);
+
     ++objectCounter;
     qRegisterMetaType<QList<DlnaResource*> >("QList<DlnaResource*>");
 
@@ -16,6 +18,7 @@ DlnaResource::DlnaResource(QObject *parent):
 }
 
 DlnaResource::~DlnaResource() {
+    DebugInfo::remove_object(this);
     --objectCounter;
 }
 

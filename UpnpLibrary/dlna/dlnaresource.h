@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QtXml>
 #include <QImage>
+#include "debuginfo.h"
 
 /*
  * Represents any item which can be browsed via the UPNP ContentDirectory service.

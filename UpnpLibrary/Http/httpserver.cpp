@@ -3,6 +3,8 @@
 HttpServer::HttpServer(QObject *parent):
     QTcpServer(parent)
 {
+    DebugInfo::add_object(this);
+
     connect(this, SIGNAL(newConnection()), this, SLOT(newConnectionSlot()));
 
     auto timer = new QTimer(this);
@@ -12,6 +14,8 @@ HttpServer::HttpServer(QObject *parent):
 
 HttpServer::~HttpServer()
 {
+    DebugInfo::remove_object(this);
+
     if (!m_incomingRequest.isEmpty())
         qCritical() << "DESTROY HttpServer" << m_incomingRequest.size() << "incoming requests pending.";
 

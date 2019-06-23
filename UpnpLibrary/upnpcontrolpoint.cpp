@@ -9,7 +9,7 @@ const quint16 UpnpControlPoint::UPNP_PORT = 1900;
 UpnpControlPoint::UpnpControlPoint(QObject *parent):
     UpnpControlPoint(UPNP_PORT, parent)
 {
-
+    DebugInfo::add_object(this);
 }
 
 UpnpControlPoint::UpnpControlPoint(quint16 eventPort, QObject *parent):
@@ -19,6 +19,8 @@ UpnpControlPoint::UpnpControlPoint(quint16 eventPort, QObject *parent):
     m_bootid(0),
     m_configid(0)
 {
+    DebugInfo::add_object(this);
+
     m_remoteRootDevice = new DevicesModel(new UpnpRootDevice, this);
     connect(this, &UpnpControlPoint::messageReceived, m_remoteRootDevice, &DevicesModel::ssdpMessageReceived);
     connect(m_remoteRootDevice, &DevicesModel::removeSidEventFromUuid, this, &UpnpControlPoint::removeSidEventFromUuid);
@@ -60,6 +62,7 @@ UpnpControlPoint::UpnpControlPoint(quint16 eventPort, QObject *parent):
 
 UpnpControlPoint::~UpnpControlPoint()
 {
+    DebugInfo::remove_object(this);
     qDebug() << "Close UPNPControlPoint.";
     close();
 }

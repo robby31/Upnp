@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QDomDocument>
 #include <QRegularExpressionMatch>
+#include "debuginfo.h"
 
 class SoapActionResponse : public QObject
 {
@@ -16,6 +17,7 @@ class SoapActionResponse : public QObject
 public:
     explicit SoapActionResponse(const QString& serviceType, const QString& actionName, QObject *parent = Q_NULLPTR);
     explicit SoapActionResponse(const QByteArray& data, QObject *parent = Q_NULLPTR);
+    ~SoapActionResponse() Q_DECL_OVERRIDE;
 
     bool isValid() const;
 

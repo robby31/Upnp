@@ -1,9 +1,21 @@
 #include "dlnaprofile.h"
 
-DlnaProfile::DlnaProfile(const QString &pn):
+DlnaProfile::DlnaProfile(QObject *parent):
+    QObject(parent)
+{
+    DebugInfo::add_object(this);
+}
+
+DlnaProfile::DlnaProfile(const QString &pn, QObject *parent):
+    QObject(parent),
     m_pn(pn)
 {
+    DebugInfo::add_object(this);
+}
 
+DlnaProfile::~DlnaProfile()
+{
+    DebugInfo::remove_object(this);
 }
 
 bool DlnaProfile::isValid() const

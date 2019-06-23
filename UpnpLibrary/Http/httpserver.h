@@ -5,6 +5,7 @@
 #include <QTcpSocket>
 #include "httprequest.h"
 #include <QTimer>
+#include "debuginfo.h"
 
 class HttpServer : public QTcpServer
 {
