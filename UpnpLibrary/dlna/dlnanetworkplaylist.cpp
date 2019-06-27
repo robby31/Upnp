@@ -20,6 +20,7 @@ DlnaNetworkPlaylist::DlnaNetworkPlaylist(const QUrl &url, QObject *parent):
 
 DlnaNetworkPlaylist::~DlnaNetworkPlaylist() {
     --objectCounter;
+    delete m_playlist;
 }
 
 bool DlnaNetworkPlaylist::isValid() const
