@@ -5,6 +5,12 @@ Protocol::Protocol(const QString &profile_path)
     loadXmlProfiles(profile_path);
 }
 
+Protocol::~Protocol()
+{
+//   qDeleteAll(m_profiles);
+//   m_profiles.clear();
+}
+
 void Protocol::loadXmlProfiles(const QString &profile_path)
 {
     QFile fd(profile_path);
@@ -34,7 +40,7 @@ void Protocol::addProfile(const QDomNode &profile)
 
     if (!pn.isEmpty())
     {
-        DlnaProfile dlna_profile(pn);
+        auto dlna_profile = new DlnaProfile(pn);
 
         QDomNodeList children = profile.childNodes();
         for (int i=0;i<children.size();++i)
@@ -46,7 +52,7 @@ void Protocol::addProfile(const QDomNode &profile)
             if (child.childNodes().size()==1)
                 value = QVariant::fromValue(child.childNodes().at(0).toText().nodeValue());
 
-            dlna_profile.addInfo(info, value);
+            dlna_profile->addInfo(info, value);
         }
 
 
@@ -67,7 +73,8 @@ void Protocol::setProtocols(const QStringList &protocols)
     {
         ProtocolInfo protocolInfo(protocol);
 
-        if (!getProfile(protocolInfo.pn()).isValid())
+        DlnaProfile *profile = getProfile(protocolInfo.pn());
+        if (!profile or !profile->isValid())
             qDebug() << "undefined profile for" << protocolInfo.pn() << protocolInfo.toString();
 
         m_protocols << protocolInfo;
@@ -105,42 +112,42 @@ QList<ProtocolInfo> Protocol::compatible()
             continue;
         }
 
-        DlnaProfile profile = getProfile(protocol.pn());
-        if (!profile.isValid())
+        DlnaProfile *profile = getProfile(protocol.pn());
+        if (!profile or !profile->isValid())
         {
             qDebug() << "unable to find profile for" << protocol.pn();
             continue;
         }
 
-        if (!m_container.isEmpty() && profile.container() != m_container)
+        if (!m_container.isEmpty() && profile->container() != m_container)
         {
-            qDebug() << "invalid container" << profile.container() << m_container;
+            qDebug() << "invalid container" << profile->container() << m_container;
             continue;
         }
 
-        if (!m_audioCodec.isEmpty() && !profile.codecAudio().contains(m_audioCodec))
+        if (!m_audioCodec.isEmpty() && !profile->codecAudio().contains(m_audioCodec))
         {
-            qDebug() << "invalid audio codec" << profile.codecAudio() << m_audioCodec;
+            qDebug() << "invalid audio codec" << profile->codecAudio() << m_audioCodec;
             continue;
         }
 
-        if (m_channels != -1 && !profile.channels().contains(m_channels))
+        if (m_channels != -1 && !profile->channels().contains(m_channels))
         {
-            qDebug() << "invalid channels" << profile.channels() << m_channels;
+            qDebug() << "invalid channels" << profile->channels() << m_channels;
             continue;
         }
 
-        if (m_sampleRate != -1 && !profile.sampleRate().contains(m_sampleRate))
+        if (m_sampleRate != -1 && !profile->sampleRate().contains(m_sampleRate))
         {
-            qDebug() << "invalid sample rate" << profile.sampleRate() << m_sampleRate;
+            qDebug() << "invalid sample rate" << profile->sampleRate() << m_sampleRate;
             continue;
         }
 
         if (m_mimeType.startsWith("video"))
         {
-            if (!m_videoCodec.isEmpty() && !profile.codecVideo().contains(m_videoCodec))
+            if (!m_videoCodec.isEmpty() && !profile->codecVideo().contains(m_videoCodec))
             {
-                qDebug() << "invalid video codec" << profile.codecVideo() << m_videoCodec;
+                qDebug() << "invalid video codec" << profile->codecVideo() << m_videoCodec;
                 continue;
             }
         }
@@ -208,18 +215,18 @@ void Protocol::setDlnaOrgPn(const QString &dlna_org_pn)
     m_dlna_org_pn = dlna_org_pn;
 }
 
-DlnaProfile Protocol::getProfile(const QString &pn)
+DlnaProfile* Protocol::getProfile(const QString &pn)
 {
-    for (const DlnaProfile &profile : m_profiles)
+    for (DlnaProfile *profile : m_profiles)
     {
-        if (profile.pn() == pn)
+        if (profile->pn() == pn)
             return profile;
     }
 
-    return DlnaProfile();
+    return Q_NULLPTR;
 }
 
-void Protocol::setDlnaProfiles(const QList<DlnaProfile> &profiles)
+void Protocol::setDlnaProfiles(const QList<DlnaProfile*> &profiles)
 {
     m_profiles = profiles;
 }

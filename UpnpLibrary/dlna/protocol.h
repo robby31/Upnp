@@ -13,12 +13,13 @@ class Protocol
 public:
     Protocol() = default;
     Protocol(const QString &profile_path);
+    ~Protocol();
 
     QList<ProtocolInfo> protocols() const;
     void setProtocols(const QStringList &protocols);
     void setProtocols(const QList<ProtocolInfo> &protocols);
 
-    void setDlnaProfiles(const QList<DlnaProfile> &profiles);
+    void setDlnaProfiles(const QList<DlnaProfile*> &profiles);
 
     QList<ProtocolInfo> compatible();
 
@@ -35,7 +36,7 @@ public:
 private:
     void loadXmlProfiles(const QString &profile_path);
     void addProfile(const QDomNode &profile);
-    DlnaProfile getProfile(const QString &pn);
+    DlnaProfile *getProfile(const QString &pn);
 
 private:
     QList<ProtocolInfo> m_protocols;
@@ -49,7 +50,7 @@ private:
     qint64 m_bitrate = -1;
 
     QString m_dlna_org_pn;
-    QList<DlnaProfile> m_profiles;
+    QList<DlnaProfile*> m_profiles;
 };
 
 #endif // PROTOCOL_H
