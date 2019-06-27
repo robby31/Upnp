@@ -39,6 +39,16 @@ ServiceContentDirectory::ServiceContentDirectory(MediaRendererModel *model, Upnp
 
 ServiceContentDirectory::~ServiceContentDirectory()
 {
+    // remove all resources
+    auto it = m_dlnaresources.begin();
+    while (it != m_dlnaresources.end())
+    {
+        qDebug() << "remove child" << it.key() << "from cache";
+        DlnaResource *resource = it.value();
+        it = m_dlnaresources.erase(it);
+        resource->deleteLater();
+    }
+
     if (m_streamingThread)
     {
         m_streamingThread->quit();
