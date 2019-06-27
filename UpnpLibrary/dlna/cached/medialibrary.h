@@ -6,6 +6,7 @@
 
 #include "mysqldatabase.h"
 //#include "acoustid.h"
+#include "debuginfo.h"
 
 class MediaLibrary : public QObject
 {

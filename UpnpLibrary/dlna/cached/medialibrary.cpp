@@ -4,6 +4,7 @@ MediaLibrary::MediaLibrary(QObject *parent) :
     QObject(parent)
 //    m_acoustId()
 {
+    DebugInfo::add_object(this);
     initialize();
 }
 
@@ -285,7 +286,8 @@ bool MediaLibrary::initialize()
 
 MediaLibrary::~MediaLibrary()
 {
-        delete libraryState;
+    DebugInfo::remove_object(this);
+    delete libraryState;
 }
 
 QSqlQuery MediaLibrary::getMedia(const QString &where, const QString &orderParam, const QString &sortOption) const
@@ -725,6 +727,7 @@ bool MediaLibrary::incrementCounterPlayed(const QString &filename)
         data["progress_played"] = 0;
         data["counter_played"] = query.value("counter_played").toInt()+1;
 
+        qDebug() << "INCR COUNTER PLAYED" << filename << data["counter_played"];
         return update("media", query.value("id").toInt(), data) != -1;
     }
 
