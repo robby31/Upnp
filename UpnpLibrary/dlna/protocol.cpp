@@ -1,14 +1,28 @@
 #include "protocol.h"
 
-Protocol::Protocol(const QString &profile_path)
+Protocol::Protocol(QObject *parent):
+    QObject(parent)
 {
+    DebugInfo::add_object(this);
+}
+
+Protocol::Protocol(const QString &profile_path, QObject *parent):
+    QObject(parent)
+{
+    DebugInfo::add_object(this);
+
     loadXmlProfiles(profile_path);
 }
 
 Protocol::~Protocol()
 {
-//   qDeleteAll(m_profiles);
-//   m_profiles.clear();
+    DebugInfo::remove_object(this);
+
+    qDeleteAll(m_profiles);
+    m_profiles.clear();
+
+    qDeleteAll(m_protocols);
+    m_protocols.clear();
 }
 
 void Protocol::loadXmlProfiles(const QString &profile_path)
@@ -60,7 +74,7 @@ void Protocol::addProfile(const QDomNode &profile)
     }
 }
 
-QList<ProtocolInfo> Protocol::protocols() const
+QList<ProtocolInfo *> Protocol::protocols() const
 {
     return m_protocols;
 }
@@ -71,51 +85,51 @@ void Protocol::setProtocols(const QStringList &protocols)
 
     for (const QString &protocol : protocols)
     {
-        ProtocolInfo protocolInfo(protocol);
+        auto protocolInfo = new ProtocolInfo(protocol, this);
 
-        DlnaProfile *profile = getProfile(protocolInfo.pn());
+        DlnaProfile *profile = getProfile(protocolInfo->pn());
         if (!profile or !profile->isValid())
-            qDebug() << "undefined profile for" << protocolInfo.pn() << protocolInfo.toString();
+            qDebug() << "undefined profile for" << protocolInfo->pn() << protocolInfo->toString();
 
         m_protocols << protocolInfo;
     }
 }
 
-void Protocol::setProtocols(const QList<ProtocolInfo> &protocols)
+void Protocol::setProtocols(const QList<ProtocolInfo *> &protocols)
 {
     m_protocols = protocols;
 }
 
-QList<ProtocolInfo> Protocol::compatible()
+QList<ProtocolInfo *> Protocol::compatible()
 {
     qDebug() << "GET COMPATIBLE" << m_mimeType << m_container << m_videoCodec << m_audioCodec << m_channels << m_sampleRate << m_bitrate << m_dlna_org_pn;
-    QList<ProtocolInfo> res;
+    QList<ProtocolInfo*> res;
 
     QStringList protocolChecked;
 
-    for (const ProtocolInfo &protocol : m_protocols)
+    for (ProtocolInfo *protocol : m_protocols)
     {
-        protocolChecked << protocol.pn();
-        qDebug() << "check" << protocol.toString();
+        protocolChecked << protocol->pn();
+        qDebug() << "check" << protocol->toString();
 
         if (m_mimeType.startsWith("audio/L16"))
         {
-            if (!protocol.mimeType().startsWith("audio/L16"))
+            if (!protocol->mimeType().startsWith("audio/L16"))
             {
-                qDebug() << "invalid mime type" << protocol.mimeType() << m_mimeType;
+                qDebug() << "invalid mime type" << protocol->mimeType() << m_mimeType;
                 continue;
             }
         }
-        else if (!m_mimeType.isEmpty() && protocol.mimeType() != m_mimeType)
+        else if (!m_mimeType.isEmpty() && protocol->mimeType() != m_mimeType)
         {
-            qDebug() << "invalid mime type" << protocol.mimeType() << m_mimeType;
+            qDebug() << "invalid mime type" << protocol->mimeType() << m_mimeType;
             continue;
         }
 
-        DlnaProfile *profile = getProfile(protocol.pn());
+        DlnaProfile *profile = getProfile(protocol->pn());
         if (!profile or !profile->isValid())
         {
-            qDebug() << "unable to find profile for" << protocol.pn();
+            qDebug() << "unable to find profile for" << protocol->pn();
             continue;
         }
 
@@ -154,19 +168,19 @@ QList<ProtocolInfo> Protocol::compatible()
 
         if (!m_dlna_org_pn.isEmpty())
         {
-            if (!protocol.pn().isEmpty() && protocol.pn() != m_dlna_org_pn)
+            if (!protocol->pn().isEmpty() && protocol->pn() != m_dlna_org_pn)
             {
-                qDebug() << "invalid PN" << protocol.pn() << m_dlna_org_pn;
+                qDebug() << "invalid PN" << protocol->pn() << m_dlna_org_pn;
                 continue;
             }
         }
 
-        ProtocolInfo foundProtocol;
-        foundProtocol.setTransport(protocol.transport());
-        foundProtocol.setMimeType(protocol.mimeType());
-        foundProtocol.setPN(protocol.pn());
+        auto foundProtocol = new ProtocolInfo(this);
+        foundProtocol->setTransport(protocol->transport());
+        foundProtocol->setMimeType(protocol->mimeType());
+        foundProtocol->setPN(protocol->pn());
         res << foundProtocol;
-        qDebug() << "found COMPATIBLE" << protocol.pn() << protocol.toString() << foundProtocol.toString();
+        qDebug() << "found COMPATIBLE" << protocol->pn() << protocol->toString() << foundProtocol->toString();
     }
 
     if (res.isEmpty())

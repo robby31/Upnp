@@ -7,21 +7,24 @@
 #include <QFile>
 #include "dlnaprofile.h"
 #include "protocolinfo.h"
+#include "debuginfo.h"
 
-class Protocol
+class Protocol : public QObject
 {
+    Q_OBJECT
+
 public:
-    Protocol() = default;
-    Protocol(const QString &profile_path);
+    Protocol(QObject *parent = Q_NULLPTR);
+    Protocol(const QString &profile_path, QObject *parent = Q_NULLPTR);
     ~Protocol();
 
-    QList<ProtocolInfo> protocols() const;
+    QList<ProtocolInfo*> protocols() const;
     void setProtocols(const QStringList &protocols);
-    void setProtocols(const QList<ProtocolInfo> &protocols);
+    void setProtocols(const QList<ProtocolInfo*> &protocols);
 
     void setDlnaProfiles(const QList<DlnaProfile*> &profiles);
 
-    QList<ProtocolInfo> compatible();
+    QList<ProtocolInfo*> compatible();
 
     void setMimeType(const QString &mimeType);
     void setContainer(const QString &container);
@@ -39,7 +42,7 @@ private:
     DlnaProfile *getProfile(const QString &pn);
 
 private:
-    QList<ProtocolInfo> m_protocols;
+    QList<ProtocolInfo*> m_protocols;
 
     QString m_mimeType;
     QString m_container;

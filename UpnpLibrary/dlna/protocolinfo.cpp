@@ -1,7 +1,16 @@
 #include "protocolinfo.h"
 
-ProtocolInfo::ProtocolInfo(const QString &info)
+ProtocolInfo::ProtocolInfo(QObject *parent):
+    QObject(parent)
 {
+    DebugInfo::add_object(this);
+}
+
+ProtocolInfo::ProtocolInfo(const QString &info, QObject *parent):
+    QObject(parent)
+{
+    DebugInfo::add_object(this);
+
     QStringList args = info.split(":");
     if (args.size() != 4)
     {
@@ -36,6 +45,11 @@ ProtocolInfo::ProtocolInfo(const QString &info)
             }
         }
     }
+}
+
+ProtocolInfo::~ProtocolInfo()
+{
+    DebugInfo::remove_object(this);
 }
 
 QString ProtocolInfo::transport() const

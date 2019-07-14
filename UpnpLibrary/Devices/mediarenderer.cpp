@@ -183,12 +183,12 @@ QStringList MediaRenderer::sinkProtocols() const
     return m_sinkProtocol;
 }
 
-void MediaRenderer::setDlnaProfiles(const Protocol &profiles)
+void MediaRenderer::setDlnaProfiles(Protocol *profiles)
 {
     m_dlnaProfiles = profiles;
 }
 
-Protocol MediaRenderer::dlnaProfiles() const
+Protocol *MediaRenderer::dlnaProfiles() const
 {
     return m_dlnaProfiles;
 }

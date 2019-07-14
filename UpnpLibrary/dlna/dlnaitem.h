@@ -105,10 +105,10 @@ public:
 
     void setStream(Device *stream);
 
-    void setDlnaProfiles(const Protocol &profiles);
+    void setDlnaProfiles(Protocol *profiles);
     void setSinkProtocol(const QStringList &protocol);
-    Protocol sinkProtocol() const;
-    ProtocolInfo getSink(const QString &dlna_org_pn = QString());
+    Protocol *sinkProtocol() const;
+    ProtocolInfo *getSink(const QString &dlna_org_pn = QString());
     bool isSourceSinkCompatible() const;
 
     static const QString UNKNOWN_AUDIO_TYPEMIME;
@@ -156,8 +156,8 @@ protected:
 
     Device *m_stream = Q_NULLPTR;
 
-    Protocol m_sinkProtocol;
-    ProtocolInfo m_compatibleSink;
+    Protocol *m_sinkProtocol = Q_NULLPTR;
+    ProtocolInfo *m_compatibleSink = Q_NULLPTR;
     QString m_protocolInfo;
 };
 

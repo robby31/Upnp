@@ -34,8 +34,8 @@ public:
 
     QStringList sinkProtocols() const;
 
-    void setDlnaProfiles(const Protocol &profiles);
-    Protocol dlnaProfiles() const;
+    void setDlnaProfiles(Protocol *profiles);
+    Protocol *dlnaProfiles() const;
 
 signals:
     void removeRenderer();
@@ -54,7 +54,7 @@ private:
     QString status;
 
     QStringList m_sinkProtocol;
-    Protocol m_dlnaProfiles;
+    Protocol *m_dlnaProfiles = Q_NULLPTR;
 };
 
 #endif // MEDIARENDERER_H

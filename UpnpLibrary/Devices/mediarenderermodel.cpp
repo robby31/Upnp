@@ -59,12 +59,12 @@ MediaRenderer *MediaRendererModel::rendererFromIp(const QString &ip)
     return Q_NULLPTR;
 }
 
-void MediaRendererModel::setDlnaProfiles(const Protocol &profiles)
+void MediaRendererModel::setDlnaProfiles(Protocol *profiles)
 {
     m_dlnaProfiles = profiles;
 }
 
-Protocol MediaRendererModel::dlnaProfiles() const
+Protocol *MediaRendererModel::dlnaProfiles() const
 {
     return m_dlnaProfiles;
 }

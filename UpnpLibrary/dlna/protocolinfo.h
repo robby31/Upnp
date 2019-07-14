@@ -4,9 +4,12 @@
 #include <QDebug>
 #include <QStringList>
 #include <QRegularExpression>
+#include "debuginfo.h"
 
-class ProtocolInfo
+class ProtocolInfo : public QObject
 {
+    Q_OBJECT
+
 public:
     typedef enum {
       DLNA_ORG_FLAG_SENDER_PACED               = (1 << 31),
@@ -23,8 +26,9 @@ public:
       DLNA_ORG_FLAG_DLNA_V15                   = (1 << 20),
     } dlna_org_flags_t;
 
-    ProtocolInfo() = default;
-    ProtocolInfo(const QString &info);
+    ProtocolInfo(QObject *parent = Q_NULLPTR);
+    ProtocolInfo(const QString &info, QObject *parent = Q_NULLPTR);
+    ~ProtocolInfo() Q_DECL_OVERRIDE;
 
     bool isValid() const;
 

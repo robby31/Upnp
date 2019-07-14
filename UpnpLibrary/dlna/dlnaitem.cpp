@@ -25,6 +25,7 @@ DlnaItem::DlnaItem(QObject *parent) :
     transcodeFormat(UNKNOWN),  // default transcode format
     dlnaOrgOpFlags("01")       // seek by byte (exclusive)
 {
+    m_sinkProtocol = new Protocol(this);
 }
 
 QString DlnaItem::getDisplayName() const {
@@ -164,26 +165,26 @@ void DlnaItem::streamDestroyed(QObject *obj)
     m_stream = Q_NULLPTR;
 }
 
-void DlnaItem::setDlnaProfiles(const Protocol &profiles)
+void DlnaItem::setDlnaProfiles(Protocol *profiles)
 {
-    QList<ProtocolInfo> protocols = m_sinkProtocol.protocols();
+    QList<ProtocolInfo*> protocols = m_sinkProtocol->protocols();
     m_sinkProtocol = profiles;
     if (!protocols.isEmpty())
-        m_sinkProtocol.setProtocols(protocols);
+        m_sinkProtocol->setProtocols(protocols);
 }
 
 void DlnaItem::setSinkProtocol(const QStringList &protocol)
 {
-    m_sinkProtocol.setProtocols(protocol);
+    m_sinkProtocol->setProtocols(protocol);
     m_protocolInfo.clear();
 
-    m_sinkProtocol.setMimeType(sourceMimeType());
-    m_sinkProtocol.setContainer(sourceContainer());
-    m_sinkProtocol.setVideoCodec(sourceVideoFormat());
-    m_sinkProtocol.setAudioCodec(sourceAudioFormat());
-    m_sinkProtocol.setChannels(channelCount());
-    m_sinkProtocol.setSampleRate(samplerate());
-    m_sinkProtocol.setBitrate(metaDataBitrate());
+    m_sinkProtocol->setMimeType(sourceMimeType());
+    m_sinkProtocol->setContainer(sourceContainer());
+    m_sinkProtocol->setVideoCodec(sourceVideoFormat());
+    m_sinkProtocol->setAudioCodec(sourceAudioFormat());
+    m_sinkProtocol->setChannels(channelCount());
+    m_sinkProtocol->setSampleRate(samplerate());
+    m_sinkProtocol->setBitrate(metaDataBitrate());
 
     m_compatibleSink = getSink();
 
@@ -191,34 +192,37 @@ void DlnaItem::setSinkProtocol(const QStringList &protocol)
     {
         setdlnaOrgOpFlags("10");
 
-        m_sinkProtocol.setMimeType(mimeType());
-        m_sinkProtocol.setContainer(container());
-        m_sinkProtocol.setVideoCodec(videoFormat());
-        m_sinkProtocol.setAudioCodec(audioFormat());
-        m_sinkProtocol.setChannels(channelCount());
-        m_sinkProtocol.setSampleRate(samplerate());
-        m_sinkProtocol.setBitrate(bitrate());
+        m_sinkProtocol->setMimeType(mimeType());
+        m_sinkProtocol->setContainer(container());
+        m_sinkProtocol->setVideoCodec(videoFormat());
+        m_sinkProtocol->setAudioCodec(audioFormat());
+        m_sinkProtocol->setChannels(channelCount());
+        m_sinkProtocol->setSampleRate(samplerate());
+        m_sinkProtocol->setBitrate(bitrate());
 
-        ProtocolInfo sink = getSink();
-        if (sink.isValid())
+        ProtocolInfo *sink = getSink();
+        if (sink && sink->isValid())
         {
-            setdlnaOrgPN(sink.pn());
-            sink.setOption("DLNA.ORG_OP", "10");
-            sink.setOption("DLNA.ORG_CI", "1");
-            m_protocolInfo = sink.toString();
+            setdlnaOrgPN(sink->pn());
+            sink->setOption("DLNA.ORG_OP", "10");
+            sink->setOption("DLNA.ORG_CI", "1");
+            m_protocolInfo = sink->toString();
         }
         else
         {
-            qCritical() << "invalid sink found"<< sink.toString() << "for" << mimeType() << container() << videoFormat() << audioFormat() << channelCount() << samplerate() << bitrate();
+            if (sink)
+                qCritical() << "invalid sink found" << sink->toString() << "for" << mimeType() << container() << videoFormat() << audioFormat() << channelCount() << samplerate() << bitrate();
+            else
+                qCritical() << "invalid sink found" << mimeType() << container() << videoFormat() << audioFormat() << channelCount() << samplerate() << bitrate();
         }
     }
     else
     {
         setdlnaOrgOpFlags("01");
-        setdlnaOrgPN(m_compatibleSink.pn());
-        m_compatibleSink.setOption("DLNA.ORG_OP", "01");
-        m_compatibleSink.setOption("DLNA.ORG_CI", "0");
-        m_protocolInfo = m_compatibleSink.toString();
+        setdlnaOrgPN(m_compatibleSink->pn());
+        m_compatibleSink->setOption("DLNA.ORG_OP", "01");
+        m_compatibleSink->setOption("DLNA.ORG_CI", "0");
+        m_protocolInfo = m_compatibleSink->toString();
     }
 
     if (m_protocolInfo.isEmpty())
@@ -232,39 +236,50 @@ void DlnaItem::setSinkProtocol(const QStringList &protocol)
     }
 }
 
-Protocol DlnaItem::sinkProtocol() const
+Protocol *DlnaItem::sinkProtocol() const
 {
     return m_sinkProtocol;
 }
 
-ProtocolInfo DlnaItem::getSink(const QString &dlna_org_pn)
+ProtocolInfo *DlnaItem::getSink(const QString &dlna_org_pn)
 {
     if (!dlna_org_pn.isEmpty())
-        m_sinkProtocol.setDlnaOrgPn(dlna_org_pn);
+        m_sinkProtocol->setDlnaOrgPn(dlna_org_pn);
 
-    QList<ProtocolInfo> protocols = m_sinkProtocol.compatible();
+    QList<ProtocolInfo*> protocols = m_sinkProtocol->compatible();
 //    if (protocols.size() > 1)
 //    {
-//        foreach (const ProtocolInfo &elt, protocols)
-//            qWarning() << elt.toString();
+//        foreach (ProtocolInfo *elt, protocols)
+//            qWarning() << elt->toString();
 //        qWarning() << protocols.size() << "protocols found but first used";
 //    }
 
     if (!protocols.isEmpty())
     {
-        ProtocolInfo sink = protocols.at(0);
-        sink.setFlag(ProtocolInfo::DLNA_ORG_FLAG_DLNA_V15);
-        sink.setFlag(ProtocolInfo::DLNA_ORG_FLAG_SENDER_PACED);
-        sink.setFlag(ProtocolInfo::DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE);
+        ProtocolInfo *sink = protocols.at(0);
+        sink->setFlag(ProtocolInfo::DLNA_ORG_FLAG_DLNA_V15);
+        sink->setFlag(ProtocolInfo::DLNA_ORG_FLAG_SENDER_PACED);
+        sink->setFlag(ProtocolInfo::DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE);
+
+        // delete all protocols except which returned
+        for (int index=1; index<protocols.size(); ++index)
+            delete protocols.at(index);
+
         return sink;
     }
 
-    return ProtocolInfo();
+    // delete all protocols
+    qDeleteAll(protocols);
+
+    return new ProtocolInfo(this);
 }
 
 bool DlnaItem::isSourceSinkCompatible() const
 {
-    return m_compatibleSink.isValid();
+    if (m_compatibleSink)
+        return m_compatibleSink->isValid();
+
+    return false;
 }
 
 bool DlnaItem::toTranscode() const
