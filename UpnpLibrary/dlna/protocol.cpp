@@ -74,13 +74,9 @@ void Protocol::addProfile(const QDomNode &profile)
     }
 }
 
-QList<ProtocolInfo *> Protocol::protocols() const
-{
-    return m_protocols;
-}
-
 void Protocol::setProtocols(const QStringList &protocols)
 {
+    qDeleteAll(m_protocols);
     m_protocols.clear();
 
     for (const QString &protocol : protocols)
@@ -93,11 +89,6 @@ void Protocol::setProtocols(const QStringList &protocols)
 
         m_protocols << protocolInfo;
     }
-}
-
-void Protocol::setProtocols(const QList<ProtocolInfo *> &protocols)
-{
-    m_protocols = protocols;
 }
 
 QList<ProtocolInfo *> Protocol::compatible()
@@ -175,7 +166,7 @@ QList<ProtocolInfo *> Protocol::compatible()
             }
         }
 
-        auto foundProtocol = new ProtocolInfo(this);
+        auto foundProtocol = new ProtocolInfo();
         foundProtocol->setTransport(protocol->transport());
         foundProtocol->setMimeType(protocol->mimeType());
         foundProtocol->setPN(protocol->pn());
@@ -240,7 +231,3 @@ DlnaProfile* Protocol::getProfile(const QString &pn)
     return Q_NULLPTR;
 }
 
-void Protocol::setDlnaProfiles(const QList<DlnaProfile*> &profiles)
-{
-    m_profiles = profiles;
-}

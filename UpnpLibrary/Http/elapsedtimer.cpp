@@ -1,12 +1,18 @@
 #include "elapsedtimer.h"
 
-ElapsedTimer::ElapsedTimer():
+ElapsedTimer::ElapsedTimer(QObject *parent):
+    QObject(parent),
     m_elapsedBeforeStarting(0),
     m_elapsedFromStarting(0),
     isPaused(true),
     m_pausedCounter(0)
 {
+    DebugInfo::add_object(this);
     timer.invalidate();
+}
+
+ElapsedTimer::~ElapsedTimer() {
+    DebugInfo::remove_object(this);
 }
 
 void ElapsedTimer::start()

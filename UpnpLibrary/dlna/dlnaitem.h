@@ -106,9 +106,7 @@ public:
     void setStream(Device *stream);
 
     void setDlnaProfiles(Protocol *profiles);
-    void setSinkProtocol(const QStringList &protocol);
     Protocol *sinkProtocol() const;
-    ProtocolInfo *getSink(const QString &dlna_org_pn = QString());
     bool isSourceSinkCompatible() const;
 
     static const QString UNKNOWN_AUDIO_TYPEMIME;
@@ -130,6 +128,9 @@ public:
     static const QString M3U8_TYPEMIME;
     static const QString MPEGTS_TYPEMIME;
     static const QString VIDEO_TRANSCODE;
+
+private:
+    ProtocolInfo *getSink(const QString &dlna_org_pn = QString());
 
 protected:
     // Returns the process for transcoding

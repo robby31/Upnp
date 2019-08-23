@@ -16,8 +16,7 @@ public:
 
     MediaRenderer *rendererFromIp(const QString &ip);
 
-    void setDlnaProfiles(Protocol *profiles);
-    Protocol *dlnaProfiles() const;
+    void setDlnaProfilesPath(const QString &path);
 
 signals:
     void mediaRendererDestroyed(const QString &hostaddress);
@@ -30,7 +29,7 @@ public slots:
     void serving(const QString &ip, const QString &mediaName);
 
 private:
-    Protocol *m_dlnaProfiles = Q_NULLPTR;
+    QString m_profilesPath;
 };
 
 #endif // MEDIARENDERERMODEL_H

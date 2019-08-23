@@ -11,8 +11,7 @@ void MediaRendererModel::addMediaRenderer(UpnpRootDevice *device)
     auto renderer = qobject_cast<MediaRenderer*>(find(device->uuid()));
     if (!renderer)
     {
-        renderer = new MediaRenderer(device, this);
-        renderer->setDlnaProfiles(m_dlnaProfiles);
+        renderer = new MediaRenderer(device, m_profilesPath, this);
         connect(renderer, SIGNAL(removeRenderer()), this, SLOT(removeRenderer()));
         appendRow(renderer);
     }
@@ -59,12 +58,7 @@ MediaRenderer *MediaRendererModel::rendererFromIp(const QString &ip)
     return Q_NULLPTR;
 }
 
-void MediaRendererModel::setDlnaProfiles(Protocol *profiles)
+void MediaRendererModel::setDlnaProfilesPath(const QString &path)
 {
-    m_dlnaProfiles = profiles;
-}
-
-Protocol *MediaRendererModel::dlnaProfiles() const
-{
-    return m_dlnaProfiles;
+    m_profilesPath = path;
 }

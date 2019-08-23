@@ -38,6 +38,33 @@ MediaRenderer::MediaRenderer(UpnpRootDevice *device, QObject *parent) :
     connect(m_device, SIGNAL(destroyed(QObject*)), this, SLOT(deviceDestroyed(QObject*)));
 }
 
+MediaRenderer::MediaRenderer(UpnpRootDevice *device, const QString &profilesPath, QObject *parent):
+    ListItem(parent),
+    m_device(device),
+    status("standby")
+{
+    auto service = qobject_cast<UpnpService*>(device->getService("urn:upnp-org:serviceId:ConnectionManager"));
+    if (service)
+    {
+        connect(service, SIGNAL(statusChanged()), this, SLOT(serviceStatusChanged()));
+
+        ListModel * varModel = service->stateVariablesModel();
+        if (varModel)
+            connect(varModel, SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)), this, SLOT(stateVarChanged(QModelIndex,QModelIndex,QVector<int>)));
+    }
+
+    m_roles[statusRole] = "status";
+    m_roles[nameRole] = "name";
+    m_roles[networkAddressRole] = "networkAddress";
+    m_roles[iconUrlRole] = "iconurl";
+    m_roles[availableRole] = "available";
+
+    connect(m_device, SIGNAL(itemChanged(QVector<int>)), this, SLOT(deviceItemChanged(QVector<int>)));
+    connect(m_device, SIGNAL(destroyed(QObject*)), this, SLOT(deviceDestroyed(QObject*)));
+
+    m_dlnaProfiles = new Protocol(profilesPath, this);
+}
+
 QHash<int, QByteArray> MediaRenderer::roleNames() const
 {
     return m_roles;
@@ -171,6 +198,8 @@ void MediaRenderer::stateVarChanged(const QModelIndex &topLeft, const QModelInde
             foreach (QString protocol, l_protocol)
                 m_sinkProtocol << protocol;
 
+            m_dlnaProfiles->setProtocols(m_sinkProtocol);
+
             QVector<int> roles;
             roles << sinkProtocolRole;
             emit itemChanged(roles);
@@ -181,11 +210,6 @@ void MediaRenderer::stateVarChanged(const QModelIndex &topLeft, const QModelInde
 QStringList MediaRenderer::sinkProtocols() const
 {
     return m_sinkProtocol;
-}
-
-void MediaRenderer::setDlnaProfiles(Protocol *profiles)
-{
-    m_dlnaProfiles = profiles;
 }
 
 Protocol *MediaRenderer::dlnaProfiles() const

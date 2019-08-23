@@ -319,7 +319,6 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                     if (dlnaItem && renderer)
                     {
                         dlnaItem->setDlnaProfiles(renderer->dlnaProfiles());
-                        dlnaItem->setSinkProtocol(renderer->sinkProtocols());
                     }
 
                     didlDoc.addElement(resource->getXmlContentDirectory(&didlDoc, filter.split(",")));
@@ -416,7 +415,6 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                 if (renderer)
                 {
                     dlna->setDlnaProfiles(renderer->dlnaProfiles());
-                    dlna->setSinkProtocol(renderer->sinkProtocols());
                 }
 
                 if (request->url().fileName(QUrl::FullyEncoded).startsWith("thumbnail0000"))

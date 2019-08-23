@@ -25,7 +25,6 @@ DlnaItem::DlnaItem(QObject *parent) :
     transcodeFormat(UNKNOWN),  // default transcode format
     dlnaOrgOpFlags("01")       // seek by byte (exclusive)
 {
-    m_sinkProtocol = new Protocol(this);
 }
 
 QString DlnaItem::getDisplayName() const {
@@ -167,16 +166,12 @@ void DlnaItem::streamDestroyed(QObject *obj)
 
 void DlnaItem::setDlnaProfiles(Protocol *profiles)
 {
-    QList<ProtocolInfo*> protocols = m_sinkProtocol->protocols();
     m_sinkProtocol = profiles;
-    if (!protocols.isEmpty())
-        m_sinkProtocol->setProtocols(protocols);
-}
-
-void DlnaItem::setSinkProtocol(const QStringList &protocol)
-{
-    m_sinkProtocol->setProtocols(protocol);
-    m_protocolInfo.clear();
+    if (!m_sinkProtocol)
+    {
+        qCritical() << "invalid profiles" << profiles;
+        return;
+    }
 
     m_sinkProtocol->setMimeType(sourceMimeType());
     m_sinkProtocol->setContainer(sourceContainer());
@@ -227,7 +222,7 @@ void DlnaItem::setSinkProtocol(const QStringList &protocol)
 
     if (m_protocolInfo.isEmpty())
     {
-        qCritical() << "unable to define protocolInfo, protocols available:" << protocol.size();
+        qCritical() << "unable to define protocolInfo";
     }
     else if (getdlnaOrgPN() == "LPCM")
     {
@@ -243,33 +238,37 @@ Protocol *DlnaItem::sinkProtocol() const
 
 ProtocolInfo *DlnaItem::getSink(const QString &dlna_org_pn)
 {
-    if (!dlna_org_pn.isEmpty())
-        m_sinkProtocol->setDlnaOrgPn(dlna_org_pn);
-
-    QList<ProtocolInfo*> protocols = m_sinkProtocol->compatible();
-//    if (protocols.size() > 1)
-//    {
-//        foreach (ProtocolInfo *elt, protocols)
-//            qWarning() << elt->toString();
-//        qWarning() << protocols.size() << "protocols found but first used";
-//    }
-
-    if (!protocols.isEmpty())
+    if (m_sinkProtocol)
     {
-        ProtocolInfo *sink = protocols.at(0);
-        sink->setFlag(ProtocolInfo::DLNA_ORG_FLAG_DLNA_V15);
-        sink->setFlag(ProtocolInfo::DLNA_ORG_FLAG_SENDER_PACED);
-        sink->setFlag(ProtocolInfo::DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE);
+        if (!dlna_org_pn.isEmpty())
+            m_sinkProtocol->setDlnaOrgPn(dlna_org_pn);
 
-        // delete all protocols except which returned
-        for (int index=1; index<protocols.size(); ++index)
-            delete protocols.at(index);
+        QList<ProtocolInfo*> protocols = m_sinkProtocol->compatible();
+        //    if (protocols.size() > 1)
+        //    {
+        //        foreach (ProtocolInfo *elt, protocols)
+        //            qWarning() << elt->toString();
+        //        qWarning() << protocols.size() << "protocols found but first used";
+        //    }
 
-        return sink;
+        if (!protocols.isEmpty())
+        {
+            ProtocolInfo *sink = protocols.at(0);
+            sink->setFlag(ProtocolInfo::DLNA_ORG_FLAG_DLNA_V15);
+            sink->setFlag(ProtocolInfo::DLNA_ORG_FLAG_SENDER_PACED);
+            sink->setFlag(ProtocolInfo::DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE);
+
+            // delete all protocols except which returned
+            for (int index=1; index<protocols.size(); ++index)
+                delete protocols.at(index);
+
+            sink->setParent(this);
+            return sink;
+        }
+
+        // delete all protocols
+        qDeleteAll(protocols);
     }
-
-    // delete all protocols
-    qDeleteAll(protocols);
 
     return new ProtocolInfo(this);
 }

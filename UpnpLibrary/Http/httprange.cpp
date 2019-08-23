@@ -1,13 +1,18 @@
 #include "httprange.h"
 
-HttpRange::HttpRange() :
+HttpRange::HttpRange(QObject *parent) :
+    QObject(parent),
     rxRange(R"(range:\s+(\w+)=(\d*)-(\d*))", Qt::CaseInsensitive)
 {
+    DebugInfo::add_object(this);
 }
 
-HttpRange::HttpRange(const QString &range) :
+HttpRange::HttpRange(const QString &range, QObject *parent) :
+    QObject(parent),
     rxRange(R"(range:\s+(\w+)=(\d*)-(\d*))", Qt::CaseInsensitive)
 {
+    DebugInfo::add_object(this);
+
     if (rxRange.indexIn(range) != -1) {
         unit = rxRange.cap(1);
 
@@ -33,6 +38,10 @@ HttpRange::HttpRange(const QString &range) :
             null = false;
         }
     }
+}
+
+HttpRange::~HttpRange() {
+    DebugInfo::remove_object(this);
 }
 
 long HttpRange::getStartByte() const

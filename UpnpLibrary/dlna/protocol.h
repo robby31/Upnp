@@ -16,13 +16,9 @@ class Protocol : public QObject
 public:
     Protocol(QObject *parent = Q_NULLPTR);
     Protocol(const QString &profile_path, QObject *parent = Q_NULLPTR);
-    ~Protocol();
+    ~Protocol() Q_DECL_OVERRIDE;
 
-    QList<ProtocolInfo*> protocols() const;
     void setProtocols(const QStringList &protocols);
-    void setProtocols(const QList<ProtocolInfo*> &protocols);
-
-    void setDlnaProfiles(const QList<DlnaProfile*> &profiles);
 
     QList<ProtocolInfo*> compatible();
 

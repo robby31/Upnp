@@ -13,6 +13,8 @@ class MediaRenderer : public ListItem
 public:
     explicit MediaRenderer(QObject *parent = Q_NULLPTR);
     explicit MediaRenderer(UpnpRootDevice *device, QObject *parent = Q_NULLPTR);
+    explicit MediaRenderer(UpnpRootDevice *device, const QString &profilesPath, QObject *parent = Q_NULLPTR);
+
     ~MediaRenderer() Q_DECL_OVERRIDE = default;
 
     enum Roles {
@@ -32,10 +34,8 @@ public:
 
     QString netWorkAddress() const;
 
-    QStringList sinkProtocols() const;
-
-    void setDlnaProfiles(Protocol *profiles);
     Protocol *dlnaProfiles() const;
+    QStringList sinkProtocols() const;
 
 signals:
     void removeRenderer();
