@@ -31,3 +31,6 @@ DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/UpnpLibrary
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
