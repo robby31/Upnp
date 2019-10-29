@@ -39,7 +39,7 @@ QUrl DlnaNetworkPlaylist::url() const
 QString DlnaNetworkPlaylist::getName() const
 {
     if (m_playlist)
-        return m_playlist->id();
+        return m_playlist->title();
 
     return QString("Playlist");
 }
