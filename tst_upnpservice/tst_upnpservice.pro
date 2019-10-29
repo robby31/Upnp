@@ -38,8 +38,8 @@ LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Streaming
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(streaming)
 
-INCLUDEPATH += /opt/local/include
-LIBS += -L/opt/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
+INCLUDEPATH += /usr/local/include
+LIBS += -L/usr/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
 
 SOURCES += \
         tst_upnpservicetest.cpp
