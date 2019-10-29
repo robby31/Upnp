@@ -149,7 +149,7 @@ QString DlnaVideoItem::sourceMimeType() const
     if (format == "asf")
         return ASF_TYPEMIME;
 
-    if (format == "hls,applehttp")
+    if (format == "hls,applehttp" or format == "hls")
         return M3U8_TYPEMIME;
 
     qCritical() << "Unable to define mimeType of DlnaVideoItem: " << format << getSystemName();

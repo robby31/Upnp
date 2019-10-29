@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 CONFIG += ordered
 
 SUBDIRS += \
-    UpnpLibrary \
+    #UpnpLibrary \
     UpnpInspector \
     tst_httprange \
     tst_upnpservice \
