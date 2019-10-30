@@ -10,17 +10,17 @@ SOURCES += main.cpp \
 
 RESOURCES += qml.qrc
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/UpnpLibrary
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)
+INCLUDEPATH += $$(MYLIBRARY)/include/UpnpLibrary
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(UpnpLibrary)
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/analyzer
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(analyzer)
+INCLUDEPATH += $$(MYLIBRARY)/include/analyzer
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(analyzer)
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
+INCLUDEPATH += $$(MYLIBRARY)/include/QmlApplication
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(QmlApplication)
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION/lib  -lqmdnsengine
+INCLUDEPATH += $$(MYLIBRARY)/include
+LIBS += -L$$(MYLIBRARY)/lib  -lqmdnsengine
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =

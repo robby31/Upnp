@@ -21,17 +21,17 @@ CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
     error("variable MYLIBRARY not set.")
 }
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/analyzer
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(analyzer)
+INCLUDEPATH += $$(MYLIBRARY)/include/analyzer
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(analyzer)
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
+INCLUDEPATH += $$(MYLIBRARY)/include/QmlApplication
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(QmlApplication)
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Streaming
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(streaming)
+INCLUDEPATH += $$(MYLIBRARY)/include/Streaming
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(streaming)
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/multimedia
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
+INCLUDEPATH += $$(MYLIBRARY)/include/multimedia
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(mediadevice)
 
 INCLUDEPATH += /usr/local/include
 LIBS += -L/usr/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
@@ -224,8 +224,8 @@ DISTFILES += \
     xml schema/upnp_service_connection_manager.xsd \
     xml schema/didl-Lite.xsd
 
-installPath = $$(MYLIBRARY)/$$QT_VERSION
-target.path = $$installPath
+installPath = $$(MYLIBRARY)
+target.path = $$installPath/lib
 INSTALLS += target
 
 installIncludePath = $$installPath/include/UpnpLibrary
