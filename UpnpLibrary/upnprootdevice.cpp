@@ -336,12 +336,12 @@ void UpnpRootDevice::searchForST(const QHostAddress &host, const quint16 &port, 
 void UpnpRootDevice::replyRequest(HttpRequest *request)
 {
     QUrl requestUrl = urlFromRelativePath(request->url().toString());
-    if (request->operation() == QNetworkAccessManager::GetOperation && requestUrl == url())
+    if ((request->operation() == QNetworkAccessManager::GetOperation or request->operation() == QNetworkAccessManager::HeadOperation) && requestUrl == url())
     {
         // returns description of root device
         request->replyData(description()->stringDescription().toUtf8());
     }
-    else if (request->operation() == QNetworkAccessManager::GetOperation && iconUrls().contains(request->url().toString()))
+    else if ((request->operation() == QNetworkAccessManager::GetOperation or request->operation() == QNetworkAccessManager::HeadOperation) && iconUrls().contains(request->url().toString()))
     {
         replyGetIcon(request);
     }

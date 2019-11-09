@@ -571,7 +571,7 @@ bool UpnpService::replyRequest(HttpRequest *request)
 {
     QUrl requestUrl = urlFromRelativePath(request->url().toString());
 
-    if (request->operation() == QNetworkAccessManager::GetOperation && scpdUrl() == requestUrl)
+    if ((request->operation() == QNetworkAccessManager::GetOperation or request->operation() == QNetworkAccessManager::HeadOperation) && scpdUrl() == requestUrl)
     {
         // returns description of service
         request->replyData(description()->stringDescription().toUtf8());

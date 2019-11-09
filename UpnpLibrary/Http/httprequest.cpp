@@ -840,6 +840,10 @@ void HttpRequest::replyData(const QByteArray &data, const QString &contentType)
 
             setData("OK", statusRole);
         }
+        else
+        {
+            qCritical() << "invalid operation in replyData" << operationString();
+        }
     }
     else
     {
@@ -896,6 +900,10 @@ void HttpRequest::replyFile(const QString &pathname)
                     qDebug() << m_replyHeader.join("\r\n").toUtf8();
 
                     setData("OK", statusRole);
+                }
+                else
+                {
+                    qCritical() << "invalid operation in replyFile" << operationString();
                 }
 
                 inputStream.close();
