@@ -64,7 +64,7 @@ private slots:
 
     void servingMedia(const QString& filename, int playedDurationInMs);
 
-    void servingFinished(QString host, const QString& filename, int status);
+    void servingFinished(const QString &host, const QString& filename, int status);
 
     void dlnaContentUpdated();
 

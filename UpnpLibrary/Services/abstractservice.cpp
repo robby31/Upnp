@@ -13,7 +13,7 @@ AbstractService::AbstractService(UpnpObject *upnpParent, QObject *parent) :
 }
 
 
-AbstractService::AbstractService(UpnpObject *upnpParent, QDomNode info, QObject *parent) :
+AbstractService::AbstractService(UpnpObject *upnpParent, const QDomNode &info, QObject *parent) :
     UpnpService(upnpParent, parent)
 {
     Q_UNUSED(info)

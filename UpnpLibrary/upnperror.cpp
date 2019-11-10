@@ -1,7 +1,6 @@
 #include "upnperror.h"
 
-UpnpError::UpnpError() :
-    m_netError(QNetworkReply::NoError)
+UpnpError::UpnpError()
 {
     m_data.clear();
     m_fault.clear();

@@ -182,16 +182,16 @@ private:
     QDateTime m_date;
     QDateTime m_closeDate;
     QHostAddress m_peerAddress;
-    QTcpSocket *m_client;
+    QTcpSocket *m_client = Q_NULLPTR;
     QNetworkRequest m_request;
-    QNetworkAccessManager::Operation m_operation;
+    QNetworkAccessManager::Operation m_operation = QNetworkAccessManager::UnknownOperation;
     QString m_customOperation;
     QString m_version;
-    bool m_headerCompleted;
+    bool m_headerCompleted = false;
     QStringList m_header;
     QByteArray m_data;
 
-    bool m_replyHeaderSent;
+    bool m_replyHeaderSent = false;
     QStringList m_replyHeader;
     QByteArray m_replyData;
 
@@ -202,21 +202,21 @@ private:
 
     QString m_error;
 
-    bool m_finished;
+    bool m_finished = false;
 
     QString m_log;
 
     QString m_streamingStatus;
-    bool m_streamWithErrors;
-    bool m_streamingCompleted;
+    bool m_streamWithErrors = false;
+    bool m_streamingCompleted = false;
     bool m_partialStreaming = false;
     QString m_requestedResource;
     QString m_requestedDisplayName;
-    qint64 m_maxBufferSize;
+    qint64 m_maxBufferSize = -1;
 
-    long networkBytesSent;
-    long lastNetBytesSent;
-    int netStatusTimerEvent;
+    long networkBytesSent = -1;
+    long lastNetBytesSent = -1;
+    int netStatusTimerEvent = 0;
     ElapsedTimer clockSending;          // clock to mesure time taken to send streamed or transcoded data.
 };
 

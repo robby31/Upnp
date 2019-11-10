@@ -631,7 +631,7 @@ void ServiceContentDirectory::readTimeSeekRange(const QString &data, qint64 *sta
     }
 }
 
-void ServiceContentDirectory::servingFinished(QString host, const QString &filename, int status)
+void ServiceContentDirectory::servingFinished(const QString &host, const QString &filename, int status)
 {
     Q_UNUSED(host)
 

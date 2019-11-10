@@ -28,10 +28,10 @@ public:
 
 private:
     QElapsedTimer timer;
-    qint64 m_elapsedBeforeStarting;
-    qint64 m_elapsedFromStarting;
-    bool isPaused;
-    qint64 m_pausedCounter;
+    qint64 m_elapsedBeforeStarting = 0;
+    qint64 m_elapsedFromStarting = 0;
+    bool isPaused = true;
+    qint64 m_pausedCounter = 0;
 };
 
 #endif // ELAPSEDTIMER_H

@@ -57,7 +57,7 @@ public:
     QByteArray toByteArray(const int& indent = -1) const;
 
 private:
-    QNetworkReply::NetworkError m_netError;
+    QNetworkReply::NetworkError m_netError = QNetworkReply::NoError;
     QDomDocument m_data;
     QDomElement m_fault;
     QDomElement m_detail;

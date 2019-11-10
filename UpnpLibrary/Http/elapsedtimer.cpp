@@ -1,11 +1,7 @@
 #include "elapsedtimer.h"
 
 ElapsedTimer::ElapsedTimer(QObject *parent):
-    QObject(parent),
-    m_elapsedBeforeStarting(0),
-    m_elapsedFromStarting(0),
-    isPaused(true),
-    m_pausedCounter(0)
+    QObject(parent)
 {
     DebugInfo::add_object(this);
     timer.invalidate();

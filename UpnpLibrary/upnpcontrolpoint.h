@@ -120,8 +120,8 @@ private:
     QUdpSocket udpSocketMulticast;
     QUdpSocket udpSocketUnicast;
 
-    int m_bootid;
-    int m_configid;
+    int m_bootid = 0;
+    int m_configid = 0;
 
     DevicesModel *m_remoteRootDevice = Q_NULLPTR;
     ListModel *m_localRootDevice = Q_NULLPTR;

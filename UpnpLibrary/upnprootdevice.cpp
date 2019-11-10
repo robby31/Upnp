@@ -4,11 +4,7 @@ const QString UpnpRootDevice::UPNP_ROOTDEVICE = "upnp:rootdevice";
 
 UpnpRootDevice::UpnpRootDevice(QObject *parent) :
     UpnpDevice(parent),
-    m_servername(),
-    m_iconUrl(),
-    m_advertise(false),
-    m_advertisingTimer(this),
-    m_macAddress()
+    m_advertisingTimer(this)
 {
     setType(T_RootDevice);
 
@@ -17,9 +13,6 @@ UpnpRootDevice::UpnpRootDevice(QObject *parent) :
 
 UpnpRootDevice::UpnpRootDevice(const QString& macAddress, const QString &uuid, QObject *parent) :
     UpnpDevice(uuid, Q_NULLPTR, parent),
-    m_servername(),
-    m_iconUrl(),
-    m_advertise(false),
     m_advertisingTimer(3, 600000, this),
     m_macAddress(macAddress)
 {

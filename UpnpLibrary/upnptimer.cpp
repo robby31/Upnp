@@ -1,16 +1,12 @@
 #include "upnptimer.h"
 
 UpnpTimer::UpnpTimer(QObject *parent) :
-    QTimer(parent),
-    m_counter(1),
-    m_max(-1),
-    m_period(-1)
+    QTimer(parent)
 {
 }
 
 UpnpTimer::UpnpTimer(const int &max, const int &period, QObject *parent) :
     QTimer(parent),
-    m_counter(1),
     m_max(max),
     m_period(period)
 {

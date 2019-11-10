@@ -90,7 +90,7 @@ private:
     QUrl m_url;
     QString m_iconUrl;
 
-    bool m_advertise;
+    bool m_advertise = false;
     UpnpTimer m_advertisingTimer;
     HttpServer *server = Q_NULLPTR;
     QString m_macAddress;

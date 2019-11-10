@@ -20,9 +20,9 @@ private slots:
     void timeoutSlot();
 
 private:
-    int m_counter;
-    int m_max;
-    int m_period;
+    int m_counter = 1;
+    int m_max = -1;
+    int m_period = -1;
 };
 
 #endif // UPNPTIMER_H

@@ -387,7 +387,7 @@ void UpnpDevice::subscribeEventingSlot(const QNetworkRequest &request, const QSt
 
 UpnpService *UpnpDevice::getService(const QString &serviceId)
 {
-    return qobject_cast<UpnpService*>(m_services->find(serviceId));;
+    return qobject_cast<UpnpService*>(m_services->find(serviceId));
 }
 
 void UpnpDevice::replyRequest(HttpRequest *request)

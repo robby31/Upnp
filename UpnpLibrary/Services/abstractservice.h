@@ -10,7 +10,7 @@ class AbstractService : public UpnpService
 public:
     explicit AbstractService(QObject *parent = Q_NULLPTR);
     explicit AbstractService(UpnpObject *upnpParent, QObject *parent = Q_NULLPTR);
-    explicit AbstractService(UpnpObject *upnpParent, QDomNode info, QObject *parent = Q_NULLPTR);
+    explicit AbstractService(UpnpObject *upnpParent, const QDomNode &info, QObject *parent = Q_NULLPTR);
 
     UpnpServiceDescription *description() const;
 

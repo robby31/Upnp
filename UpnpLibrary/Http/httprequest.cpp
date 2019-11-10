@@ -5,21 +5,10 @@ const int HttpRequest::STREAMING_PERIOD = 1000;
 HttpRequest::HttpRequest(QObject *parent):
     ListItem(parent),
     m_date(QDateTime::currentDateTime()),
-    m_client(Q_NULLPTR),
-    m_operation(QNetworkAccessManager::UnknownOperation),
     m_version(),
-    m_headerCompleted(false),
     m_data(),
-    m_replyHeaderSent(false),
     m_status("init"),
-    m_networkStatus("init"),
-    m_finished(false),
-    m_streamWithErrors(false),
-    m_streamingCompleted(false),
-    m_maxBufferSize(-1),
-    networkBytesSent(-1),
-    lastNetBytesSent(-1),
-    netStatusTimerEvent(0)
+    m_networkStatus("init")
 {
     DebugInfo::add_object(this);
     initializeRoles();
@@ -30,20 +19,10 @@ HttpRequest::HttpRequest(QTcpSocket *client, QObject *parent):
     m_date(QDateTime::currentDateTime()),
     m_peerAddress(client->peerAddress()),
     m_client(client),
-    m_operation(QNetworkAccessManager::UnknownOperation),
     m_version(),
-    m_headerCompleted(false),
     m_data(),
-    m_replyHeaderSent(false),
     m_status("init"),
-    m_networkStatus("init"),
-    m_finished(false),
-    m_streamWithErrors(false),
-    m_streamingCompleted(false),
-    m_maxBufferSize(-1),
-    networkBytesSent(-1),
-    lastNetBytesSent(-1),
-    netStatusTimerEvent(0)
+    m_networkStatus("init")
 {    
     DebugInfo::add_object(this);
 

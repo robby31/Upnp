@@ -15,9 +15,7 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
 UpnpControlPoint::UpnpControlPoint(quint16 eventPort, QObject *parent):
     QObject(parent),
     m_eventPort(eventPort),
-    m_servername(QString("%1/%2 UPnP/%3 CTP/1.0").arg(QSysInfo::productType(), QSysInfo::productVersion(), UPNP_VERSION)),
-    m_bootid(0),
-    m_configid(0)
+    m_servername(QString("%1/%2 UPnP/%3 CTP/1.0").arg(QSysInfo::productType(), QSysInfo::productVersion(), UPNP_VERSION))
 {
     DebugInfo::add_object(this);
 
