@@ -50,7 +50,7 @@ private slots:
 private:
     QHash<int, QByteArray> m_roles;
 
-    UpnpRootDevice *m_device;
+    UpnpRootDevice *m_device = Q_NULLPTR;
     QString status;
 
     QStringList m_sinkProtocol;

@@ -146,7 +146,7 @@ private slots:
     void streamDestroyed(QObject *obj);
 
 protected:
-    TranscodeFormatAvailable transcodeFormat;
+    TranscodeFormatAvailable transcodeFormat = UNKNOWN;  // default transcode format
 
     QString dlnaOrgOpFlags;
 

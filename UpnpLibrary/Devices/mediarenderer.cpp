@@ -2,7 +2,6 @@
 
 MediaRenderer::MediaRenderer(QObject *parent) :
     ListItem(parent),
-    m_device(Q_NULLPTR),
     status("standby")
 {
     m_roles[statusRole] = "status";

@@ -4,7 +4,6 @@ qint64 DlnaYouTubeVideo::objectCounter = 0;
 
 DlnaYouTubeVideo::DlnaYouTubeVideo(QObject *parent) :
     DlnaVideoItem(parent),
-    m_analyzeStream(true),
     m_youtube(this)
 {
     ++objectCounter;

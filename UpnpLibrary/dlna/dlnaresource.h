@@ -55,7 +55,7 @@ public:
 
     // Returns the XML (DIDL) representation of the DLNA node.
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) = 0;
-    virtual void updateXmlContentDirectory(QDomDocument *xml, QDomElement* xml_obj, QStringList properties) const;
+    virtual void updateXmlContentDirectory(QDomDocument *xml, QDomElement* xml_obj, const QStringList &properties) const;
     QString getStringContentDirectory(const QStringList& properties);
 
     // ressource shall be refreshed
@@ -102,14 +102,14 @@ private:
     QString id;
 
     // parent of the DlnaResource
-    DlnaResource *dlnaParent;
+    DlnaResource *dlnaParent = Q_NULLPTR;
 
     // flag to know if content of the ressource shall be refreshed
-    bool m_needRefresh;
+    bool m_needRefresh = false;
 
     // update counter for this resource.
     // When the resource needs to be refreshed, its counter should be updated.
-    int updateId;
+    int updateId = 1;
 
     QUrl m_hostUrl;
 

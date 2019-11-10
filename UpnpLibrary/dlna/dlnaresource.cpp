@@ -3,11 +3,7 @@
 qint64 DlnaResource::objectCounter = 0;
 
 DlnaResource::DlnaResource(QObject *parent):
-    QObject(parent),
-    id(),
-    dlnaParent(Q_NULLPTR),
-    m_needRefresh(false),
-    updateId(1)
+    QObject(parent)
 {
     DebugInfo::add_object(this);
 
@@ -127,8 +123,8 @@ QByteArray DlnaResource::getByteAlbumArt() {
     return QByteArray();
 }
 
-void DlnaResource::updateXmlContentDirectory(QDomDocument *xml, QDomElement *xml_obj, QStringList properties) const {
-    Q_UNUSED(properties);
+void DlnaResource::updateXmlContentDirectory(QDomDocument *xml, QDomElement *xml_obj, const QStringList &properties) const {
+    Q_UNUSED(properties)
 
     if (xml && xml_obj) {
         xml_obj->setAttribute("id", getResourceId());

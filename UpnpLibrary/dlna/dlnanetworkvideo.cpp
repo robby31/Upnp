@@ -3,8 +3,7 @@
 qint64 DlnaNetworkVideo::objectCounter = 0;
 
 DlnaNetworkVideo::DlnaNetworkVideo(QObject *parent) :
-    DlnaVideoItem(parent),
-    m_analyzeStream(true)
+    DlnaVideoItem(parent)
 {
     ++objectCounter;
 

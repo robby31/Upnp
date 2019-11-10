@@ -87,7 +87,7 @@ private slots:
     void parse_video();
 
 private:
-    bool m_analyzeStream;
+    bool m_analyzeStream = true;
     QUrl m_url;
     QList<QFfmpegInputMedia*> ffmpeg;
     AbstractMedia *m_media = Q_NULLPTR;

@@ -22,7 +22,6 @@ const QString DlnaItem::MPEGTS_TYPEMIME = "video/vnd.dlna.mpeg-tts";
 
 DlnaItem::DlnaItem(QObject *parent) :
     DlnaResource(parent),
-    transcodeFormat(UNKNOWN),  // default transcode format
     dlnaOrgOpFlags("01")       // seek by byte (exclusive)
 {
 }

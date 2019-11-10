@@ -86,7 +86,7 @@ private slots:
     void videoUrl();
 
 private:
-    bool m_analyzeStream;
+    bool m_analyzeStream = true;
     QUrl m_streamUrl;
 
     QFfmpegInputMedia ffmpeg;
