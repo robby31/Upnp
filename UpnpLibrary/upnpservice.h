@@ -11,16 +11,16 @@
 #include "xmlevent.h"
 #include "upnpactionreply.h"
 
-typedef struct {
+using T_SUBSCRIPTION = struct {
     QStringList urls;
     int eventKey = 0;
     int timeOut = 0;
     QDateTime timeOver;
-} T_SUBSCRIPTION;
+};
 
-typedef struct {
+using T_SENDEVENTS = struct {
     QNetworkReply *reply;
-} T_SENDEVENTS;
+};
 
 class UpnpService : public UpnpObject
 {

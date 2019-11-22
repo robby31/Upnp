@@ -23,11 +23,6 @@ UpnpObject::UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent)
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(timeout()));
 }
 
-UpnpObject::~UpnpObject()
-{
-    DebugInfo::remove_object(this);
-}
-
 void UpnpObject::setRoles(const QHash<int, QByteArray> &roles)
 {
     m_roles = roles;

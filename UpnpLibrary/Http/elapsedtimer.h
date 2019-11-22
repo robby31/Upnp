@@ -11,7 +11,6 @@ class ElapsedTimer : public QObject
 
 public:
     explicit ElapsedTimer(QObject *parent = Q_NULLPTR);
-    ~ElapsedTimer() Q_DECL_OVERRIDE;
 
     void invalidate() { timer.invalidate(); }
     bool isValid() const { return timer.isValid(); }

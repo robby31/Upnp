@@ -14,8 +14,6 @@ HttpServer::HttpServer(QObject *parent):
 
 HttpServer::~HttpServer()
 {
-    DebugInfo::remove_object(this);
-
     if (!m_incomingRequest.isEmpty())
         qCritical() << "DESTROY HttpServer" << m_incomingRequest.size() << "incoming requests pending.";
 

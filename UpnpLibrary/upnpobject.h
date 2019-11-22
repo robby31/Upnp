@@ -28,7 +28,6 @@ public:
 
     explicit UpnpObject(QObject *parent = Q_NULLPTR);
     explicit UpnpObject(TypeObject type, UpnpObject *upnpParent, QObject *parent = Q_NULLPTR);
-    ~UpnpObject() Q_DECL_OVERRIDE;
 
     TypeObject type() const;
     void setType(const TypeObject &type);
@@ -36,7 +35,7 @@ public:
     QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
     bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
-    void setRoles(const QHash<int, QByteArray>& roles);
+    void setRoles(const QHash<int, QByteArray> &roles);
 
     UpnpObject *upnpParent() const;
     void setUpnpParent(UpnpObject *parent);
@@ -58,7 +57,7 @@ public:
 
     virtual QUrl url() const;
 
-    QUrl urlFromRelativePath(const QString& path) const;
+    QUrl urlFromRelativePath(const QString &path) const;
 
     UpnpDescription *description() const;
     QString strDescription() const;
@@ -67,7 +66,7 @@ public:
     QString valueFromDescription(const QString &param) const;
 
     QNetworkReply *get(QNetworkRequest request);
-    QNetworkReply *post(QNetworkRequest request, const QByteArray& data);
+    QNetworkReply *post(QNetworkRequest request, const QByteArray &data);
 
     virtual QString generateUuid();
 

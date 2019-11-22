@@ -11,8 +11,8 @@ class ProtocolInfo : public QObject
     Q_OBJECT
 
 public:
-    typedef enum {
-      DLNA_ORG_FLAG_SENDER_PACED               = (1 << 31),
+    enum dlna_org_flags_t : uint {
+      DLNA_ORG_FLAG_SENDER_PACED               = (static_cast<uint>(1) << 31),
       DLNA_ORG_FLAG_TIME_BASED_SEEK            = (1 << 30),
       DLNA_ORG_FLAG_BYTE_BASED_SEEK            = (1 << 29),
       DLNA_ORG_FLAG_PLAY_CONTAINER             = (1 << 28),
@@ -24,11 +24,10 @@ public:
       DLNA_ORG_FLAG_BACKGROUND_TRANSFERT_MODE  = (1 << 22),
       DLNA_ORG_FLAG_CONNECTION_STALL           = (1 << 21),
       DLNA_ORG_FLAG_DLNA_V15                   = (1 << 20),
-    } dlna_org_flags_t;
+    };
 
     ProtocolInfo(QObject *parent = Q_NULLPTR);
     ProtocolInfo(const QString &info, QObject *parent = Q_NULLPTR);
-    ~ProtocolInfo() Q_DECL_OVERRIDE;
 
     bool isValid() const;
 

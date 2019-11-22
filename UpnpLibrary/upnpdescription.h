@@ -10,17 +10,27 @@ class UpnpDescription : public QObject
 
 public:
     explicit UpnpDescription(const QString& rootName = "device", QObject *parent = Q_NULLPTR);
-    ~UpnpDescription() Q_DECL_OVERRIDE;
+
+    XmlDescription data() const { return m_xml; }
+
+    void clear();
 
     bool setContent(const QByteArray &data);
     bool setContent(const QDomNode &data);
 
     QString attribute(const QString &name) const;
 
-    QDomElement xmlDescription();
+    QDomElement xmlDescription() const;
     QString stringDescription() const;
 
-protected:
+    QDomElement addParam(const QString &param, const QDomElement &parent);
+
+    QDomElement getParam(const QString &param, const QDomElement &parent = QDomElement(), bool recursive = true) const;
+    void setParam(const QString &param, const QString &value, const QDomElement &parent = QDomElement());
+    void setParam(const QDomElement &param, const QString &value);
+    QString getParamValue(const QString &param, const QDomElement &parent = QDomElement()) const;
+
+private:
     XmlDescription m_xml;
 };
 

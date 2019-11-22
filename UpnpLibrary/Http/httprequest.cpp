@@ -47,11 +47,6 @@ HttpRequest::HttpRequest(QTcpSocket *client, QObject *parent):
     }
 }
 
-HttpRequest::~HttpRequest()
-{
-    DebugInfo::remove_object(this);
-}
-
 void HttpRequest::initializeRoles()
 {
     m_roles[operationRole] = "operation";

@@ -40,10 +40,6 @@ HttpRange::HttpRange(const QString &range, QObject *parent) :
     }
 }
 
-HttpRange::~HttpRange() {
-    DebugInfo::remove_object(this);
-}
-
 long HttpRange::getStartByte() const
 {
 

@@ -11,6 +11,8 @@ class HttpServer : public QTcpServer
 {
     Q_OBJECT
 
+    Q_DISABLE_COPY_MOVE(HttpServer)
+
 public:
     explicit HttpServer(QObject *parent = Q_NULLPTR);
     ~HttpServer() Q_DECL_OVERRIDE;

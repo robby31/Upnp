@@ -47,11 +47,6 @@ ProtocolInfo::ProtocolInfo(const QString &info, QObject *parent):
     }
 }
 
-ProtocolInfo::~ProtocolInfo()
-{
-    DebugInfo::remove_object(this);
-}
-
 QString ProtocolInfo::transport() const
 {
     return m_transport;
@@ -172,6 +167,6 @@ void ProtocolInfo::setFlag(const dlna_org_flags_t &flag)
 
 void ProtocolInfo::removeFlag(const dlna_org_flags_t &flag)
 {
-    int tmp = ~flag;
+    uint tmp = ~flag;
     m_flags &= tmp;
 }

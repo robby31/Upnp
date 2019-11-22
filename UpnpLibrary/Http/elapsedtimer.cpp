@@ -7,10 +7,6 @@ ElapsedTimer::ElapsedTimer(QObject *parent):
     timer.invalidate();
 }
 
-ElapsedTimer::~ElapsedTimer() {
-    DebugInfo::remove_object(this);
-}
-
 void ElapsedTimer::start()
 {
     if (isPaused) {

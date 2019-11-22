@@ -57,11 +57,6 @@ SoapAction::SoapAction(const QByteArray &data, QObject *parent):
     }
 }
 
-SoapAction::~SoapAction()
-{
-    DebugInfo::remove_object(this);
-}
-
 bool SoapAction::isValid() const
 {
     return m_valid;

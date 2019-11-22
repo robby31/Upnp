@@ -35,11 +35,6 @@ EventResponse::EventResponse(const QByteArray &data, QObject *parent):
     }
 }
 
-EventResponse::~EventResponse()
-{
-    DebugInfo::remove_object(this);
-}
-
 bool EventResponse::isValid() const
 {
     return m_valid;

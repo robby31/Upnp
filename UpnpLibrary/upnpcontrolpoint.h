@@ -19,26 +19,28 @@
 #include"Devices/devicesmodel.h"
 #include "debuginfo.h"
 
-typedef struct {
+using T_EVENT = struct {
     QString deviceUuid;
     QString serviceId;
     QString timeOut;
-} T_EVENT;
+};
 
-typedef struct {
+using T_SEARCH_ANSWER = struct {
     QHostAddress host;
-    quint16 port;
+    quint16 port = 0;
     QString st;
-} T_SEARCH_ANSWER;
+};
 
-typedef struct {
+using T_DISCOVER = struct {
     QString searchTarget;
-    int counter;
-} T_DISCOVER;
+    int counter = 0;
+};
 
 class UpnpControlPoint : public QObject
 {
     Q_OBJECT
+
+    Q_DISABLE_COPY_MOVE(UpnpControlPoint)
 
     Q_PROPERTY(QString serverName READ serverName NOTIFY serverNameChanged)
     Q_PROPERTY(ListModel *localRootDevices READ localRootDevices NOTIFY localRootDevicesChanged)

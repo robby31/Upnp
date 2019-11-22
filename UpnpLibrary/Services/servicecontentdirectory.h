@@ -11,6 +11,8 @@ class ServiceContentDirectory : public AbstractService
 {
     Q_OBJECT
 
+    Q_DISABLE_COPY_MOVE(ServiceContentDirectory)
+
 public:
     explicit ServiceContentDirectory(MediaRendererModel *model, UpnpDevice *upnpParent, QObject *parent = Q_NULLPTR);
     ~ServiceContentDirectory() Q_DECL_OVERRIDE;

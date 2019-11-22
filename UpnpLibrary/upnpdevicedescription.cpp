@@ -3,64 +3,64 @@
 UpnpDeviceDescription::UpnpDeviceDescription(const QString &rootName):
     UpnpDescription(rootName)
 {
-    QDomElement device = m_xml.root();
+    QDomElement device = xmlDescription();
 
-    m_xml.addParam("deviceType", device);
-    m_xml.addParam("friendlyName", device);
-    m_xml.addParam("manufacturer", device);
-    m_xml.addParam("manufacturerURL", device);
-    m_xml.addParam("modelDescription", device);
-    m_xml.addParam("modelName", device);
-    m_xml.addParam("modelNumber", device);
-    m_xml.addParam("modelURL", device);
-    m_xml.addParam("serialNumber", device);
-    m_xml.addParam("UDN", device);
-    m_xml.addParam("UPC", device);
-    m_xml.addParam("iconList", device);
-    m_xml.addParam("serviceList", device);
-    m_xml.addParam("deviceList", device);
-    m_xml.addParam("presentationURL", device);
+    addParam("deviceType", device);
+    addParam("friendlyName", device);
+    addParam("manufacturer", device);
+    addParam("manufacturerURL", device);
+    addParam("modelDescription", device);
+    addParam("modelName", device);
+    addParam("modelNumber", device);
+    addParam("modelURL", device);
+    addParam("serialNumber", device);
+    addParam("UDN", device);
+    addParam("UPC", device);
+    addParam("iconList", device);
+    addParam("serviceList", device);
+    addParam("deviceList", device);
+    addParam("presentationURL", device);
 }
 
 QDomElement UpnpDeviceDescription::device() const
 {
-    return m_xml.root();
+    return xmlDescription();
 }
 
 QString UpnpDeviceDescription::deviceAttribute(const QString &name) const
 {
-    return m_xml.getParamValue(name, device());
+    return getParamValue(name, device());
 }
 
 void UpnpDeviceDescription::setDeviceAttribute(const QString &name, const QString &value)
 {
-    m_xml.setParam(name, value, device());
+    setParam(name, value, device());
 }
 
 void UpnpDeviceDescription::addIcon(const QString &mimeType, const int &width, const int &height, const int &depth, const QString &url)
 {
-    QDomElement iconList = m_xml.getParam("iconList", device(), false);
+    QDomElement iconList = getParam("iconList", device(), false);
     if (iconList.isNull())
     {
         qCritical() << "unable to find iconList";
     }
     else
     {
-        QDomElement icon = m_xml.addParam("icon", iconList);
-        QDomElement elt = m_xml.addParam("mimetype", icon);
-        m_xml.setParam("mimetype", mimeType, icon);
+        QDomElement icon = addParam("icon", iconList);
+        QDomElement elt = addParam("mimetype", icon);
+        setParam("mimetype", mimeType, icon);
 
-        elt = m_xml.addParam("width", icon);
-        m_xml.setParam("width", QVariant::fromValue(width).toString(), icon);
+        elt = addParam("width", icon);
+        setParam("width", QVariant::fromValue(width).toString(), icon);
 
-        elt = m_xml.addParam("height", icon);
-        m_xml.setParam("height", QVariant::fromValue(height).toString(), icon);
+        elt = addParam("height", icon);
+        setParam("height", QVariant::fromValue(height).toString(), icon);
 
-        elt = m_xml.addParam("depth", icon);
-        m_xml.setParam("depth", QVariant::fromValue(depth).toString(), icon);
+        elt = addParam("depth", icon);
+        setParam("depth", QVariant::fromValue(depth).toString(), icon);
 
-        elt = m_xml.addParam("url", icon);
-        m_xml.setParam("url", url, icon);
+        elt = addParam("url", icon);
+        setParam("url", url, icon);
     }
 
 }

@@ -60,7 +60,6 @@ UpnpControlPoint::UpnpControlPoint(quint16 eventPort, QObject *parent):
 
 UpnpControlPoint::~UpnpControlPoint()
 {
-    DebugInfo::remove_object(this);
     qDebug() << "Close UPNPControlPoint.";
     close();
 }

@@ -15,7 +15,6 @@ class HttpRange : public QObject
 public:
     explicit HttpRange(QObject *parent = Q_NULLPTR);
     explicit HttpRange(const QString& range, QObject *parent = Q_NULLPTR);
-    ~HttpRange() Q_DECL_OVERRIDE;
 
     bool isNull() const { return null; }
 
