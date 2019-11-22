@@ -1,13 +1,9 @@
 #include "dlnafolder.h"
 
-qint64 DlnaFolder::objectCounter = 0;
-
 DlnaFolder::DlnaFolder(const QString &filename, QObject *parent):
     DlnaStorageFolder(parent),
     fileinfo(filename)
 {
-    ++objectCounter;
-
     QDir folder(fileinfo.absoluteFilePath());
     QStringList filter;
     filter << "*";
@@ -28,10 +24,6 @@ DlnaFolder::DlnaFolder(const QString &filename, QObject *parent):
             children.append(new_file);
         }
     }
-}
-
-DlnaFolder::~DlnaFolder() {
-    --objectCounter;
 }
 
 DlnaResource *DlnaFolder::getChild(int index, QObject *parent)  {

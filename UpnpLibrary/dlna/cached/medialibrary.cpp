@@ -286,7 +286,6 @@ bool MediaLibrary::initialize()
 
 MediaLibrary::~MediaLibrary()
 {
-    DebugInfo::remove_object(this);
     delete libraryState;
 }
 
@@ -929,7 +928,7 @@ int MediaLibrary::add_media(QHash<QString, QVariant> data, const QHash<QString, 
         }
 
         // update the media
-        qWarning() << "update resource" << data["mime_type"].toString() << data["filename"].toString() << lastModified << data["last_modified"].toDateTime();
+        qDebug() << "update resource" << data["mime_type"].toString() << data["filename"].toString() << lastModified << data["last_modified"].toDateTime();
         return update("media", query.value("id").toInt(), data);
     }
 
@@ -939,10 +938,11 @@ int MediaLibrary::add_media(QHash<QString, QVariant> data, const QHash<QString, 
     data["addedDate"] = QDateTime::currentDateTime();
 
     // update data with state of the library to import in new media
-    if (libraryState && libraryState->contains(data["filename"].toString())) {
-        foreach(const QString &param, libraryState->operator [](data["filename"].toString()).keys()) {
-            data[param] = libraryState->operator [](data["filename"].toString())[param];
-        }
+    if (libraryState && libraryState->contains(data["filename"].toString()))
+    {
+        QHash<QString, QVariant> state = libraryState->operator [](data["filename"].toString());
+        for (auto i = state.constBegin(); i != state.constEnd(); ++i)
+            data[i.key()] = i.value();
     }
 
     qDebug() << "add resource " + data["mime_type"].toString() + " " + data["filename"].toString();

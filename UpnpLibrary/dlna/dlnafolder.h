@@ -13,7 +13,6 @@ class DlnaFolder : public DlnaStorageFolder
 
 public:
     explicit DlnaFolder(const QString& filename, QObject *parent = Q_NULLPTR);
-    ~DlnaFolder() Q_DECL_OVERRIDE;
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
     int getChildrenSize() const Q_DECL_OVERRIDE { return children.size(); }
@@ -33,9 +32,6 @@ public:
 private:
     QFileInfo fileinfo;
     QList<QFileInfo> children;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNAFOLDER_H

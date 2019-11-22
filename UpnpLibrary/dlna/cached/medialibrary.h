@@ -12,7 +12,9 @@ class MediaLibrary : public QObject
 {
     Q_OBJECT
 
-    typedef QHash<QString, QHash<QString, QVariant> > StateType;
+    Q_DISABLE_COPY_MOVE(MediaLibrary)
+
+    using StateType = QHash<QString, QHash<QString, QVariant> >;
 
 public:
     explicit MediaLibrary(QObject *parent = Q_NULLPTR);

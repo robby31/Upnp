@@ -2,8 +2,8 @@
 
 DlnaCachedVideo::DlnaCachedVideo(MediaLibrary* library, int idMedia, QObject *parent):
     DlnaVideoItem(parent),
-    library(library),
-    idMedia(idMedia)
+    m_library(library),
+    m_idMedia(idMedia)
 {
     if (library)
     {
@@ -31,7 +31,7 @@ TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
     auto transcodeProcess = new FfmpegTranscoding();
     transcodeProcess->setUrl(getSystemName());
     transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
-    transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setFormat(format());
     transcodeProcess->setVariableBitrate(true);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());
@@ -46,24 +46,24 @@ TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
 
 int DlnaCachedVideo::samplerate() const
 {
-    if (library)
-        return library->getmetaData("samplerate", idMedia).toInt();
+    if (m_library)
+        return m_library->getmetaData("samplerate", m_idMedia).toInt();
 
     return -1;
 }
 
 int DlnaCachedVideo::channelCount() const
 {
-    if (library)
-        return library->getmetaData("channelcount", idMedia).toInt();
+    if (m_library)
+        return m_library->getmetaData("channelcount", m_idMedia).toInt();
 
     return -1;
 }
 
 QString DlnaCachedVideo::framerate() const
 {
-    if (library)
-        return library->getmetaData("framerate", idMedia).toString();
+    if (m_library)
+        return m_library->getmetaData("framerate", m_idMedia).toString();
 
     return QString();
 }
@@ -72,8 +72,8 @@ qint64 DlnaCachedVideo::getResumeTime() const
 {
     qint64 res = 0;
 
-    if (library)
-        res = library->getmetaData("progress_played", idMedia).toLongLong();
+    if (m_library)
+        res = m_library->getmetaData("progress_played", m_idMedia).toLongLong();
 
     if (res > 10000)
         return res - 10000;   // returns 10 seconds before resume time
@@ -85,9 +85,9 @@ QHash<QString, double> DlnaCachedVideo::volumeInfo(const int &timeout)
 {
     Q_UNUSED(timeout)
 
-    if (library)
+    if (m_library)
     {
-        return library->volumeInfo(idMedia);
+        return m_library->volumeInfo(m_idMedia);
     }
 
     QHash<QString, double> result;
@@ -103,8 +103,8 @@ qint64 DlnaCachedVideo::metaDataDuration() const
 {
     qint64 duration = 0;
 
-    if (library)
-        duration = library->getmetaData("duration", idMedia).toInt();
+    if (m_library)
+        duration = m_library->getmetaData("duration", m_idMedia).toInt();
 
     if (duration <= 0)
         duration = 5*3600000;  // default duration when live video are unlimited
@@ -114,8 +114,8 @@ qint64 DlnaCachedVideo::metaDataDuration() const
 
 QUrl DlnaCachedVideo::thumbnailUrl() const
 {
-    if (library)
-        return library->get_param_value(idMedia, "thumbnailUrl").toUrl();
+    if (m_library)
+        return m_library->get_param_value(m_idMedia, "thumbnailUrl").toUrl();
 
     return QUrl();
 }
@@ -145,16 +145,16 @@ QString DlnaCachedVideo::sourceContainer() const
 
 QString DlnaCachedVideo::sourceAudioFormat() const
 {
-    if (library)
-        return library->get_param_value(idMedia, "audio_format").toString();
+    if (m_library)
+        return m_library->get_param_value(m_idMedia, "audio_format").toString();
 
     return QString();
 }
 
 QString DlnaCachedVideo::sourceVideoFormat() const
 {
-    if (library)
-        return library->get_param_value(idMedia, "video_format").toString();
+    if (m_library)
+        return m_library->get_param_value(m_idMedia, "video_format").toString();
 
     return QString();
 }
