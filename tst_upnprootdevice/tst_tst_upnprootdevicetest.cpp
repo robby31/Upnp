@@ -13,8 +13,8 @@ public:
     Tst_upnprootdeviceTest() = default;
 
 private Q_SLOTS:
-    void initTestCase();
-    void cleanupTestCase();
+    void init();
+    void cleanup();
 
     void test_get_device_description();
 
@@ -25,7 +25,7 @@ private:
     quint16 EVENT_PORT = 0;
 };
 
-void Tst_upnprootdeviceTest::initTestCase()
+void Tst_upnprootdeviceTest::init()
 {
     UPNP_PORT = 6100;
     EVENT_PORT = 6000;
@@ -65,17 +65,12 @@ void Tst_upnprootdeviceTest::initTestCase()
     m_root->startServer();
 }
 
-void Tst_upnprootdeviceTest::cleanupTestCase()
+void Tst_upnprootdeviceTest::cleanup()
 {
-    if (m_root)
-    {
-        m_root->deleteLater();
-    }
+    delete m_upnp;
 
-    if (m_upnp)
-    {
-        m_upnp->deleteLater();
-    }
+    DebugInfo::display_alive_objects();
+    QCOMPARE(DebugInfo::count_alive_objects(), 0);
 }
 
 void Tst_upnprootdeviceTest::test_get_device_description()

@@ -10,9 +10,17 @@ public:
     HttpRangeTests() = default;
 
 private Q_SLOTS:
+    void cleanup();
+
     void testCase1_data();
     void testCase1();
 };
+
+void HttpRangeTests::cleanup()
+{
+    DebugInfo::display_alive_objects();
+    QCOMPARE(DebugInfo::count_alive_objects(), 0);
+}
 
 void HttpRangeTests::testCase1_data()
 {

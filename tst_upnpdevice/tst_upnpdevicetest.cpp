@@ -15,20 +15,17 @@ public:
     UpnpDeviceTest() = default;
 
 private Q_SLOTS:
-    void initTestCase();
-    void cleanupTestCase();
+    void cleanup();
     void testUpnpRootDeviceFromDescription();
     void testUpnpRootDeviceFromXml();
     void testUpnpDeviceFromDescription();
     void testUpnpDeviceFromXml();
 };
 
-void UpnpDeviceTest::initTestCase()
+void UpnpDeviceTest::cleanup()
 {
-}
-
-void UpnpDeviceTest::cleanupTestCase()
-{
+    DebugInfo::display_alive_objects();
+    QCOMPARE(DebugInfo::count_alive_objects(), 0);
 }
 
 void UpnpDeviceTest::testUpnpRootDeviceFromDescription()
@@ -215,14 +212,14 @@ void UpnpDeviceTest::testUpnpDeviceFromXml()
 {
     QFile xml_file(":/PMS2.xml");
     QCOMPARE(xml_file.open(QIODevice::ReadOnly), true);
-    UpnpDeviceDescription *description = new UpnpDeviceDescription();
-    description->setContent(xml_file.readAll());
+    UpnpDeviceDescription description;
+    description.setContent(xml_file.readAll());
 
-    QCOMPARE(description->xmlDescription().tagName(), QString("device"));
-    QCOMPARE(description->xmlDescription().childNodes().size(), 14);
+    QCOMPARE(description.xmlDescription().tagName(), QString("device"));
+    QCOMPARE(description.xmlDescription().childNodes().size(), 14);
 
-    QCOMPARE(description->deviceAttribute("UDN"), QString("uuid:dc53b523-0f0a-396d-b3dc-249276216f3b"));
-    QCOMPARE(description->iconUrl(), QString(""));
+    QCOMPARE(description.deviceAttribute("UDN"), QString("uuid:dc53b523-0f0a-396d-b3dc-249276216f3b"));
+    QCOMPARE(description.iconUrl(), QString(""));
 }
 
 QTEST_MAIN(UpnpDeviceTest)

@@ -15,8 +15,9 @@ public:
 private Q_SLOTS:
     void actionFinished();
     void errorRaised(const UpnpError &error);
-    void initTestCase();
-    void cleanupTestCase();
+
+    void init();
+    void cleanup();
 
     void test_invalid_action();
     void test_get_service_description();
@@ -45,7 +46,7 @@ private:
     UpnpError m_error;
 };
 
-void UpnpserviceconnectionmanagerTest::initTestCase()
+void UpnpserviceconnectionmanagerTest::init()
 {
     UPNP_PORT = 6100;
     EVENT_PORT = 6000;
@@ -60,17 +61,14 @@ void UpnpserviceconnectionmanagerTest::initTestCase()
     m_root->startServer();
 }
 
-void UpnpserviceconnectionmanagerTest::cleanupTestCase()
+void UpnpserviceconnectionmanagerTest::cleanup()
 {
-    if (m_root)
-    {
-        m_root->deleteLater();
-    }
+    m_root = Q_NULLPTR;
+    m_connectionManager = Q_NULLPTR;
+    delete m_upnp;
 
-    if (m_upnp)
-    {
-        m_upnp->deleteLater();
-    }
+    DebugInfo::display_alive_objects();
+    QCOMPARE(DebugInfo::count_alive_objects(), 0);
 }
 
 void UpnpserviceconnectionmanagerTest::initRootDevice()

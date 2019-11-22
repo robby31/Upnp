@@ -14,8 +14,7 @@ public:
     UpnpServiceTest() = default;
 
 private Q_SLOTS:
-    void initTestCase();
-    void cleanupTestCase();
+    void cleanup();
     void testUpnpServiceFromDescription();
 
     void testUpnpServiceConnectionManager();
@@ -23,12 +22,10 @@ private Q_SLOTS:
 
 };
 
-void UpnpServiceTest::initTestCase()
+void UpnpServiceTest::cleanup()
 {
-}
-
-void UpnpServiceTest::cleanupTestCase()
-{
+    DebugInfo::display_alive_objects();
+    QCOMPARE(DebugInfo::count_alive_objects(), 0);
 }
 
 void UpnpServiceTest::testUpnpServiceFromDescription()
