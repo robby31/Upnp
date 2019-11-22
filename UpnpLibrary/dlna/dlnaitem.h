@@ -12,8 +12,6 @@ class DlnaItem : public DlnaResource
 {
     Q_OBJECT
 
-    Q_DISABLE_COPY_MOVE(DlnaItem)
-
 public:
     explicit DlnaItem(QObject *parent = Q_NULLPTR);
 

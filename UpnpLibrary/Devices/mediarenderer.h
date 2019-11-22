@@ -10,8 +10,6 @@ class MediaRenderer : public ListItem
 {
     Q_OBJECT
 
-    Q_DISABLE_COPY_MOVE(MediaRenderer)
-
 public:
     explicit MediaRenderer(QObject *parent = Q_NULLPTR);
     explicit MediaRenderer(UpnpRootDevice *device, QObject *parent = Q_NULLPTR);

@@ -8,6 +8,7 @@
 
 class EventResponse : public QObject
 {
+    Q_OBJECT
 
 public:
     explicit EventResponse(const QByteArray& data, QObject *parent = Q_NULLPTR);

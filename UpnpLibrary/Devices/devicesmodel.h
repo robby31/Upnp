@@ -9,8 +9,6 @@ class DevicesModel : public ListModel
 {
     Q_OBJECT
 
-    Q_DISABLE_COPY_MOVE(DevicesModel)
-
 public:
     explicit DevicesModel(ListItem* prototype, QObject* parent = Q_NULLPTR);
     explicit DevicesModel(QObject *parent = Q_NULLPTR);
