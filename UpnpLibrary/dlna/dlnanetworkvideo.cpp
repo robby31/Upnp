@@ -1,18 +1,13 @@
 #include "dlnanetworkvideo.h"
 
-qint64 DlnaNetworkVideo::objectCounter = 0;
-
 DlnaNetworkVideo::DlnaNetworkVideo(QObject *parent) :
     DlnaVideoItem(parent)
 {
-    ++objectCounter;
 
 }
 
 DlnaNetworkVideo::~DlnaNetworkVideo()
 {
-    --objectCounter;
-    delete m_media;
     qDeleteAll(ffmpeg);
 }
 
@@ -271,13 +266,15 @@ bool DlnaNetworkVideo::setUrl(const QUrl &url)
 {
     m_url = url;
 
-    delete m_media;
+    if (m_media)
+        m_media->deleteLater();
 
     MediaStreaming streaming;
     m_media = streaming.get_media(url);
 
     if (m_media)
     {
+        m_media->setParent(this);
         connect(m_media, &AbstractMedia::mediaReady, this, &DlnaNetworkVideo::parse_video);
     }
     else
@@ -311,7 +308,7 @@ TranscodeProcess *DlnaNetworkVideo::getTranscodeProcess()
     auto transcodeProcess = new FfmpegTranscoding();
 
     transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
-    transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setFormat(format());
     transcodeProcess->setVariableBitrate(true);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());

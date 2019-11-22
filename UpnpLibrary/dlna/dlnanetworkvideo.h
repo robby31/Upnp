@@ -10,6 +10,8 @@ class DlnaNetworkVideo  : public DlnaVideoItem
 {
     Q_OBJECT
 
+    Q_DISABLE_COPY_MOVE(DlnaNetworkVideo)
+
 public:
     explicit DlnaNetworkVideo(QObject *parent = Q_NULLPTR);
     ~DlnaNetworkVideo() Q_DECL_OVERRIDE;
@@ -92,9 +94,6 @@ private:
     QList<QFfmpegInputMedia*> ffmpeg;
     AbstractMedia *m_media = Q_NULLPTR;
     QString m_error;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNANETWORKVIDEO_H

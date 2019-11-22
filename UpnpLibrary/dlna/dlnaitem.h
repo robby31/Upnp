@@ -12,9 +12,10 @@ class DlnaItem : public DlnaResource
 {
     Q_OBJECT
 
+    Q_DISABLE_COPY_MOVE(DlnaItem)
+
 public:
     explicit DlnaItem(QObject *parent = Q_NULLPTR);
-    ~DlnaItem() Q_DECL_OVERRIDE = default;
 
     // Returns the DisplayName that is shown to the Renderer.
     QString getDisplayName() const Q_DECL_OVERRIDE;
@@ -145,7 +146,7 @@ signals:
 private slots:
     void streamDestroyed(QObject *obj);
 
-protected:
+private:
     TranscodeFormatAvailable transcodeFormat = UNKNOWN;  // default transcode format
 
     QString dlnaOrgOpFlags;

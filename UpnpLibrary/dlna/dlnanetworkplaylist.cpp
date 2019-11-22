@@ -1,26 +1,18 @@
 #include "dlnanetworkplaylist.h"
 
-qint64 DlnaNetworkPlaylist::objectCounter = 0;
-
 DlnaNetworkPlaylist::DlnaNetworkPlaylist(const QUrl &url, QObject *parent):
     DlnaStorageFolder(parent)
 {
-    ++objectCounter;
-
     QElapsedTimer timer;
     timer.start();
     MediaStreaming streaming;
     m_playlist = streaming.get_playlist(url);
     if (m_playlist)
     {
+        m_playlist->setParent(this);
         m_playlist->waitReady(5000);
-        qDebug() << "playlist" << url << "created in" << timer.elapsed() << m_playlist->mediaUrl().size() << "medias.";
+        qDebug() << "playlist" << url << "created in" << timer.elapsed() << "ms," << m_playlist->mediaUrl().size() << "medias.";
     }
-}
-
-DlnaNetworkPlaylist::~DlnaNetworkPlaylist() {
-    --objectCounter;
-    delete m_playlist;
 }
 
 bool DlnaNetworkPlaylist::isValid() const

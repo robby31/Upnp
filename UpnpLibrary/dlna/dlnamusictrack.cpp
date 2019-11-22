@@ -10,10 +10,10 @@ qint64 DlnaMusicTrack::bitrate() const
     // returns bitrate in bits/sec
     if (toTranscode())
     {
-        if (transcodeFormat == MP3 || transcodeFormat == AAC)
+        if (format() == MP3 || format() == AAC)
             return 320000;
 
-        if (transcodeFormat == LPCM_S16BE || transcodeFormat == ALAC)
+        if (format() == LPCM_S16BE || format() == ALAC)
         {
             if (samplerate() == 44100)
                 return 1411200;
@@ -170,7 +170,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 QFfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess()
 {
     auto  transcodeProcess = new QFfmpegTranscoding();
-    transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setFormat(format());
     transcodeProcess->setBitrate(bitrate());
 //    transcodeProcess->setVolumeInfo(volumeInfo());
     transcodeProcess->setUrl(getSystemName());

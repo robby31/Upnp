@@ -1,21 +1,12 @@
 #include "dlnamusictrackfile.h"
 
-qint64 DlnaMusicTrackFile::objectCounter = 0;
-
 DlnaMusicTrackFile::DlnaMusicTrackFile(const QString &filename, QObject *parent):
     DlnaMusicTrack(parent),
     fileinfo(filename)
 {
-    ++objectCounter;
-
     ffmpeg.open(filename, true);
 
     setTranscodeFormat(MP3);   // default transcode format
-}
-
-DlnaMusicTrackFile::~DlnaMusicTrackFile()
-{
-    --objectCounter;
 }
 
 QString DlnaMusicTrackFile::getDisplayName() const {
@@ -132,7 +123,7 @@ QHash<QString, double> DlnaMusicTrackFile::volumeInfo(const int& timeout)
 QFfmpegTranscoding *DlnaMusicTrackFile::getTranscodeProcess()
 {
     auto transcodeProcess = new QFfmpegTranscoding();
-    transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setFormat(format());
     transcodeProcess->setBitrate(bitrate());
 //    transcodeProcess->setVolumeInfo(volumeInfo());
     transcodeProcess->setInput(&ffmpeg);

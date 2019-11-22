@@ -11,7 +11,6 @@ class DlnaNetworkPlaylist : public DlnaStorageFolder
 
 public:
     explicit DlnaNetworkPlaylist(const QUrl &url, QObject *parent = Q_NULLPTR);
-    ~DlnaNetworkPlaylist() Q_DECL_OVERRIDE;
 
     bool isValid() const;
 
@@ -33,9 +32,6 @@ public:
 private:
     AbstractPlaylist *m_playlist = Q_NULLPTR;
     QHash<int, DlnaNetworkVideo*> l_children;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNANETWORKPLAYLIST_H
