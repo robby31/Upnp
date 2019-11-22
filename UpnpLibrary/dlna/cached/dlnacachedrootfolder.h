@@ -19,11 +19,11 @@ class DlnaCachedRootFolder : public DlnaRootFolder
 {
     Q_OBJECT
 
-    typedef struct {
+    using T_URL = struct {
         QUrl url;
         QString title;
-        int playListId;
-    } T_URL;
+        int playListId = -1;
+    };
 
 public:
     explicit DlnaCachedRootFolder(QObject *parent = Q_NULLPTR);

@@ -205,6 +205,7 @@ void DlnaCachedRootFolder::addResource(const QUrl &url, const int &playlistId, c
     }
     else
     {
+        url_inProgress = false;
         qCritical() << "invalid url" << url;
         movie->deleteLater();
     }
@@ -316,7 +317,7 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
 }
 
 void DlnaCachedRootFolder::addNextResource()
-{    
+{
     if (!urlToAdd.isEmpty())
     {
         T_URL new_url = urlToAdd.takeFirst();
@@ -324,7 +325,7 @@ void DlnaCachedRootFolder::addNextResource()
     }
     else
     {
-        qInfo() << "no more resource to add";
+        qDebug() << "no more resource to add";
     }
 }
 
