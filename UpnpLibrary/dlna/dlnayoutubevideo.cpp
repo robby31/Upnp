@@ -1,19 +1,10 @@
 #include "dlnayoutubevideo.h"
 
-qint64 DlnaYouTubeVideo::objectCounter = 0;
-
 DlnaYouTubeVideo::DlnaYouTubeVideo(QObject *parent) :
     DlnaVideoItem(parent),
     m_youtube(this)
 {
-    ++objectCounter;
-
     connect(&m_youtube, &Youtube::mediaReady, this, &DlnaYouTubeVideo::videoUrl);
-}
-
-DlnaYouTubeVideo::~DlnaYouTubeVideo()
-{
-    --objectCounter;
 }
 
 void DlnaYouTubeVideo::setMaxVideoHeight(const int &height)
@@ -62,7 +53,7 @@ TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
     auto transcodeProcess = new FfmpegTranscoding();
 
     transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
-    transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setFormat(format());
     transcodeProcess->setVariableBitrate(true);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());

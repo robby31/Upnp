@@ -16,8 +16,6 @@ Protocol::Protocol(const QString &profile_path, QObject *parent):
 
 Protocol::~Protocol()
 {
-    DebugInfo::remove_object(this);
-
     qDeleteAll(m_profiles);
     m_profiles.clear();
 
@@ -45,7 +43,7 @@ void Protocol::loadXmlProfiles(const QString &profile_path)
         }
     }
 
-    qWarning() << m_profiles.size() << "dlna profiles loaded.";
+    qInfo() << m_profiles.size() << "dlna profiles loaded.";
 }
 
 void Protocol::addProfile(const QDomNode &profile)

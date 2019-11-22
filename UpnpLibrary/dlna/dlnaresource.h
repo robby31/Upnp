@@ -17,7 +17,6 @@ class DlnaResource: public QObject
 
 public:
     explicit DlnaResource(QObject *parent = Q_NULLPTR);
-    ~DlnaResource() Q_DECL_OVERRIDE;
 
     bool isReady() const;
     void setReady(const bool &flag);
@@ -114,9 +113,6 @@ private:
     QUrl m_hostUrl;
 
     bool m_isReady = true;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNARESOURCE_H

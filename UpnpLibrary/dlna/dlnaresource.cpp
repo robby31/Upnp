@@ -1,21 +1,13 @@
 #include "dlnaresource.h"
 
-qint64 DlnaResource::objectCounter = 0;
-
 DlnaResource::DlnaResource(QObject *parent):
     QObject(parent)
 {
     DebugInfo::add_object(this);
 
-    ++objectCounter;
     qRegisterMetaType<QList<DlnaResource*> >("QList<DlnaResource*>");
 
     connect(this, &DlnaResource::dlnaContentUpdated, this, &DlnaResource::contentUpdated);
-}
-
-DlnaResource::~DlnaResource() {
-    DebugInfo::remove_object(this);
-    --objectCounter;
 }
 
 QString DlnaResource::getResourceId() const {

@@ -11,7 +11,6 @@ class DlnaRootFolder : public DlnaStorageFolder
 
 public:
     explicit DlnaRootFolder(QObject *parent = Q_NULLPTR);
-    ~DlnaRootFolder() Q_DECL_OVERRIDE;
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
@@ -51,9 +50,6 @@ private slots:
 
 private:
     QList<DlnaResource*> children;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNAROOTFOLDER_H

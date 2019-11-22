@@ -14,7 +14,6 @@ class DlnaProfile : public QObject
 public:
     explicit DlnaProfile(QObject *parent = Q_NULLPTR);
     explicit DlnaProfile(const QString &pn, QObject *parent = Q_NULLPTR);
-    ~DlnaProfile() Q_DECL_OVERRIDE;
 
     bool isValid() const;
 

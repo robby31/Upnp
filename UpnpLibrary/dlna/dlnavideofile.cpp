@@ -1,22 +1,13 @@
 #include "dlnavideofile.h"
 
-qint64 DlnaVideoFile::objectCounter = 0;
-
 DlnaVideoFile::DlnaVideoFile(const QString &filename, QObject *parent):
     DlnaVideoItem(parent),
     fileinfo(filename)
 {
-    ++objectCounter;
-
     ffmpeg.open(filename, false);
 
     QMimeDatabase db;
     mime_type = db.mimeTypeForFile(fileinfo);
-}
-
-DlnaVideoFile::~DlnaVideoFile() {
-    --objectCounter;
-
 }
 
 TranscodeProcess *DlnaVideoFile::getTranscodeProcess()
@@ -24,7 +15,7 @@ TranscodeProcess *DlnaVideoFile::getTranscodeProcess()
     auto transcodeProcess = new FfmpegTranscoding();
     transcodeProcess->setUrl(getSystemName());
     transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
-    transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setFormat(format());
     transcodeProcess->setVariableBitrate(true);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());

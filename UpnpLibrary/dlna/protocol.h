@@ -13,6 +13,8 @@ class Protocol : public QObject
 {
     Q_OBJECT
 
+    Q_DISABLE_COPY_MOVE(Protocol)
+
 public:
     Protocol(QObject *parent = Q_NULLPTR);
     Protocol(const QString &profile_path, QObject *parent = Q_NULLPTR);

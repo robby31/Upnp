@@ -11,7 +11,6 @@ class DlnaVideoFile : public DlnaVideoItem
 
 public:
     explicit DlnaVideoFile(const QString& filename, QObject *parent = Q_NULLPTR);
-    ~DlnaVideoFile() Q_DECL_OVERRIDE;
 
     QFileInfo getFileInfo() const { return fileinfo; }
 
@@ -70,9 +69,6 @@ private:
     QFileInfo fileinfo;
     QMimeType mime_type;
     QFfmpegInputMedia ffmpeg;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNAVIDEOFILE_H

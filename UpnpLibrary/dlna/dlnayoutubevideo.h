@@ -15,7 +15,6 @@ class DlnaYouTubeVideo : public DlnaVideoItem
 
 public:
     explicit DlnaYouTubeVideo(QObject *parent = Q_NULLPTR);
-    ~DlnaYouTubeVideo() Q_DECL_OVERRIDE;
 
     bool isValid() { return error().isEmpty() && !metaDataTitle().isEmpty() && !resolution().isEmpty() && metaDataDuration()>0; }
 
@@ -92,9 +91,6 @@ private:
     QFfmpegInputMedia ffmpeg;
 
     Youtube m_youtube;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNAYOUTUBEVIDEO_H

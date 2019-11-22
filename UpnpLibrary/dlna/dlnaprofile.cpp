@@ -13,11 +13,6 @@ DlnaProfile::DlnaProfile(const QString &pn, QObject *parent):
     DebugInfo::add_object(this);
 }
 
-DlnaProfile::~DlnaProfile()
-{
-    DebugInfo::remove_object(this);
-}
-
 bool DlnaProfile::isValid() const
 {
     return !m_pn.isEmpty() && !m_mimeType.isEmpty();
