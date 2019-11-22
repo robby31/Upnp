@@ -10,12 +10,12 @@ class MediaRenderer : public ListItem
 {
     Q_OBJECT
 
+    Q_DISABLE_COPY_MOVE(MediaRenderer)
+
 public:
     explicit MediaRenderer(QObject *parent = Q_NULLPTR);
     explicit MediaRenderer(UpnpRootDevice *device, QObject *parent = Q_NULLPTR);
     explicit MediaRenderer(UpnpRootDevice *device, const QString &profilesPath, QObject *parent = Q_NULLPTR);
-
-    ~MediaRenderer() Q_DECL_OVERRIDE = default;
 
     enum Roles {
         statusRole = Qt::UserRole+1,

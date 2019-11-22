@@ -1,7 +1,5 @@
 #include "dlnacachedfoldermetadata.h"
 
-qint64 DlnaCachedFolderMetaData::objectCounter = 0;
-
 DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(MediaLibrary *library, const QString& stringQuery, const QString& stringQueryForChild, const QString& name, QObject *parent):
     DlnaStorageFolder(parent),
     library(library),
@@ -10,19 +8,12 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(MediaLibrary *library, const 
     stringQueryForChild(stringQueryForChild),
     nbChildren(-1)
 {
-    ++objectCounter;
-
     if (query.isSelect() && query.isActive()) {
         if (query.last())
             nbChildren = query.at() + 1;
         else
             nbChildren = 0;
     }
-}
-
-DlnaCachedFolderMetaData::~DlnaCachedFolderMetaData()
-{
-    --objectCounter;
 }
 
 DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)

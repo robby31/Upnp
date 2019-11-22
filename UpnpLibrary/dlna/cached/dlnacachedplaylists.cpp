@@ -1,13 +1,9 @@
 #include "dlnacachedplaylists.h"
 
-qint64 DlnaCachedPlaylists::objectCounter = 0;
-
 DlnaCachedPlaylists::DlnaCachedPlaylists(MediaLibrary* library, QObject *parent):
     DlnaStorageFolder(parent),
     library(library)
 {
-    ++objectCounter;
-
     needRefresh();
 
     if (library)
@@ -19,11 +15,6 @@ DlnaCachedPlaylists::DlnaCachedPlaylists(MediaLibrary* library, QObject *parent)
                       "LEFT OUTER JOIN type ON media.type=type.id "
                       "WHERE media.is_reachable=1");
     }
-}
-
-DlnaCachedPlaylists::~DlnaCachedPlaylists()
-{
-    --objectCounter;
 }
 
 QString DlnaCachedPlaylists::getName() const

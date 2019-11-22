@@ -10,7 +10,6 @@ class DlnaCachedMusicTrack : public DlnaMusicTrack
 
 public:
     explicit DlnaCachedMusicTrack(MediaLibrary* library, int idMedia, QObject *parent = Q_NULLPTR);
-    ~DlnaCachedMusicTrack() Q_DECL_OVERRIDE;
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
@@ -19,7 +18,7 @@ public:
     QString getSystemName() const Q_DECL_OVERRIDE { if (library) return library->getmetaData("filename", idMedia).toString(); return QString(); }
 
     //returns the size of the source
-    qint64 sourceSize() const Q_DECL_OVERRIDE { return (double)metaDataDuration()*(double)metaDataBitrate()/8000.0; }
+    qint64 sourceSize() const Q_DECL_OVERRIDE { return static_cast<qint64>(static_cast<double>(metaDataDuration())*static_cast<double>(metaDataBitrate())/8000.0); }
 
     qint64 getResumeTime() const Q_DECL_OVERRIDE;
 
@@ -53,9 +52,6 @@ public:
 private:
     MediaLibrary* library;
     int idMedia;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNACACHEDMUSICTRACK_H

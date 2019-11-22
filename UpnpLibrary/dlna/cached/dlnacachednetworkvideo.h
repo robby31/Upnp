@@ -10,8 +10,7 @@ class DlnaCachedNetworkVideo : public DlnaCachedVideo
     Q_OBJECT
 
 public:
-    explicit DlnaCachedNetworkVideo(MediaLibrary* library, int idMedia, QObject *parent = Q_NULLPTR);
-    ~DlnaCachedNetworkVideo() Q_DECL_OVERRIDE;
+    explicit DlnaCachedNetworkVideo(MediaLibrary* p_library, int p_idMedia, QObject *parent = Q_NULLPTR);
 
     QString metaDataTitle() const Q_DECL_OVERRIDE;
 
@@ -27,9 +26,6 @@ protected:
 
 private:
     QString m_streamUrl;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNACACHEDNETWORKVIDEO_H

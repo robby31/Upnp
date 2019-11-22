@@ -12,7 +12,6 @@ class DlnaCachedGroupedFolderMetaData : public DlnaStorageFolder
 
 public:
     DlnaCachedGroupedFolderMetaData(MediaLibrary* library, const QString& name, QObject *parent = Q_NULLPTR);
-    ~DlnaCachedGroupedFolderMetaData() Q_DECL_OVERRIDE;
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
     int getChildrenSize() const Q_DECL_OVERRIDE { return children.size(); }
@@ -32,9 +31,6 @@ private:
     MediaLibrary* library;
     QString name;
     QList<DlnaCachedFolderMetaData*> children;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNACACHEDGROUPEDFOLDERMETADATA_H

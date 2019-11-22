@@ -1,20 +1,11 @@
 #include "dlnacachedmusictrack.h"
 
-qint64 DlnaCachedMusicTrack::objectCounter = 0;
-
 DlnaCachedMusicTrack::DlnaCachedMusicTrack(MediaLibrary *library, int idMedia, QObject *parent):
     DlnaMusicTrack(parent),
     library(library),
     idMedia(idMedia)
 {
-    ++objectCounter;
-
     setTranscodeFormat(MP3);   // default transcode format
-}
-
-DlnaCachedMusicTrack::~DlnaCachedMusicTrack()
-{
-    --objectCounter;
 }
 
 qint64 DlnaCachedMusicTrack::getResumeTime() const

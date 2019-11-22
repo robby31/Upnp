@@ -1,17 +1,8 @@
 #include "dlnacachednetworkvideo.h"
 
-qint64 DlnaCachedNetworkVideo::objectCounter = 0;
-
-DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(MediaLibrary* library, int idMedia, QObject *parent):
-    DlnaCachedVideo(library, idMedia, parent),
-    m_streamUrl()
+DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(MediaLibrary* p_library, int p_idMedia, QObject *parent):
+    DlnaCachedVideo(p_library, p_idMedia, parent)
 {
-    ++objectCounter;
-}
-
-DlnaCachedNetworkVideo::~DlnaCachedNetworkVideo()
-{
-    --objectCounter;
 }
 
 TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
@@ -20,7 +11,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 
     QString sysName = getSystemName();
 
-    if (!library->isLocalUrl(sysName))
+    if (library() && !library()->isLocalUrl(sysName))
     {
         transcodeProcess = new FfmpegTranscoding();
 
@@ -43,7 +34,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
     if (transcodeProcess)
     {
         transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
-        transcodeProcess->setFormat(transcodeFormat);
+        transcodeProcess->setFormat(format());
         transcodeProcess->setVariableBitrate(true);
         transcodeProcess->setBitrate(bitrate());
         transcodeProcess->setAudioLanguages(audioLanguages());
@@ -63,7 +54,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 Device *DlnaCachedNetworkVideo::getOriginalStreaming()
 {
     QString sysName = getSystemName();
-    if (library && !library->isLocalUrl(sysName))
+    if (library() && !library()->isLocalUrl(sysName))
     {
         TranscodeProcess *process = getTranscodeProcess();
         process->setFormat(COPY);
@@ -75,8 +66,8 @@ Device *DlnaCachedNetworkVideo::getOriginalStreaming()
 
 QString DlnaCachedNetworkVideo::metaDataTitle() const
 {
-    if (library)
-        return library->getmetaData("title", idMedia).toString();
+    if (library())
+        return library()->getmetaData("title", idMedia()).toString();
 
     return QString();
 }

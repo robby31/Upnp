@@ -16,7 +16,6 @@ public:
                                       const QString& stringQueryForChild,
                                       const QString& name,
                                       QObject *parent = Q_NULLPTR);
-    ~DlnaCachedFolderMetaData() Q_DECL_OVERRIDE;
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
     int getChildrenSize() const Q_DECL_OVERRIDE { return nbChildren; }
@@ -37,9 +36,6 @@ private:
     QSqlQuery query;
     QString stringQueryForChild;
     int nbChildren;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNACACHEDFOLDERMETADATA_H

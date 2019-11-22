@@ -11,7 +11,6 @@ class DlnaCachedPlaylists : public DlnaStorageFolder
 
 public:
     DlnaCachedPlaylists(MediaLibrary* library, QObject *parent = Q_NULLPTR);
-    ~DlnaCachedPlaylists() Q_DECL_OVERRIDE;
 
     DlnaResource* getChild(int index, QObject *parent = Q_NULLPTR) Q_DECL_OVERRIDE;
     int getChildrenSize() const Q_DECL_OVERRIDE;
@@ -32,9 +31,6 @@ private:
     MediaLibrary* library = Q_NULLPTR;
     QSqlQuery query;
     int nbChildren = 0;
-
-public:
-    static qint64 objectCounter;
 };
 
 #endif // DLNACACHEDPLAYLISTS_H

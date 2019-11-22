@@ -1,18 +1,10 @@
 #include "dlnacachedgroupedfoldermetadata.h"
 
-qint64 DlnaCachedGroupedFolderMetaData::objectCounter = 0;
-
 DlnaCachedGroupedFolderMetaData::DlnaCachedGroupedFolderMetaData(MediaLibrary *library, const QString& name, QObject *parent):
     DlnaStorageFolder(parent),
     library(library),
     name(name)
 {
-    ++objectCounter;
-}
-
-DlnaCachedGroupedFolderMetaData::~DlnaCachedGroupedFolderMetaData()
-{
-    --objectCounter;
 }
 
 void DlnaCachedGroupedFolderMetaData::addFolder(const QString &stringQuery,
