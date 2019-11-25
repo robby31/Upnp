@@ -14,7 +14,7 @@ class HttpRange : public QObject
 
 public:
     explicit HttpRange(QObject *parent = Q_NULLPTR);
-    explicit HttpRange(const QString& range, QObject *parent = Q_NULLPTR);
+    explicit HttpRange(const QString &range, QObject *parent = Q_NULLPTR);
 
     bool isNull() const { return null; }
 

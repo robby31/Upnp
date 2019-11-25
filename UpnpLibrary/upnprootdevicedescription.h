@@ -8,7 +8,7 @@ class UpnpRootDeviceDescription : public UpnpDeviceDescription
     Q_OBJECT
 
 public:
-    UpnpRootDeviceDescription();
+    explicit UpnpRootDeviceDescription(QObject *parent = Q_NULLPTR);
 
     QDomElement device() const Q_DECL_OVERRIDE;
 

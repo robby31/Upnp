@@ -10,7 +10,7 @@ class UpnpDeviceDescription : public UpnpDescription
     Q_OBJECT
 
 public:
-    UpnpDeviceDescription(const QString& rootName = "device");
+    explicit UpnpDeviceDescription(const QString &rootName = "device", QObject *parent = Q_NULLPTR);
 
     virtual QDomElement device() const;
 

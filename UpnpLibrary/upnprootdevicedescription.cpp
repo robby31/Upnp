@@ -1,7 +1,7 @@
 #include "upnprootdevicedescription.h"
 
-UpnpRootDeviceDescription::UpnpRootDeviceDescription():
-    UpnpDeviceDescription("root")
+UpnpRootDeviceDescription::UpnpRootDeviceDescription(QObject *parent):
+    UpnpDeviceDescription("root", parent)
 {
     clear();
 

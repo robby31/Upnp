@@ -1,7 +1,7 @@
 #include "upnpdevicedescription.h"
 
-UpnpDeviceDescription::UpnpDeviceDescription(const QString &rootName):
-    UpnpDescription(rootName)
+UpnpDeviceDescription::UpnpDeviceDescription(const QString &rootName, QObject *parent):
+    UpnpDescription(rootName, parent)
 {
     QDomElement device = xmlDescription();
 

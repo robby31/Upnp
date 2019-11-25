@@ -337,7 +337,7 @@ void DlnaNetworkVideo::parse_video()
     {
         foreach (const QUrl &url, urls)
         {
-            auto tmp = new QFfmpegInputMedia();
+            auto tmp = new QFfmpegInputMedia(this);
             if (!tmp->open(url.toString()))
             {
                 qCritical() << "unable to open url" << url << tmp->error();

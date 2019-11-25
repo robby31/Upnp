@@ -52,7 +52,7 @@ void Protocol::addProfile(const QDomNode &profile)
 
     if (!pn.isEmpty())
     {
-        auto dlna_profile = new DlnaProfile(pn);
+        auto dlna_profile = new DlnaProfile(pn, this);
 
         QDomNodeList children = profile.childNodes();
         for (int i=0;i<children.size();++i)
@@ -164,7 +164,7 @@ QList<ProtocolInfo *> Protocol::compatible()
             }
         }
 
-        auto foundProtocol = new ProtocolInfo();
+        auto foundProtocol = new ProtocolInfo(this);
         foundProtocol->setTransport(protocol->transport());
         foundProtocol->setMimeType(protocol->mimeType());
         foundProtocol->setPN(protocol->pn());

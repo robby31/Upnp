@@ -153,7 +153,7 @@ void UpnpRootDevice::descriptionReceived()
 
     if (reply->error() == QNetworkReply::NoError)
     {
-        auto descr = new UpnpRootDeviceDescription();
+        auto descr = new UpnpRootDeviceDescription(this);
         descr->setContent(reply->readAll());
         setDescription(descr);
 

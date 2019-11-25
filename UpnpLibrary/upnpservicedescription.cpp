@@ -1,7 +1,7 @@
 #include "upnpservicedescription.h"
 
-UpnpServiceDescription::UpnpServiceDescription():
-    UpnpDescription("scpd"),
+UpnpServiceDescription::UpnpServiceDescription(QObject *parent):
+    UpnpDescription("scpd", parent),
     m_info("service")
 {
     QDomElement root = xmlDescription();

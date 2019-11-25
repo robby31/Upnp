@@ -30,7 +30,7 @@ ServiceConnectionManager::ServiceConnectionManager(UpnpObject *upnpParent, const
 
 void ServiceConnectionManager::initDescription()
 {
-    auto serviceDescription = new UpnpServiceDescription();
+    auto serviceDescription = new UpnpServiceDescription(this);
     serviceDescription->setServiceAttribute("serviceType", "urn:schemas-upnp-org:service:ConnectionManager:1");
     serviceDescription->setServiceAttribute("serviceId", "urn:upnp-org:serviceId:ConnectionManager");
     serviceDescription->setServiceAttribute("SCPDURL", "/UPnP_AV_ConnectionManager_1.0.xml");

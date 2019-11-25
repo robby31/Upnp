@@ -10,7 +10,7 @@ class UpnpServiceDescription : public UpnpDescription
 public:
     enum DIRECTION { IN, OUT };
 
-    UpnpServiceDescription();
+    explicit UpnpServiceDescription(QObject *parent = Q_NULLPTR);
 
     void setConfigId(const QString &id);
 

@@ -120,7 +120,7 @@ void UpnpService::descriptionReceived()
 
     if (reply->error() == QNetworkReply::NoError)
     {
-        auto description = new UpnpServiceDescription();
+        auto description = new UpnpServiceDescription(this);
         description->setContent(reply->readAll());
         setDescription(description);
 

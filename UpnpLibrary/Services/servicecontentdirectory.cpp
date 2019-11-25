@@ -2,6 +2,7 @@
 
 ServiceContentDirectory::ServiceContentDirectory(MediaRendererModel *model, UpnpDevice *upnpParent, QObject *parent):
     AbstractService(upnpParent, parent),
+    rootFolder(this),
     m_renderersModel(model)
 {
     initDescription();
@@ -59,7 +60,7 @@ ServiceContentDirectory::~ServiceContentDirectory()
 
 void ServiceContentDirectory::initDescription()
 {
-    auto serviceDescription = new UpnpServiceDescription();
+    auto serviceDescription = new UpnpServiceDescription(this);
     serviceDescription->setServiceAttribute("serviceType", "urn:schemas-upnp-org:service:ContentDirectory:1");
     serviceDescription->setServiceAttribute("serviceId", "urn:upnp-org:serviceId:ContentDirectory");
     serviceDescription->setServiceAttribute("SCPDURL", "/UPnP_AV_ContentDirectory_1.0.xml");

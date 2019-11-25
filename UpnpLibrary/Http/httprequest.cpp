@@ -1246,7 +1246,7 @@ HttpRange *HttpRequest::range(qint64 size)
 
     if (!header("RANGE").isEmpty())
     {
-        res = new HttpRange(QString("RANGE: %1").arg(header("RANGE")));
+        res = new HttpRange(QString("RANGE: %1").arg(header("RANGE")), this);
         if (res->isNull())
         {
             // invalid range, ignore it

@@ -14,6 +14,7 @@ UpnpControlPoint::UpnpControlPoint(QObject *parent):
 
 UpnpControlPoint::UpnpControlPoint(quint16 eventPort, QObject *parent):
     QObject(parent),
+    eventServer(this),
     m_eventPort(eventPort),
     m_servername(QString("%1/%2 UPnP/%3 CTP/1.0").arg(QSysInfo::productType(), QSysInfo::productVersion(), UPNP_VERSION))
 {
