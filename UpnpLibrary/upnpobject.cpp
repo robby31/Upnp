@@ -129,7 +129,10 @@ QNetworkReply *UpnpObject::get(QNetworkRequest request)
     request.setRawHeader("Connection", "close");
     request.setRawHeader(QByteArray("HOST"), QString("%1:%2").arg(request.url().host()).arg(request.url().port()).toUtf8());
 
-    return MyNetwork::manager().get(request);
+    QNetworkReply *reply = MyNetwork::manager().get(request);
+    DebugInfo::add_object(reply);
+    reply->setParent(this);
+    return reply;
 }
 
 QNetworkReply *UpnpObject::post(QNetworkRequest request, const QByteArray &data)

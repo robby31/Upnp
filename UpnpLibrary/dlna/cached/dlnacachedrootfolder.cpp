@@ -206,7 +206,7 @@ void DlnaCachedRootFolder::addResource(const QUrl &url, const int &playlistId, c
     else
     {
         url_inProgress = false;
-        qCritical() << "invalid url" << url;
+        emit error_addNetworkLink(QString("invalid url %1").arg(url.url()));
         movie->deleteLater();
     }
 }
@@ -556,7 +556,7 @@ void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
     }
 
     QString newDatabaseName = QString("%1.new").arg(library.databaseName());
-    qWarning() << "RELOAD" << newDatabaseName;
+    qDebug() << "RELOAD" << newDatabaseName;
 
     if (library.resetLibrary(newDatabaseName))
     {

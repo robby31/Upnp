@@ -13,10 +13,13 @@ DlnaCachedVideo::DlnaCachedVideo(MediaLibrary* library, int idMedia, QObject *pa
         {
             QNetworkRequest request(url);
             m_replyPicture = MyNetwork::manager().get(request);
+            DebugInfo::add_object(m_replyPicture);
             if (m_replyPicture)
             {
+                m_replyPicture->setParent(this);
                 setReady(false);
                 connect(m_replyPicture, &QNetworkReply::finished, this, &DlnaCachedVideo::pictureReceived);
+                connect(m_replyPicture, &QNetworkReply::finished, m_replyPicture, &QNetworkReply::deleteLater);
             }
             else
             {
@@ -128,7 +131,6 @@ void DlnaCachedVideo::pictureReceived()
     if (reply)
     {
         m_picture = reply->readAll();
-        reply->deleteLater();
         m_replyPicture = Q_NULLPTR;
     }
 }
