@@ -1,6 +1,7 @@
 QT += qml quick widgets webview sql xml
 
 CONFIG += c++14
+CONFIG += sdk_no_version_check
 
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
@@ -21,12 +22,6 @@ LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(QmlApplication)
 
 INCLUDEPATH += $$(MYLIBRARY)/include
 LIBS += -L$$(MYLIBRARY)/lib  -lqmdnsengine
-
-# Additional import path used to resolve QML modules in Qt Creator's code model
-QML_IMPORT_PATH =
-
-# Additional import path used to resolve QML modules just for Qt Quick Designer
-QML_DESIGNER_IMPORT_PATH =
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings

@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Layouts 1.3
-import QtQuick.Controls 1.4
+import QtQuick.Controls 2.5
 import MyComponents 1.0
 
 Item {
@@ -9,8 +9,6 @@ Item {
     property string text
 
     state: "TREE"
-
-    ExclusiveGroup { id: stateSelection }
 
     ColumnLayout {
         anchors.fill: parent
@@ -22,7 +20,6 @@ Item {
 
             RadioButton {
                 text: "Text"
-                exclusiveGroup: stateSelection
                 onCheckedChanged: {
                     if (checked)
                         item.state = "TEXT"
@@ -31,7 +28,6 @@ Item {
 
             RadioButton {
                 text: "Tree"
-                exclusiveGroup: stateSelection
                 checked: true
                 onCheckedChanged: {
                     if (checked)
@@ -62,32 +58,6 @@ Item {
         xmlString: item.text
     }
 
-    Component {
-        id: treeArea
-
-        TreeView {
-            id: view
-
-            TableViewColumn {
-                title: "Tag"
-                role: "display"
-                width: 300
-            }
-
-            model: docModel
-
-            itemDelegate: Item {
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: styleData.textColor
-                    elide: styleData.elideMode
-                    text: styleData.value
-                    textFormat: Text.PlainText
-                }
-            }
-        }
-    }
-
     states: [
         State {
             name: "TEXT"
@@ -96,7 +66,7 @@ Item {
 
         State {
             name: "TREE"
-            PropertyChanges { target: loader; sourceComponent: treeArea }
+            PropertyChanges { target: loader; sourceComponent: null; source: "TreeArea.qml" }
         }
     ]
 }
