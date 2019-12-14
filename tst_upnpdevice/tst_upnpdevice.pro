@@ -9,6 +9,7 @@ QT       += testlib network xml qml sql
 TARGET = tst_upnpdevicetest
 CONFIG   += console
 CONFIG   -= app_bundle
+CONFIG += sdk_no_version_check
 
 TEMPLATE = app
 

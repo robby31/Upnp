@@ -9,6 +9,7 @@ QT       += testlib network xml xmlpatterns qml sql
 TARGET = tst_upnp_servicecontentdirectorytest
 CONFIG   += console
 CONFIG   -= app_bundle
+CONFIG += sdk_no_version_check
 
 TEMPLATE = app
 

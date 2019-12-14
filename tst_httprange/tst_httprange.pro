@@ -11,6 +11,7 @@ QT       -= gui
 TARGET = tst_httprangetests
 CONFIG   += console
 CONFIG   -= app_bundle
+CONFIG += sdk_no_version_check
 
 TEMPLATE = app
 
