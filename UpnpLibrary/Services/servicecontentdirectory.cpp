@@ -400,6 +400,9 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
     {
         qDebug() << this << request->operationString() << request->url();
 
+        QUrlQuery url_query(request->url().query());
+        qWarning() << "GET MEDIA FORMAT = " << url_query.queryItemValue("format");
+
         QStringList l_path = request->url().toString().split("/");
         if (l_path.size() > 1)
         {
@@ -409,6 +412,12 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
 
             if (dlna)
             {
+                if (url_query.hasQueryItem("format"))
+                {
+                    if (url_query.queryItemValue("format") == "MP3")
+                        dlna->setTranscodeFormat(MP3);
+                }
+
                 MediaRenderer* renderer = Q_NULLPTR;
                 if (m_renderersModel)
                     renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
