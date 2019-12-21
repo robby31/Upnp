@@ -131,9 +131,9 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     res.setAttribute("protocolInfo", "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3");
 
     // optional properties
-    if ((properties.contains("*") || properties.contains("res@bitrate")) && bitrate() != -1) {
+    if ((properties.contains("*") || properties.contains("res@bitrate"))) {
         // bitrate in bytes/sec
-        res.setAttribute("bitrate", QString("%1").arg(qRound(double(bitrate())/8.0)));
+        res.setAttribute("bitrate", QString("40000"));
     }
 
     if ((properties.contains("*") || properties.contains("res@duration")) && getLengthInSeconds() > 0) {
