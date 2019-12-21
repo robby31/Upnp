@@ -523,6 +523,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                             // recover resume time
                             qint64 resume = dlna->getResumeTime();
                             if (resume>0) {
+                                request->logMessage(QString("resume time: %1 ms.").arg(resume));
                                 timeSeekRangeStart = resume/1000;
                                 request->setClockSending(timeSeekRangeStart*1000);
                             }
