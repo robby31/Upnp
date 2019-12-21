@@ -151,7 +151,6 @@ void DlnaItem::setStream(Device *stream)
         }
 
         connect(stream, SIGNAL(destroyed(QObject*)), this, SLOT(streamDestroyed(QObject*)));
-        connect(this, SIGNAL(destroyed(QObject*)), stream, SLOT(deleteLater()));
         m_stream = stream;
     }
     else
