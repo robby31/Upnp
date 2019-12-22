@@ -40,6 +40,7 @@ ServiceContentDirectory::ServiceContentDirectory(MediaRendererModel *model, Upnp
 
 ServiceContentDirectory::~ServiceContentDirectory()
 {
+    qWarning() << "dlna item in cache (ServiceContentDirectory)" << m_dlnaresources.size();
     // remove all resources
     auto it = m_dlnaresources.begin();
     while (it != m_dlnaresources.end())
@@ -412,6 +413,8 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
 
             if (dlna)
             {
+                connect(dlna, &DlnaItem::destroyed, request, &HttpRequest::dlnaDestroyed);
+
                 if (url_query.hasQueryItem("format"))
                 {
                     if (url_query.queryItemValue("format") == "MP3")
@@ -552,6 +555,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                                     streamContent->setTimeSeek(timeSeekRangeStart, timeSeekRangeEnd);
 
                                 connect(socket, SIGNAL(disconnected()), streamContent, SLOT(close()));
+                                connect(socket, &QTcpSocket::destroyed, streamContent, &Device::deleteLater);
 
                                 request->setMaxBufferSize(streamContent->maxBufferSize());
 

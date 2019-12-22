@@ -1303,3 +1303,8 @@ void HttpRequest::setpartialStreaming(const bool &flag)
 {
     m_partialStreaming = flag;
 }
+
+void HttpRequest::dlnaDestroyed()
+{
+    logMessage("dlna destroyed");
+}

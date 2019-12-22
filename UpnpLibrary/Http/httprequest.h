@@ -163,6 +163,8 @@ public slots:
 
     void close();
 
+    void dlnaDestroyed();
+
 private slots:
     void clientDestroyed();
     void clientError(QAbstractSocket::SocketError error);
