@@ -26,6 +26,12 @@ DlnaItem::DlnaItem(QObject *parent) :
 {
 }
 
+DlnaItem::~DlnaItem()
+{
+    if (m_stream && !m_stream->isOpen())
+        m_stream->deleteLater();
+}
+
 QString DlnaItem::getDisplayName() const {
     QString title = metaDataTitle();
     if (title.isEmpty())
@@ -147,7 +153,8 @@ void DlnaItem::setStream(Device *stream)
         if (m_stream)
         {
             qWarning() << this << "stream already defined" << m_stream << "replaced by" << stream;
-//            m_stream->deleteLater();
+            if (!m_stream->isOpen())
+                m_stream->deleteLater();
         }
 
         connect(stream, SIGNAL(destroyed(QObject*)), this, SLOT(streamDestroyed(QObject*)));
@@ -162,7 +169,8 @@ void DlnaItem::setStream(Device *stream)
 void DlnaItem::streamDestroyed(QObject *obj)
 {
     qDebug() << "stream destroyed" << obj;
-    m_stream = Q_NULLPTR;
+    if (m_stream == obj)
+        m_stream = Q_NULLPTR;
 }
 
 void DlnaItem::setDlnaProfiles(Protocol *profiles)
