@@ -14,7 +14,6 @@ class DlnaItem : public DlnaResource
 
 public:
     explicit DlnaItem(QObject *parent = Q_NULLPTR);
-    ~DlnaItem() Q_DECL_OVERRIDE;
 
     // Returns the DisplayName that is shown to the Renderer.
     QString getDisplayName() const Q_DECL_OVERRIDE;
