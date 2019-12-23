@@ -148,6 +148,7 @@ void DlnaItem::setStream(Device *stream)
         {
             qWarning() << this << "stream already defined" << m_stream << "replaced by" << stream;
             m_stream->disconnect(this);
+            disconnect(m_stream);
             if (!m_stream->isOpen())
                 m_stream->deleteLater();
         }

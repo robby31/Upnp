@@ -27,6 +27,7 @@ void HttpServer::newConnectionSlot()
     while (hasPendingConnections())
     {
         QTcpSocket *clientConnection = nextPendingConnection();
+        DebugInfo::add_object(clientConnection);
         connect(clientConnection, SIGNAL(disconnected()), clientConnection, SLOT(deleteLater()));
         connect(clientConnection, SIGNAL(readyRead()), this, SLOT(incomingData()));
         qDebug() << "new connection" << clientConnection;

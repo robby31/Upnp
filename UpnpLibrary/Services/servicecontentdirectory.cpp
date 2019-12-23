@@ -402,7 +402,6 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
         qDebug() << this << request->operationString() << request->url();
 
         QUrlQuery url_query(request->url().query());
-        qWarning() << "GET MEDIA FORMAT = " << url_query.queryItemValue("format");
 
         QStringList l_path = request->url().toString().split("/");
         if (l_path.size() > 1)
