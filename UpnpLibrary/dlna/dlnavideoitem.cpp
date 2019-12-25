@@ -115,7 +115,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    QUrl url = baseUrl.resolved(QString("%1/%2").arg(getResourceId()).arg(getName().toUtf8().toPercentEncoding().constData()));
+    QUrl url = baseUrl.resolved(QString("%1/%2").arg(getResourceId(), getName().toUtf8().toPercentEncoding().constData()));
     QUrlQuery query;
     query.addQueryItem("format", getdlnaOrgPN());
     url.setQuery(query);
