@@ -30,6 +30,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += tst_httprangetests.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
+INCLUDEPATH += $$(MYLIBRARY)/include/Http
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(Http)
+
 INCLUDEPATH += $$(MYLIBRARY)/include/UpnpLibrary
 LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(UpnpLibrary)
 

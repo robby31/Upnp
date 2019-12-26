@@ -11,6 +11,9 @@ SOURCES += main.cpp \
 
 RESOURCES += qml.qrc
 
+INCLUDEPATH += $$(MYLIBRARY)/include/Http
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(Http)
+
 INCLUDEPATH += $$(MYLIBRARY)/include/UpnpLibrary
 LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(UpnpLibrary)
 
