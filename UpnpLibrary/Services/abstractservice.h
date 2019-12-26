@@ -14,10 +14,8 @@ public:
 
     UpnpServiceDescription *description() const;
 
-signals:
-
-public slots:
-
+protected:
+    void replyAnswer(HttpRequest *request, const SoapActionResponse &response);
 };
 
 #endif // ABSTRACTSERVICE_H
