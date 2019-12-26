@@ -118,7 +118,7 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
         if (!action.arguments().isEmpty())
         {
             UpnpError error(UpnpError::INVALID_ARGS);
-            request->replyError(error);
+            replyError(request, error);
         }
         else if (sourceProtocal && sinkProtocal)
         {
@@ -126,13 +126,13 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
 
             response.addArgument("Source", sourceProtocal->data(StateVariableItem::ValueRole).toString());
             response.addArgument("Sink", sinkProtocal->data(StateVariableItem::ValueRole).toString());
-            request->replyAction(response);
+            replyAnswer(request, response);
         }
         else
         {
             qCritical() << "invalid state variable SourceProtocolInfo or SinkProtocolInfo";
             UpnpError error(UpnpError::ACTION_FAILED);
-            request->replyError(error);
+            replyError(request, error);
         }
 
         return true;
@@ -144,20 +144,20 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
         if (!action.arguments().isEmpty())
         {
             UpnpError error(UpnpError::INVALID_ARGS);
-            request->replyError(error);
+            replyError(request, error);
         }
         if (currentConnection)
         {
             SoapActionResponse response(action.serviceType(), action.actionName());
 
             response.addArgument("ConnectionIDs", currentConnection->data(StateVariableItem::ValueRole).toString());
-            request->replyAction(response);
+            replyAnswer(request, response);
         }
         else
         {
             qCritical() << "invalid state variable CurrentConnectionIDs";
             UpnpError error(UpnpError::ACTION_FAILED);
-            request->replyError(error);
+            replyError(request, error);
         }
 
         return true;
@@ -170,12 +170,12 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
         if (action.arguments().size() != 1 || !action.arguments().contains("ConnectionID"))
         {
             UpnpError error(UpnpError::INVALID_ARGS);
-            request->replyError(error);
+            replyError(request, error);
         }
         else if (connectionID != "0")
         {
             UpnpError error(UpnpError::INVALID_CONNECTION);
-            request->replyError(error);
+            replyError(request, error);
         }
         else
         {
@@ -197,7 +197,7 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
             else
                 response.addArgument("Status", "Unknown");
 
-            request->replyAction(response);
+            replyAnswer(request, response);
         }
 
         return true;
@@ -205,7 +205,7 @@ bool ServiceConnectionManager::replyAction(HttpRequest *request, const SoapActio
 
     qCritical() << "unknwon action" << action.actionName();
     UpnpError error(UpnpError::INVALID_ACTION);
-    request->replyError(error);
+    replyError(request, error);
     return false;
 }
 

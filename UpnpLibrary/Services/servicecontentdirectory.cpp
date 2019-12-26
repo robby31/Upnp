@@ -152,20 +152,20 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
         if (!action.arguments().isEmpty())
         {
             UpnpError error(UpnpError::INVALID_ARGS);
-            request->replyError(error);
+            replyError(request, error);
         }
         else if (searchCaps)
         {
             SoapActionResponse response(action.serviceType(), action.actionName());
 
             response.addArgument("SearchCaps", searchCaps->data(StateVariableItem::ValueRole).toString());
-            request->replyAction(response);
+            replyAnswer(request, response);
         }
         else
         {
             qCritical() << "invalid state variable SearchCapabilities";
             UpnpError error(UpnpError::ACTION_FAILED);
-            request->replyError(error);
+            replyError(request, error);
         }
 
         return true;
@@ -178,20 +178,20 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
         if (!action.arguments().isEmpty())
         {
             UpnpError error(UpnpError::INVALID_ARGS);
-            request->replyError(error);
+            replyError(request, error);
         }
         else if (sortCaps)
         {
             SoapActionResponse response(action.serviceType(), action.actionName());
 
             response.addArgument("SortCaps", sortCaps->data(StateVariableItem::ValueRole).toString());
-            request->replyAction(response);
+            replyAnswer(request, response);
         }
         else
         {
             qCritical() << "invalid state variable SortCapabilities";
             UpnpError error(UpnpError::ACTION_FAILED);
-            request->replyError(error);
+            replyError(request, error);
         }
 
         return true;
@@ -204,20 +204,20 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
         if (!action.arguments().isEmpty())
         {
             UpnpError error(UpnpError::INVALID_ARGS);
-            request->replyError(error);
+            replyError(request, error);
         }
         else if (sysUpdateId)
         {
             SoapActionResponse response(action.serviceType(), action.actionName());
 
             response.addArgument("Id", sysUpdateId->data(StateVariableItem::ValueRole).toString());
-            request->replyAction(response);
+            replyAnswer(request, response);
         }
         else
         {
             qCritical() << "invalid state variable SystemUpdateID";
             UpnpError error(UpnpError::ACTION_FAILED);
-            request->replyError(error);
+            replyError(request, error);
         }
 
         return true;
@@ -232,7 +232,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
         if (!action.arguments().contains("ObjectID") || action.arguments().size()!=6)
         {
             UpnpError error(UpnpError::INVALID_ARGS);
-            request->replyError(error);
+            replyError(request, error);
             return false;
         }
 
@@ -256,7 +256,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 {
                     qCritical() << "invalid startingIndex" << startingIndex.toInt();
                     UpnpError error(UpnpError::INVALID_ARGS);
-                    request->replyError(error);
+                    replyError(request, error);
                     return false;
                 }
 
@@ -264,7 +264,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 {
                     qCritical() << "invalid requestedCount" << requestedCount.toInt();
                     UpnpError error(UpnpError::INVALID_ARGS);
-                    request->replyError(error);
+                    replyError(request, error);
                     return false;
                 }
 
@@ -272,7 +272,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 {
                     qCritical() << "invalid startingIndex" << startingIndex.toInt() << "when browseFlag is" << browseFlag;
                     UpnpError error(UpnpError::INVALID_ARGS);
-                    request->replyError(error);
+                    replyError(request, error);
                     return false;
                 }
 
@@ -301,7 +301,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 {
                     qCritical() << "invalid browseFlag" << browseFlag;
                     UpnpError error(UpnpError::INVALID_ARGS);
-                    request->replyError(error);
+                    replyError(request, error);
                     return false;
                 }
 
@@ -309,7 +309,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 {
                     qCritical() << "invalid object" << objectID << object_requested;
                     UpnpError error(UpnpError::INVALID_OBJECT);
-                    request->replyError(error);
+                    replyError(request, error);
                     return false;
                 }
 
@@ -353,7 +353,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                     else
                     {
                         UpnpError error(UpnpError::INVALID_PROCESS_REQUEST);
-                        request->replyError(error);
+                        replyError(request, error);
                         return false;
                     }
                 }
@@ -361,7 +361,7 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 {
                     qCritical() << "invalid browseFlag" << browseFlag;
                     UpnpError error(UpnpError::INVALID_ARGS);
-                    request->replyError(error);
+                    replyError(request, error);
                     return false;
                 }
 
@@ -370,25 +370,25 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                 else
                     qCritical() << "invalid object request in Browse action" << objectID;
 
-                request->replyAction(response);
+                replyAnswer(request, response);
                 return true;
             }
 
             qCritical() << "invalid argument in Browse" << objectID << startingIndex << requestedCount << browseFlag << filter << sortCriteria;
 
             UpnpError error(UpnpError::INVALID_ARGS);
-            request->replyError(error);
+            replyError(request, error);
             return false;
         }
 
         UpnpError error(UpnpError::INVALID_OBJECT);
-        request->replyError(error);
+        replyError(request, error);
         return false;
     }
 
     qCritical() << "unknwon action" << action.actionName();
     UpnpError error(UpnpError::INVALID_ACTION);
-    request->replyError(error);
+    replyError(request, error);
     return false;
 }
 

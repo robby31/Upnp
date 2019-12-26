@@ -12,6 +12,9 @@
 #include "upnpdescription.h"
 #include "mynetwork.h"
 #include "debuginfo.h"
+#include "httprequest.h"
+#include "upnperror.h"
+#include "soapactionresponse.h"
 
 class UpnpObject : public ListItem
 {
@@ -73,6 +76,8 @@ public:
 protected:
     void setStatus(const Status &status);
 
+    void replyError(HttpRequest *request, const UpnpError &error);
+
 signals:
     void upnpParentChanged();
     void statusChanged();
@@ -83,8 +88,6 @@ signals:
     void byebyeMessage(const QString &uuid, const QString &nt);
 
     void searchResponse(const QHostAddress &address, const quint16 &port, const QString &st, const QString &usn);
-
-public slots:
 
 private slots:
     void timeout();

@@ -76,6 +76,8 @@ private:
     // return sid event subscribed
     QString eventSubscribed(const QString &uuid, const QString &serviceId);
 
+    void replyError(HttpRequest *request, const UpnpError &error);
+
 signals:
     void serverNameChanged();
     void localRootDevicesChanged();

@@ -600,7 +600,7 @@ bool UpnpService::replyRequest(HttpRequest *request)
         {
             qCritical() << "invalid action" << soapaction << action.soapaction();
             UpnpError error(UpnpError::INVALID_ACTION);
-            request->replyError(error);
+            replyError(request, error);
         }
         else
         {
@@ -630,7 +630,7 @@ bool UpnpService::replyNewSubscription(HttpRequest *request)
         if (l_url.isEmpty())
         {
             UpnpError error(UpnpError::PRECONDITIN_FAILED);
-            request->replyError(error);
+            replyError(request, error);
         }
         else
         {
@@ -682,7 +682,7 @@ bool UpnpService::replyNewSubscription(HttpRequest *request)
     {
         // param NT in header is invalid
         UpnpError error(UpnpError::PRECONDITIN_FAILED);
-        request->replyError(error);
+        replyError(request, error);
     }
 
     return true;
@@ -724,14 +724,14 @@ bool UpnpService::replyRenewSubscription(HttpRequest *request)
         {
             qCritical() << "Invalid subscription renewal" << sid;
             UpnpError error(UpnpError::PRECONDITIN_FAILED);
-            request->replyError(error);
+            replyError(request, error);
         }
     }
     else
     {
         qCritical() << "invalid SID" << request->header("SID") << "in SUBSCRIPTION renewal";
         UpnpError error(UpnpError::BAD_REQUEST);
-        request->replyError(error);
+        replyError(request, error);
     }
 
     return true;

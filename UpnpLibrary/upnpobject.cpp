@@ -247,3 +247,25 @@ QString UpnpObject::generateUuid()
     qCritical() << "unable to generate uuid, no upnp parent defined";
     return QString();
 }
+
+void UpnpObject::replyError(HttpRequest *request, const UpnpError &error)
+{
+    if (!request)
+    {
+        qCritical() << "invalid request (replyError)";
+        return;
+    }
+
+    QByteArray data = error.toByteArray();
+
+    QStringList header;
+    header << QString("Content-Type: text/xml; charset=\"utf-8\"");
+    header << QString("Content-Length: %1").arg(data.size());
+    header << QString("DATE: %1").arg(QDateTime::currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+    header << QString("EXT:");
+    if (!serverName().isEmpty())
+        header << QString("SERVER: %1").arg(serverName());
+
+    request->replyData(HttpRequest::HTTP_500_KO, header, data);
+}
+

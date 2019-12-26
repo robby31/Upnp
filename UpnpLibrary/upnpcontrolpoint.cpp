@@ -530,7 +530,7 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
                 {
                     qCritical() << "invalid eventing request received" << event.toString();
                     UpnpError error(UpnpError::BAD_REQUEST);
-                    request->replyError(error);
+                    replyError(request, error);
                 }
                 else
                 {
@@ -551,7 +551,7 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
                         {
                             qCritical() << "unable to find service" << serviceId << deviceUuid << request->peerAddress() << sid << seq;
                             UpnpError error(UpnpError::PRECONDITIN_FAILED);
-                            request->replyError(error);
+                            replyError(request, error);
                         }
                     }
                     else
@@ -559,7 +559,7 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
                         qCritical() << "available sid" << m_sidEvent.keys();
                         qCritical() << "invalid sid for eventing." << request->peerAddress().toString() << sid;
                         UpnpError error(UpnpError::PRECONDITIN_FAILED);
-                        request->replyError(error);
+                        replyError(request, error);
                     }
                 }
             }
@@ -567,14 +567,14 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
             {
                 qCritical() << "invalid NTS for eventing" << nts;
                 UpnpError error(UpnpError::PRECONDITIN_FAILED);
-                request->replyError(error);
+                replyError(request, error);
             }
         }
         else
         {
             qCritical() << "invalid NT for eventing" << nt;
             UpnpError error(UpnpError::PRECONDITIN_FAILED);
-            request->replyError(error);
+            replyError(request, error);
         }
 
         request->deleteLater();
@@ -725,4 +725,25 @@ void UpnpControlPoint::startDiscover(const QString &searchTarget)
             qCritical() << "unable to start discover event";
         }
     }
+}
+
+void UpnpControlPoint::replyError(HttpRequest *request, const UpnpError &error)
+{
+    if (!request)
+    {
+        qCritical() << "invalid request (replyError)";
+        return;
+    }
+
+    QByteArray data = error.toByteArray();
+
+    QStringList header;
+    header << QString("Content-Type: text/xml; charset=\"utf-8\"");
+    header << QString("Content-Length: %1").arg(data.size());
+    header << QString("DATE: %1").arg(QDateTime::currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+    header << QString("EXT:");
+    if (!serverName().isEmpty())
+        header << QString("SERVER: %1").arg(serverName());
+
+    request->replyData(HttpRequest::HTTP_500_KO, header, data);
 }
