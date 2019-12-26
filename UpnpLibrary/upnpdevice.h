@@ -5,7 +5,7 @@
 #include "upnpservice.h"
 #include "Models/listmodel.h"
 #include "upnpdevicedescription.h"
-#include "Http/httprequest.h"
+#include "httprequest.h"
 
 class UpnpDevice : public UpnpObject
 {

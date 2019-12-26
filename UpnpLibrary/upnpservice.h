@@ -7,7 +7,7 @@
 #include "Models/listmodel.h"
 #include "statevariableitem.h"
 #include "upnpservicedescription.h"
-#include "Http/httprequest.h"
+#include "httprequest.h"
 #include "xmlevent.h"
 #include "upnpactionreply.h"
 

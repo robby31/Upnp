@@ -3,8 +3,9 @@
 
 #include "upnpdevice.h"
 #include "upnptimer.h"
-#include "Http/httpserver.h"
+#include "httprequest.h"
 #include "upnprootdevicedescription.h"
+#include "httpserver.h"
 
 class UpnpRootDevice : public UpnpDevice
 {

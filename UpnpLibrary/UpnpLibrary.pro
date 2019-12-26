@@ -27,6 +27,9 @@ LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(analyzer)
 INCLUDEPATH += $$(MYLIBRARY)/include/QmlApplication
 LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(QmlApplication)
 
+INCLUDEPATH += $$(MYLIBRARY)/include/Http
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(Http)
+
 INCLUDEPATH += $$(MYLIBRARY)/include/Streaming
 LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(streaming)
 
@@ -56,15 +59,11 @@ SOURCES += \
     upnpobject.cpp \
     upnptimer.cpp \
     upnperror.cpp \
-    Http/httpserver.cpp \
-    Http/httprequest.cpp \
     soapaction.cpp \
     soapactionresponse.cpp \
     didllite.cpp \
-    Http/elapsedtimer.cpp \
     eventresponse.cpp \
     statevariableitem.cpp \
-    Http/httprange.cpp \
     upnpservicedescription.cpp \
     upnpdevicedescription.cpp \
     xmldescription.cpp \
@@ -112,15 +111,11 @@ HEADERS += \
     upnpobject.h \
     upnptimer.h \
     upnperror.h \
-    Http/httpserver.h \
-    Http/httprequest.h \
     soapaction.h \
     soapactionresponse.h \
     didllite.h \
-    Http/elapsedtimer.h \
     eventresponse.h \
     statevariableitem.h \
-    Http/httprange.h \
     upnpservicedescription.h \
     upnpdevicedescription.h \
     xmldescription.h \
