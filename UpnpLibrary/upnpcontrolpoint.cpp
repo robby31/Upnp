@@ -529,8 +529,7 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
                 if (!event.isValid())
                 {
                     qCritical() << "invalid eventing request received" << event.toString();
-                    UpnpError error(UpnpError::BAD_REQUEST);
-                    replyError(request, error);
+                    replyUpnpError(request, UpnpError::BAD_REQUEST);
                 }
                 else
                 {
@@ -550,31 +549,27 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
                         else
                         {
                             qCritical() << "unable to find service" << serviceId << deviceUuid << request->peerAddress() << sid << seq;
-                            UpnpError error(UpnpError::PRECONDITIN_FAILED);
-                            replyError(request, error);
+                            replyUpnpError(request, UpnpError::PRECONDITIN_FAILED);
                         }
                     }
                     else
                     {
                         qCritical() << "available sid" << m_sidEvent.keys();
                         qCritical() << "invalid sid for eventing." << request->peerAddress().toString() << sid;
-                        UpnpError error(UpnpError::PRECONDITIN_FAILED);
-                        replyError(request, error);
+                        replyUpnpError(request, UpnpError::PRECONDITIN_FAILED);
                     }
                 }
             }
             else
             {
                 qCritical() << "invalid NTS for eventing" << nts;
-                UpnpError error(UpnpError::PRECONDITIN_FAILED);
-                replyError(request, error);
+                replyUpnpError(request, UpnpError::PRECONDITIN_FAILED);
             }
         }
         else
         {
             qCritical() << "invalid NT for eventing" << nt;
-            UpnpError error(UpnpError::PRECONDITIN_FAILED);
-            replyError(request, error);
+            replyUpnpError(request, UpnpError::PRECONDITIN_FAILED);
         }
 
         request->deleteLater();
@@ -727,7 +722,7 @@ void UpnpControlPoint::startDiscover(const QString &searchTarget)
     }
 }
 
-void UpnpControlPoint::replyError(HttpRequest *request, const UpnpError &error)
+void UpnpControlPoint::replyUpnpError(HttpRequest *request, const UpnpError::ErrorTypes &errorType)
 {
     if (!request)
     {
@@ -735,6 +730,7 @@ void UpnpControlPoint::replyError(HttpRequest *request, const UpnpError &error)
         return;
     }
 
+    UpnpError error(errorType);
     QByteArray data = error.toByteArray();
 
     QStringList header;

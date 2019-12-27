@@ -76,7 +76,7 @@ public:
 protected:
     void setStatus(const Status &status);
 
-    void replyError(HttpRequest *request, const UpnpError &error);
+    void replyUpnpError(HttpRequest *request, const UpnpError::ErrorTypes &errorType);
 
 signals:
     void upnpParentChanged();

@@ -248,7 +248,7 @@ QString UpnpObject::generateUuid()
     return QString();
 }
 
-void UpnpObject::replyError(HttpRequest *request, const UpnpError &error)
+void UpnpObject::replyUpnpError(HttpRequest *request, const UpnpError::ErrorTypes &errorType)
 {
     if (!request)
     {
@@ -256,6 +256,7 @@ void UpnpObject::replyError(HttpRequest *request, const UpnpError &error)
         return;
     }
 
+    UpnpError error(errorType);
     QByteArray data = error.toByteArray();
 
     QStringList header;
