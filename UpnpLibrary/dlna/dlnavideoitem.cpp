@@ -115,11 +115,11 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    QUrl url = baseUrl.resolved(QString("%1/%2").arg(getResourceId(), getName().toUtf8().toPercentEncoding().constData()));
+    QUrl url = baseUrl.resolved(QUrl(QString("%1/%2").arg(getResourceId(), getName())));
     QUrlQuery query;
     query.addQueryItem("format", getdlnaOrgPN());
     url.setQuery(query);
-    res.appendChild(xml->createTextNode(url.url()));
+    res.appendChild(xml->createTextNode(url.toEncoded()));
 
     xml_obj.appendChild(res);
 
