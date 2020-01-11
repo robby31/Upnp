@@ -243,13 +243,20 @@ QString DlnaNetworkVideo::framerate() const
     return QString();
 }
 
-QList<QUrl> DlnaNetworkVideo::mediaUrl() const
+QUrl DlnaNetworkVideo::videoUrl() const
 {
     if (m_media)
-        return m_media->mediaUrl();
+        return m_media->videoUrl();
 
-    QList<QUrl> res;
-    return res;
+    return QUrl();
+}
+
+QUrl DlnaNetworkVideo::audioUrl() const
+{
+    if (m_media)
+        return m_media->audioUrl();
+
+    return QUrl();
 }
 
 void DlnaNetworkVideo::setAnalyzeStream(const bool &flag)
@@ -316,7 +323,7 @@ TranscodeProcess *DlnaNetworkVideo::getTranscodeProcess()
     transcodeProcess->setFrameRate(framerate());
     transcodeProcess->setAudioChannelCount(channelCount());
     transcodeProcess->setAudioSampleRate(samplerate());
-    transcodeProcess->setUrls(mediaUrl());
+    transcodeProcess->setUrls(videoUrl(), audioUrl());
     return transcodeProcess;
 }
 
@@ -332,27 +339,37 @@ void DlnaNetworkVideo::parse_video()
     qDeleteAll(ffmpeg);
     ffmpeg.clear();
 
-    QList<QUrl> urls = mediaUrl();
-    if (m_analyzeStream && !urls.isEmpty())
+    if (m_analyzeStream && !videoUrl().isValid())
     {
-        foreach (const QUrl &url, urls)
+        auto tmp = new QFfmpegInputMedia(this);
+        if (!tmp->open(videoUrl().url()))
         {
-            auto tmp = new QFfmpegInputMedia(this);
-            if (!tmp->open(url.toString()))
-            {
-                qCritical() << "unable to open url" << url << tmp->error();
-                delete tmp;
-            }
-            else
-            {
-                ffmpeg << tmp;
-            }
+            qCritical() << "unable to open url" << videoUrl() << tmp->error();
+            delete tmp;
+        }
+        else
+        {
+            ffmpeg << tmp;
+        }
+    }
+
+    if (m_analyzeStream && !audioUrl().isValid())
+    {
+        auto tmp = new QFfmpegInputMedia(this);
+        if (!tmp->open(audioUrl().url()))
+        {
+            qCritical() << "unable to open url" << audioUrl() << tmp->error();
+            delete tmp;
+        }
+        else
+        {
+            ffmpeg << tmp;
         }
     }
 
     if (m_media && m_media->isValid())
     {
-        emit streamUrlDefined(mediaUrl());
+        emit streamUrlDefined(videoUrl(), audioUrl());
     }
     else
     {

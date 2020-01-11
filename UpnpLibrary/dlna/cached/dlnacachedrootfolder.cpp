@@ -212,9 +212,10 @@ void DlnaCachedRootFolder::addResource(const QUrl &url, const int &playlistId, c
 }
 
 
-void DlnaCachedRootFolder::networkLinkAnalyzed(const QList<QUrl> &urls)
+void DlnaCachedRootFolder::networkLinkAnalyzed(const QUrl &videoUrl, const QUrl &audioUrl)
 {
-    Q_UNUSED(urls)
+    Q_UNUSED(videoUrl)
+    Q_UNUSED(audioUrl)
 
     url_inProgress = false;
 

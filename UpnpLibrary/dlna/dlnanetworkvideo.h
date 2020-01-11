@@ -65,7 +65,8 @@ public:
     QStringList audioLanguages() const Q_DECL_OVERRIDE { return QStringList(); }
     QString framerate() const Q_DECL_OVERRIDE;
 
-    QList<QUrl> mediaUrl() const;
+    QUrl videoUrl() const;
+    QUrl audioUrl() const;
 
     void setAnalyzeStream(const bool &flag);
 
@@ -83,7 +84,7 @@ protected:
 
 signals:
     void videoUrlErrorSignal(const QString &message);
-    void streamUrlDefined(const QList<QUrl> &url);
+    void streamUrlDefined(const QUrl &videoUrl, const QUrl &audioUrl);
 
 private slots:
     void parse_video();

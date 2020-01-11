@@ -54,7 +54,7 @@ private slots:
 
     void addNetworkLink(const QString &url);
 
-    void networkLinkAnalyzed(const QList<QUrl> &urls);
+    void networkLinkAnalyzed(const QUrl &videoUrl, const QUrl &audioUrl);
     void networkLinkError(const QString &message);
 
     void addNextResource();

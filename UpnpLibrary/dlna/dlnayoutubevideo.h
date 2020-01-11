@@ -79,7 +79,7 @@ protected:
 signals:
     void getVideoUrl(const QString &videoId);
     void videoUrlErrorSignal(const QString &message);
-    void streamUrlDefined(const QString &url);
+    void streamUrlDefined(const QUrl &videoUrl, const QUrl &audioUrl);
 
 private slots:
     void videoUrl();

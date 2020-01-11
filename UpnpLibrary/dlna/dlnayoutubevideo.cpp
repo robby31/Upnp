@@ -30,16 +30,21 @@ void DlnaYouTubeVideo::videoUrl()
     }
     else
     {
-        QList<QUrl> urls = m_youtube.mediaUrl();
-        if (!urls.isEmpty())
-            m_streamUrl = urls.at(0);
-        else
-            m_streamUrl.clear();
+        if (m_youtube.videoUrl().isValid())
+        {
+            if (m_analyzeStream)
+                ffmpeg.open(m_youtube.videoUrl().url());
+        }
+        else if (m_youtube.audioUrl().isValid())
+        {
+            if (m_analyzeStream)
+                ffmpeg.open(m_youtube.audioUrl().url());
+        }
 
-        if (m_streamUrl.isValid() && m_analyzeStream)
-            ffmpeg.open(m_streamUrl.url());
+        if (m_youtube.videoUrl().isValid() && m_youtube.audioUrl().isValid() && m_youtube.videoUrl() != m_youtube.audioUrl())
+            qCritical() << "only video url is used.";
 
-        emit streamUrlDefined(m_streamUrl.url());
+        emit streamUrlDefined(m_youtube.videoUrl(), m_youtube.audioUrl());
     }
 }
 
