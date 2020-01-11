@@ -128,7 +128,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     res.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 
     // mandatory properties: protocolInfo
-    res.setAttribute("protocolInfo", "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3");
+    res.setAttribute("protocolInfo", "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     // optional properties
     if ((properties.contains("*") || properties.contains("res@bitrate"))) {
@@ -149,10 +149,10 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
         res.setAttribute("nrAudioChannels", QString("%1").arg(channelCount()));
     }
 
-//    if ((properties.contains("*") || properties.contains("res@size")) && size() != -1) {
-//        // size in bytes
-//        res.setAttribute("size", QString("%1").arg(size()));
-//    }
+    if ((properties.contains("*") || properties.contains("res@size")) && size() != -1) {
+        // size in bytes
+        res.setAttribute("size", QString("%1").arg(40000*getLengthInSeconds()));
+    }
 
     query.clear();
     query.addQueryItem("format", "MP3");
