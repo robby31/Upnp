@@ -339,7 +339,7 @@ void DlnaNetworkVideo::parse_video()
     qDeleteAll(ffmpeg);
     ffmpeg.clear();
 
-    if (m_analyzeStream && !videoUrl().isValid())
+    if (m_analyzeStream && videoUrl().isValid())
     {
         auto tmp = new QFfmpegInputMedia(this);
         if (!tmp->open(videoUrl().url()))
@@ -353,7 +353,7 @@ void DlnaNetworkVideo::parse_video()
         }
     }
 
-    if (m_analyzeStream && !audioUrl().isValid())
+    if (m_analyzeStream && audioUrl().isValid())
     {
         auto tmp = new QFfmpegInputMedia(this);
         if (!tmp->open(audioUrl().url()))
