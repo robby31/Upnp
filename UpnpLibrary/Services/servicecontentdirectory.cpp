@@ -530,6 +530,8 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                             }
                             else
                             {
+                                request->logMessage(QString("sample rate: %1").arg(dlna->samplerate()));
+
                                 if (range && !range->isNull())
                                     streamContent->setRange(range->getStartByte(), range->getEndByte());
 
