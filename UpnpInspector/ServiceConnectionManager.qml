@@ -45,6 +45,14 @@ Item {
                 text: service.serviceType
                 clip: true
             }
+
+            Button {
+                text: "GetProtocolInfo"
+                onClicked: {
+                    var reply = service.runAction("GetProtocolInfo")
+                    var newObject = protocolInfoResult.createObject(item, {target: reply})
+                }
+            }
         }
 
         TabBar {
@@ -194,6 +202,28 @@ Item {
                 connectionInfoModel.clear()
                 for (var i in response.arguments)
                     connectionInfoModel.append({ param: args[i], value: response.value(args[i]) })
+            }
+
+        }
+    }
+
+    Component {
+        // component to get reply of action GetProtocolInfo
+        id: protocolInfoResult
+
+        Connections {
+            onFinished: {
+                var response = target.response
+                var args = response.arguments
+
+                for (var i in response.arguments)
+                {
+                    var param = args[i]
+                    if (param === "Source")
+                        sourceProtocol = response.value(param)
+                    else if (param === "Sink")
+                        sinkProtocol = response.value(param)
+                }
             }
 
         }
