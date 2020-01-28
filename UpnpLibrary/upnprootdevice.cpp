@@ -328,6 +328,9 @@ void UpnpRootDevice::searchForST(const QHostAddress &host, const quint16 &port, 
 
 void UpnpRootDevice::replyRequest(HttpRequest *request)
 {
+    if (request)
+        request->logMessage("reply request.");
+
     QUrl requestUrl = urlFromRelativePath(request->url().toString());
     if ((request->operation() == QNetworkAccessManager::GetOperation or request->operation() == QNetworkAccessManager::HeadOperation) && requestUrl == url())
     {
