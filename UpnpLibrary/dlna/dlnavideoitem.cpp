@@ -68,16 +68,19 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     {
         if (thumbnailUrl().isValid())
         {
+            QUrl url(QString("http://%1:%2/get/thumbnail").arg(getHostUrl().host()).arg(getHostUrl().port()));
+            QUrlQuery query;
+            query.addQueryItem("id", getResourceId());
+            url.setQuery(query);
+
             QDomElement upnpAlbumArtURI = xml->createElement("upnp:albumArtURI");
             upnpAlbumArtURI.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
             upnpAlbumArtURI.setAttribute("dlna:profileID", "JPEG_TN");
-            upnpAlbumArtURI.appendChild(xml->createTextNode(QString("http://%1:%2/get/%3/thumbnail0000%4&").arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getResourceId(), getDisplayName().toUtf8().toPercentEncoding().constData())));
+            upnpAlbumArtURI.appendChild(xml->createTextNode(url.toEncoded()));
 //            upnpAlbumArtURI.appendChild(xml->createTextNode(thumbnailUrl().url()));
             xml_obj.appendChild(upnpAlbumArtURI);
         }
     }
-
-    QUrl baseUrl(QString("http://%1:%2/get/").arg(getHostUrl().host()).arg(getHostUrl().port()));
 
     // add <res> element
 
@@ -115,8 +118,9 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    QUrl url = baseUrl.resolved(QUrl(QString("%1/%2").arg(getResourceId(), getName())));
+    QUrl url(QString("http://%1:%2/get/content").arg(getHostUrl().host()).arg(getHostUrl().port()));
     QUrlQuery query;
+    query.addQueryItem("id", getResourceId());
     query.addQueryItem("format", getdlnaOrgPN());
     url.setQuery(query);
     res.appendChild(xml->createTextNode(url.toEncoded()));
@@ -155,6 +159,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     }
 
     query.clear();
+    query.addQueryItem("id", getResourceId());
     query.addQueryItem("format", "MP3");
     url.setQuery(query);
     res.appendChild(xml->createTextNode(url.url()));

@@ -117,13 +117,18 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     // properties optional of musicAlbum
 
+    QUrl url(QString("http://%1:%2/get/thumbnail").arg(getHostUrl().host()).arg(getHostUrl().port()));
+    QUrlQuery query;
+    query.addQueryItem("id", getResourceId());
+    url.setQuery(query);
+
     if (properties.contains("*") || properties.contains("upnp:albumArtURI")) {
         QImage picture = getAlbumArt();
         if (!picture.isNull()) {
             QDomElement upnpAlbumArtURI = xml->createElement("upnp:albumArtURI");
             upnpAlbumArtURI.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
             upnpAlbumArtURI.setAttribute("dlna:profileID", "JPEG_TN");
-            upnpAlbumArtURI.appendChild(xml->createTextNode(QString("http://%1:%2/get/%3/thumbnail0000%4&").arg(getHostUrl().host()).arg(getHostUrl().port()).arg(getResourceId(), getDisplayName().toUtf8().toPercentEncoding().constData())));
+            upnpAlbumArtURI.appendChild(xml->createTextNode(url.toEncoded()));
             xml_obj.appendChild(upnpAlbumArtURI);
         }
     }
@@ -160,7 +165,11 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId(), getHostUrl().host()).arg(getHostUrl().port()).arg(getName().toUtf8().toPercentEncoding().constData())));
+    QUrl content_url = QUrl(QString("http://%1:%2/get/content").arg(getHostUrl().host()).arg(getHostUrl().port()));
+    QUrlQuery content_query;
+    content_query.addQueryItem("id", getResourceId());
+    content_url.setQuery(content_query);
+    res.appendChild(xml->createTextNode(content_url.toEncoded()));
 
     xml_obj.appendChild(res);
 
