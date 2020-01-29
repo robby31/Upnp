@@ -82,6 +82,9 @@ DlnaResource *DlnaNetworkPlaylist::getChild(int index, QObject *parent)
         if (!child->waitUrl(5000))
             qWarning() << "network media not ready" << child;
 
+        if (!child->isValid())
+            qWarning() << "invalid media" << child->getSystemName() << child->error();
+
         child->setId(QString("%1").arg(index+1));
         child->setDlnaParent(this);
 
