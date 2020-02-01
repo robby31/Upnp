@@ -420,7 +420,19 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                 else
                 {
                     request->logMessage("dlna resource not ready.");
-                    request->replyError(HttpRequest::HTTP_500_KO);
+
+                    connect(dlna, &DlnaResource::readyChanged, this, [dlna, request]() {
+                        if (dlna->isReady())
+                        {
+                            request->logMessage("dlna resource is ready.");
+                            request->replyData(dlna->getByteAlbumArt(), "image/jpeg");
+                        }
+                        else
+                        {
+                            request->logMessage("dlna resource is still not ready.");
+                            request->replyError(HttpRequest::HTTP_500_KO);
+                        }
+                    });
                 }
             }
             else if (request->url().fileName(QUrl::FullyEncoded) == "content")
