@@ -197,4 +197,5 @@ bool DlnaResource::isReady() const
 void DlnaResource::setReady(const bool &flag)
 {
     m_isReady = flag;
+    emit readyChanged();
 }

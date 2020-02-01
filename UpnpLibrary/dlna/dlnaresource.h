@@ -85,6 +85,7 @@ public:
 signals:
     void dlnaResources(QObject* sender, QList<DlnaResource*>);
     void dlnaContentUpdated();
+    void readyChanged();
 
 private slots:
     void requestDlnaResources(QObject *sender, const QString& objectId, bool returnChildren, int start, int count, const QString& searchStr);

@@ -125,14 +125,14 @@ QUrl DlnaCachedVideo::thumbnailUrl() const
 
 void DlnaCachedVideo::pictureReceived()
 {
-    setReady(true);
-
     auto reply = qobject_cast<QNetworkReply*>(sender());
     if (reply)
     {
         m_picture = reply->readAll();
         m_replyPicture = Q_NULLPTR;
     }
+
+    setReady(true);
 }
 
 QByteArray DlnaCachedVideo::metaDataPicture()
