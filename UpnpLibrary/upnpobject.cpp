@@ -82,7 +82,9 @@ void UpnpObject::setStatus(const Status &status)
     }
     else
     {
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "same status, not necessary to update anything" << m_status << status;
+#endif
     }
 }
 

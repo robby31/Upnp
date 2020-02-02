@@ -130,7 +130,9 @@ QString UpnpRootDevice::version() const
 
 void UpnpRootDevice::requestDescription()
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "request description" << this << uuid() << url();
+#endif
 
     QNetworkRequest request(url());
 
@@ -157,7 +159,9 @@ void UpnpRootDevice::descriptionReceived()
         descr->setContent(reply->readAll());
         setDescription(descr);
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "description received" << this << reply->request().url();
+#endif
 
         if (descr)
         {
@@ -292,7 +296,9 @@ void UpnpRootDevice::startServer()
         }
         else
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "HTTP server started" << host() << port();
+#endif
             emit serverStarted();
         }
     }

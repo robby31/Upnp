@@ -33,7 +33,9 @@ void UpnpActionReply::replyReceived()
 
     if (reply->error() == QNetworkReply::NoError)
     {
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "action done" << this << reply->request().rawHeader("SOAPACTION");
+#endif
         m_actionName = reply->request().rawHeader("SOAPACTION");
         m_response = new SoapActionResponse(reply->readAll(), this);
         emit responseChanged();

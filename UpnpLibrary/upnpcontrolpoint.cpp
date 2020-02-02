@@ -61,7 +61,9 @@ UpnpControlPoint::UpnpControlPoint(quint16 eventPort, QObject *parent):
 
 UpnpControlPoint::~UpnpControlPoint()
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "Close UPNPControlPoint.";
+#endif
     close();
 }
 
@@ -71,7 +73,10 @@ void UpnpControlPoint::initializeHostAdress()
     foreach(QNetworkConfiguration ap, mgr.allConfigurations(QNetworkConfiguration::Active))
     {
         QNetworkSession session(ap);
+
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "SESSION" << session.interface().humanReadableName();
+#endif
 
         foreach (QNetworkAddressEntry entry, session.interface().addressEntries())
         {
@@ -89,8 +94,10 @@ void UpnpControlPoint::initializeHostAdress()
 
 void UpnpControlPoint::close()
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     if (m_remoteRootDevice)
         qDebug() << "Root devices" << m_remoteRootDevice->rowCount();
+#endif
 
     for (int i=0;i<m_localRootDevice->rowCount();i++)
     {
@@ -135,7 +142,10 @@ void UpnpControlPoint::_processPendingUnicastDatagrams()
 
         SsdpMessage message = SsdpMessage::fromByteArray(datagram);
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "Receiving UNICAST message from [" << remoteAddr.toString() << ":" << QString("%1").arg(remotePort) << "] " << message.startLine();
+#endif
+
         emit messageReceived(remoteAddr, remotePort, message);
     }
 }
@@ -153,7 +163,10 @@ void UpnpControlPoint::_processPendingMulticastDatagrams()
 
         SsdpMessage message = SsdpMessage::fromByteArray(datagram);
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "Receiving MULTICAST message from [" << remoteAddr.toString() << ":" << QString("%1").arg(remotePort) << "] " << message.startLine();
+#endif
+
         emit messageReceived(remoteAddr, remotePort, message);
     }
 }
@@ -245,7 +258,9 @@ void UpnpControlPoint::_sendByeByeMessage(const QString &uuid, const QString &nt
 
 void UpnpControlPoint::sendDiscover(const QString &search_target)
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "discover" << search_target;
+#endif
 
     SsdpMessage message(SEARCH);
 
@@ -275,12 +290,18 @@ void UpnpControlPoint::_processSsdpMessageReceived(const QHostAddress &host, con
                 if (!message.getHeader("MX").isNull())
                 {
                     delay = QRandomGenerator::global()->bounded(message.getHeader("MX").toInt()*1000);
+
+#if !defined(QT_NO_DEBUG_OUTPUT)
                     qDebug() << "SEARCH MULTICAST" << host << port << st << message.getHeader("MX") << "seconds." << delay;
+#endif
                 }
 
                 if (delay > 0)
                 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                     qDebug() << "delay answer" << delay << "seconds";
+#endif
+
                     int timerEvent = startTimer(delay);
                     if (timerEvent > 0)
                     {
@@ -415,7 +436,9 @@ void UpnpControlPoint::subscribeEventing(QNetworkRequest request, const QString 
     }
     else
     {
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "event already subscribed" << uuid << serviceId;
+#endif
     }
 }
 
@@ -465,7 +488,9 @@ void UpnpControlPoint::subscribeEventingFinished()
                     m_sidEvent[sid].timeOut = reply->rawHeader("TIMEOUT").trimmed();
                 }
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "new event subscribed" << sid << reply->request().url() << reply->property("serviceId").toString();
+#endif
             }
             else
             {
@@ -518,13 +543,17 @@ void UpnpControlPoint::requestEventReceived(HttpRequest *request)
         QString sid = request->header("SID");
         QString seq = request->header("SEQ");
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "event received" << request->peerAddress() << sid << seq;
+#endif
 
         if (nt == "upnp:event")
         {
             if (nts == "upnp:propchange")
             {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "event property change" << request->requestData();
+#endif
                 EventResponse event(request->requestData());
                 if (!event.isValid())
                 {
@@ -607,7 +636,9 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
                     QString deviceUuid = it.value().deviceUuid;
                     QString serviceId = it.value().serviceId;
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
                     qDebug() << QDateTime::currentDateTime() << "renew event" << it.key() << deviceUuid << serviceId << timeout;
+#endif
 
                     UpnpService *service = Q_NULLPTR;
                     if (m_remoteRootDevice)
@@ -676,14 +707,19 @@ void UpnpControlPoint::timerEvent(QTimerEvent *event)
 
 void UpnpControlPoint::removeSidEventFromUuid(const QString &deviceUuid)
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "removeSidEventFromUuid" << deviceUuid;
+#endif
+
     auto it = m_sidEvent.begin();
     while (it != m_sidEvent.end())
     {
         QString uuid = it.value().deviceUuid;
         if (uuid == deviceUuid)
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "remove sid" << it.key();
+#endif
             it = m_sidEvent.erase(it);
         }
         else

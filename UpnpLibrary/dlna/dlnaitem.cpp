@@ -60,7 +60,10 @@ Device *DlnaItem::getStream()
 {
     if (m_stream)
     {
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "stream in cache" << m_stream << m_stream->isOpen();
+#endif
+
         if (!m_stream->isOpen())
         {
             return m_stream;

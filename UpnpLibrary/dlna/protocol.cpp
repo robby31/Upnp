@@ -81,9 +81,11 @@ void Protocol::setProtocols(const QStringList &protocols)
     {
         auto protocolInfo = new ProtocolInfo(protocol, this);
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
         DlnaProfile *profile = getProfile(protocolInfo->pn());
         if (!profile or !profile->isValid())
             qDebug() << "undefined profile for" << protocolInfo->pn() << protocolInfo->toString();
+#endif
 
         m_protocols << protocolInfo;
     }
@@ -91,7 +93,10 @@ void Protocol::setProtocols(const QStringList &protocols)
 
 QList<ProtocolInfo *> Protocol::compatible()
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "GET COMPATIBLE" << m_mimeType << m_container << m_videoCodec << m_audioCodec << m_channels << m_sampleRate << m_bitrate << m_dlna_org_pn;
+#endif
+
     QList<ProtocolInfo*> res;
 
     QStringList protocolChecked;
@@ -99,50 +104,67 @@ QList<ProtocolInfo *> Protocol::compatible()
     for (ProtocolInfo *protocol : m_protocols)
     {
         protocolChecked << protocol->pn();
+
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "check" << protocol->toString();
+#endif
 
         if (m_mimeType.startsWith("audio/L16"))
         {
             if (!protocol->mimeType().startsWith("audio/L16"))
             {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "invalid mime type" << protocol->mimeType() << m_mimeType;
+#endif
                 continue;
             }
         }
         else if (!m_mimeType.isEmpty() && protocol->mimeType() != m_mimeType)
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "invalid mime type" << protocol->mimeType() << m_mimeType;
+#endif
             continue;
         }
 
         DlnaProfile *profile = getProfile(protocol->pn());
         if (!profile or !profile->isValid())
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "unable to find profile for" << protocol->pn();
+#endif
             continue;
         }
 
         if (!m_container.isEmpty() && profile->container() != m_container)
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "invalid container" << profile->container() << m_container;
+#endif
             continue;
         }
 
         if (!m_audioCodec.isEmpty() && !profile->codecAudio().contains(m_audioCodec))
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "invalid audio codec" << profile->codecAudio() << m_audioCodec;
+#endif
             continue;
         }
 
         if (m_channels != -1 && !profile->channels().contains(m_channels))
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "invalid channels" << profile->channels() << m_channels;
+#endif
             continue;
         }
 
         if (m_sampleRate != -1 && !profile->sampleRate().contains(m_sampleRate))
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "invalid sample rate" << profile->sampleRate() << m_sampleRate;
+#endif
             continue;
         }
 
@@ -150,7 +172,9 @@ QList<ProtocolInfo *> Protocol::compatible()
         {
             if (!m_videoCodec.isEmpty() && !profile->codecVideo().contains(m_videoCodec))
             {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "invalid video codec" << profile->codecVideo() << m_videoCodec;
+#endif
                 continue;
             }
         }
@@ -159,7 +183,9 @@ QList<ProtocolInfo *> Protocol::compatible()
         {
             if (!protocol->pn().isEmpty() && protocol->pn() != m_dlna_org_pn)
             {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "invalid PN" << protocol->pn() << m_dlna_org_pn;
+#endif
                 continue;
             }
         }
@@ -169,11 +195,16 @@ QList<ProtocolInfo *> Protocol::compatible()
         foundProtocol->setMimeType(protocol->mimeType());
         foundProtocol->setPN(protocol->pn());
         res << foundProtocol;
+
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "found COMPATIBLE" << protocol->pn() << protocol->toString() << foundProtocol->toString();
+#endif
     }
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
     if (res.isEmpty())
         qDebug() << "NOT FOUND protocol compatible" << m_mimeType << m_container << m_videoCodec << m_audioCodec << m_channels << m_sampleRate << m_bitrate << m_dlna_org_pn << "in following PN" << protocolChecked;
+#endif
 
     return res;
 }

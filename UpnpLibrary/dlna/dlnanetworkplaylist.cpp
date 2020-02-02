@@ -3,15 +3,21 @@
 DlnaNetworkPlaylist::DlnaNetworkPlaylist(const QUrl &url, QObject *parent):
     DlnaStorageFolder(parent)
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     QElapsedTimer timer;
     timer.start();
+#endif
+
     MediaStreaming streaming;
     m_playlist = streaming.get_playlist(url);
     if (m_playlist)
     {
         m_playlist->setParent(this);
         m_playlist->waitReady(5000);
+
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "playlist" << url << "created in" << timer.elapsed() << "ms," << m_playlist->mediaUrl().size() << "medias.";
+#endif
     }
 }
 
@@ -68,8 +74,10 @@ DlnaResource *DlnaNetworkPlaylist::getChild(int index, QObject *parent)
 
     if (m_playlist && index >=0 && index < getChildrenSize())
     {
+#if !defined(QT_NO_DEBUG_OUTPUT)
         QElapsedTimer timer;
         timer.start();
+#endif
 
         if (l_children.contains(index))
             return l_children[index];
@@ -90,7 +98,9 @@ DlnaResource *DlnaNetworkPlaylist::getChild(int index, QObject *parent)
 
         l_children[index] = child;
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "playlist, child created in" << timer.elapsed();
+#endif
         return child;
     }
 

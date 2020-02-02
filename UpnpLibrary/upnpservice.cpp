@@ -124,7 +124,9 @@ void UpnpService::descriptionReceived()
         description->setContent(reply->readAll());
         setDescription(description);
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "description received" << this << reply->request().url();
+#endif
     }
     else
     {
@@ -445,7 +447,9 @@ void UpnpService::updateStateVariable(const QString &name, const QString &value)
 
 void UpnpService::updateStateVariables(QHash<QString, QString> data)
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "update state variables" << host() << serviceType() << data;
+#endif
 
     for (int i=0;i<m_stateVariablesModel.rowCount();++i)
     {
@@ -494,7 +498,9 @@ void UpnpService::updateStateVariables(QHash<QString, QString> data)
 
 void UpnpService::updateLastChange(const QString &data)
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "update LastChange data" << data;
+#endif
 
     QDomDocument xml;
     xml.setContent(data, true);
@@ -509,7 +515,9 @@ void UpnpService::updateLastChange(const QString &data)
             if (!attrInstanceId.isNull())
             {
                 QString valInstanceId = attrInstanceId.value();
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "instanceID" << valInstanceId;
+#endif
 
                 QHash<QString,QString> stateVariables;
 
@@ -520,7 +528,9 @@ void UpnpService::updateLastChange(const QString &data)
                     QDomAttr attrValue = param.toElement().attributeNode("val");
                     if (!attrValue.isNull())
                     {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                         qDebug() << param.localName() << attrValue.value();
+#endif
                         if (param.localName() != "LastChange")
                         {
                             stateVariables[param.localName()] = attrValue.value();
@@ -694,7 +704,9 @@ bool UpnpService::replyRenewSubscription(HttpRequest *request)
         QString sid = match.captured(1);
         if (m_subscription.contains(sid))
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "RENEW SUBSCRIPTION" << sid;
+#endif
 
             int timeOut = 1800;
             QStringList header;
@@ -713,7 +725,9 @@ bool UpnpService::replyRenewSubscription(HttpRequest *request)
             }
             else
             {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "RENEW EVENT" << QDateTime::currentDateTime().secsTo(m_subscription[sid].timeOver);
+#endif
                 m_subscription[sid].timeOver = QDateTime::currentDateTime().addSecs(timeOut);
             }
         }
@@ -773,7 +787,11 @@ void UpnpService::sendEvent(const QString &uuid)
 void UpnpService::sendEventReply()
 {
     auto reply = qobject_cast<QNetworkReply*>(sender());
+
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "reply received" << reply;
+#endif
+
     if (reply)
     {
         if (reply->error() != QNetworkReply::NoError)
@@ -787,7 +805,9 @@ void UpnpService::sendEventReply()
         {
             if (it.value().reply == reply)
             {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "kill timer timeout" << it.key();
+#endif
                 killTimer(it.key());
                 it = m_checkSendEvent.erase(it);
                 break;

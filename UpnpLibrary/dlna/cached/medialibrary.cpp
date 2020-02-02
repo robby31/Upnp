@@ -25,7 +25,9 @@ bool MediaLibrary::isValid()
 
 bool MediaLibrary::initialize()
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << QThread::currentThread() << QString("Initialize MediaLibrary %1").arg(databaseName());
+#endif
 
     QSqlDatabase db = database();
 
@@ -242,7 +244,7 @@ bool MediaLibrary::initialize()
         }
         else
         {
-            qDebug() << "ERROR in check artists" << query.lastError().text();
+            qCritical() << "ERROR in check artists" << query.lastError().text();
         }
 
         // check if duration is valid
@@ -275,7 +277,9 @@ bool MediaLibrary::initialize()
             }
         }
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << QString("MediaLibrary %1 initialized.").arg(db.databaseName());
+#endif
 
         return true;
     }
@@ -405,7 +409,7 @@ bool MediaLibrary::setVolumeInfo(const int& idMedia, const QHash<QString, double
 
     if (!db.transaction())
     {
-        qDebug() << "unable to begin transaction" << db.lastError().text();
+        qCritical() << "unable to begin transaction" << db.lastError().text();
     }
     else
     {
@@ -525,7 +529,7 @@ int MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &d
 
     if (!db.transaction())
     {
-        qDebug() << "unable to begin transaction" << db.lastError().text();
+        qCritical() << "unable to begin transaction" << db.lastError().text();
     }
     else
     {
@@ -655,7 +659,9 @@ int MediaLibrary::update(const QString &table, const int &id, const QHash<QStrin
 
                 if (record.value(it.key()) != index)
                 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                     qDebug() << QString("update %1, %2, index %3 --> %4").arg(it.key(), record.value(it.key()).toString()).arg(index).arg(it.value().toString());
+#endif
                     QSqlQuery queryUpdate(db);
                     if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(it.key()).arg(index).arg(id).arg(table)))
                     {
@@ -670,7 +676,9 @@ int MediaLibrary::update(const QString &table, const int &id, const QHash<QStrin
             {
                 if (record.value(it.key()) != it.value())
                 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                     qDebug() << QString("update %1, %2 --> %3").arg(it.key(), record.value(it.key()).toString(), it.value().toString());
+#endif
                     QSqlQuery queryUpdate(db);
                     QSqlField field = record.field(record.indexOf(it.key()));
                     field.setValue(it.value());
@@ -726,7 +734,10 @@ bool MediaLibrary::incrementCounterPlayed(const QString &filename)
         data["progress_played"] = 0;
         data["counter_played"] = query.value("counter_played").toInt()+1;
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "INCR COUNTER PLAYED" << filename << data["counter_played"];
+#endif
+
         return update("media", query.value("id").toInt(), data) != -1;
     }
 
@@ -928,7 +939,9 @@ int MediaLibrary::add_media(QHash<QString, QVariant> data, const QHash<QString, 
         }
 
         // update the media
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "update resource" << data["mime_type"].toString() << data["filename"].toString() << lastModified << data["last_modified"].toDateTime();
+#endif
         return update("media", query.value("id").toInt(), data);
     }
 
@@ -945,7 +958,10 @@ int MediaLibrary::add_media(QHash<QString, QVariant> data, const QHash<QString, 
             data[i.key()] = i.value();
     }
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "add resource " + data["mime_type"].toString() + " " + data["filename"].toString();
+#endif
+
     return insert("media", data);
 }
 
