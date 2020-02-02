@@ -260,7 +260,10 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QUrl &videoUrl, const QUrl 
 
             if (!data.isEmpty())
             {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << QString("Resource to add: %1").arg(title);
+#endif
+
                 int id_media = library.add_media(data, data_album, data_artist);
                 if (id_media == -1)
                 {
@@ -326,7 +329,9 @@ void DlnaCachedRootFolder::addNextResource()
     }
     else
     {
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "no more resource to add";
+#endif
     }
 }
 
@@ -459,7 +464,9 @@ void DlnaCachedRootFolder::addResource(const QFileInfo &fileinfo) {
         }
         else
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "resource not added to library: " << mime_type << ", " << fileinfo.absoluteFilePath();
+#endif
             data.clear();
         }
 
@@ -557,7 +564,9 @@ void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
     }
 
     QString newDatabaseName = QString("%1.new").arg(library.databaseName());
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "RELOAD" << newDatabaseName;
+#endif
 
     if (library.resetLibrary(newDatabaseName))
     {
