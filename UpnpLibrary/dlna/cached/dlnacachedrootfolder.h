@@ -45,15 +45,6 @@ signals:
     void scanFolder(QString path);
 
 private slots:
-    void updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);
-    void updateLibraryFromId(const int &id, const QHash<QString, QVariant> &data);
-    void incrementCounterPlayed(const QString &filename);
-
-    // returns true if the folder is added to Root.
-    bool addFolderSlot(const QString& path) Q_DECL_OVERRIDE;
-
-    void addNetworkLink(const QString &url);
-
     void networkLinkAnalyzed(const QUrl &videoUrl, const QUrl &audioUrl);
     void networkLinkError(const QString &message);
 
@@ -61,6 +52,16 @@ private slots:
 
 public slots:
     void reloadLibrary(const QStringList &localFolder);
+
+    // returns true if the folder is added to Root.
+    bool addFolderSlot(const QString& path) Q_DECL_OVERRIDE;
+
+    void addNetworkLink(const QString &url);
+
+    void incrementCounterPlayed(const QString &filename);
+
+    void updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);
+    void updateLibraryFromId(const int &id, const QHash<QString, QVariant> &data);
 
 private:
     MediaLibrary library;

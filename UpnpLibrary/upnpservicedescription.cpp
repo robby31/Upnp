@@ -109,9 +109,6 @@ QDomElement UpnpServiceDescription::addArgument(const QDomElement &action, const
     case OUT:
         setParam("direction", "out", argument);
         break;
-    default:
-        qCritical() << "invalid direction" << direction;
-        break;
     }
 
     addParam("relatedStateVariable", argument);

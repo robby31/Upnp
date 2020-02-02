@@ -41,10 +41,11 @@ signals:
     void addChildSignal(DlnaResource *child);
     void clearChildrenSignal();
 
-private slots:
+public slots:
     // returns true if the folder is added to Root.
     virtual bool addFolderSlot(const QString& folder);
 
+private slots:
     void addChildSlot(DlnaResource *child);
     void clearChildrenSlot() { children.clear(); }
 

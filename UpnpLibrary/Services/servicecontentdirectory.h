@@ -80,8 +80,6 @@ private:
 
     QHash<QString, DlnaResource*> m_dlnaresources;
 
-    QThread *m_streamingThread = Q_NULLPTR;
-
     MediaRendererModel *m_renderersModel = Q_NULLPTR;
 };
 

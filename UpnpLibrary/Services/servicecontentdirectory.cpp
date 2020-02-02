@@ -13,29 +13,23 @@ ServiceContentDirectory::ServiceContentDirectory(MediaRendererModel *model, Upnp
     if (upnpParent)
         rootFolder.setHostUrl(upnpParent->url());
 
-    connect(&rootFolder, SIGNAL(scanFolder(QString)), this, SIGNAL(scanFolder(QString)));
+    connect(&rootFolder, &DlnaCachedRootFolder::scanFolder, this, &ServiceContentDirectory::scanFolder);
 
-    connect(this, SIGNAL(folderAdded(QString)), this, SLOT(folderAddedSlot(QString)));
+    connect(this, &ServiceContentDirectory::folderAdded, this, &ServiceContentDirectory::folderAddedSlot);
 
-    connect(this, SIGNAL(addFolderSignal(QString)), &rootFolder, SLOT(addFolderSlot(QString)));
-    connect(&rootFolder, SIGNAL(folderAddedSignal(QString)), this, SIGNAL(folderAdded(QString)));
-    connect(&rootFolder, SIGNAL(error_addFolder(QString)), this, SIGNAL(error_addFolder(QString)));
+    connect(this, &ServiceContentDirectory::addFolderSignal, &rootFolder, &DlnaCachedRootFolder::addFolderSlot);
+    connect(&rootFolder, &DlnaCachedRootFolder::folderAddedSignal, this, &ServiceContentDirectory::folderAdded);
+    connect(&rootFolder, &DlnaCachedRootFolder::error_addFolder, this, &ServiceContentDirectory::error_addFolder);
 
-    connect(this, SIGNAL(addNetworkLinkSignal(QString)), &rootFolder, SLOT(addNetworkLink(QString)));
-    connect(&rootFolder, SIGNAL(linkAdded(QString)), this, SIGNAL(linkAdded(QString)));
-    connect(&rootFolder, SIGNAL(error_addNetworkLink(QString)), this, SIGNAL(error_addNetworkLink(QString)));
+    connect(this, &ServiceContentDirectory::addNetworkLinkSignal, &rootFolder, &DlnaCachedRootFolder::addNetworkLink);
+    connect(&rootFolder, &DlnaCachedRootFolder::linkAdded, this, &ServiceContentDirectory::linkAdded);
+    connect(&rootFolder, &DlnaCachedRootFolder::error_addNetworkLink, this, &ServiceContentDirectory::error_addNetworkLink);
 
-    connect(this, SIGNAL(reloadLibrarySignal(QStringList)), &rootFolder, SLOT(reloadLibrary(QStringList)));
+    connect(this, &ServiceContentDirectory::reloadLibrarySignal, &rootFolder, &DlnaCachedRootFolder::reloadLibrary);
 
-    connect(this, SIGNAL(incrementCounterPlayedSignal(QString)), &rootFolder, SLOT(incrementCounterPlayed(QString)));
-    connect(this, SIGNAL(updateMediaData(QString,QHash<QString,QVariant>)), &rootFolder, SLOT(updateLibrary(QString,QHash<QString,QVariant>)));
-    connect(this, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)), &rootFolder, SLOT(updateLibraryFromId(int,QHash<QString,QVariant>)));
-
-    m_streamingThread = new QThread();
-    m_streamingThread->setObjectName("Streaming thread");
-    connect(this, SIGNAL(destroyed(QObject*)), m_streamingThread, SLOT(quit()));
-    connect(m_streamingThread, SIGNAL(finished()), m_streamingThread, SLOT(deleteLater()));
-    m_streamingThread->start();
+    connect(this, &ServiceContentDirectory::incrementCounterPlayedSignal, &rootFolder, &DlnaCachedRootFolder::incrementCounterPlayed);
+    connect(this, &ServiceContentDirectory::updateMediaData, &rootFolder, &DlnaCachedRootFolder::updateLibrary);
+    connect(this, &ServiceContentDirectory::updateMediaFromId, &rootFolder, &DlnaCachedRootFolder::updateLibraryFromId);
 }
 
 ServiceContentDirectory::~ServiceContentDirectory()
@@ -45,17 +39,12 @@ ServiceContentDirectory::~ServiceContentDirectory()
     auto it = m_dlnaresources.begin();
     while (it != m_dlnaresources.end())
     {
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "remove child" << it.key() << "from cache";
+#endif
         DlnaResource *resource = it.value();
         it = m_dlnaresources.erase(it);
         resource->deleteLater();
-    }
-
-    if (m_streamingThread)
-    {
-        m_streamingThread->quit();
-        if (!m_streamingThread->wait())
-            qWarning() << "streaming Thread not finished.";
     }
 }
 
@@ -243,8 +232,9 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
 
             if (!browseFlag.isEmpty() && !startingIndex.isEmpty() && !requestedCount.isEmpty() && !filter.isEmpty())
             {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "Browse" << objectID << startingIndex << requestedCount << browseFlag << filter << sortCriteria;
-
+#endif
                 if (startingIndex.toInt() < 0)
                 {
                     qCritical() << "invalid startingIndex" << startingIndex.toInt();
@@ -273,9 +263,9 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                                                                           requestedCount.toInt(),
                                                                           QString(),
                                                                           &context);
-
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "returned DLNA resources" << l_dlna.size();
-
+#endif
                 DlnaResource *object_requested = Q_NULLPTR;
                 if (browseFlag == "BrowseDirectChildren")
                 {
@@ -314,7 +304,9 @@ bool ServiceContentDirectory::replyAction(HttpRequest *request, const SoapAction
                     didlDoc.addElement(resource->getXmlContentDirectory(&didlDoc, filter.split(",")));
                 }
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << didlDoc.toString();
+#endif
 
                 SoapActionResponse response(action.serviceType(), action.actionName());
                 response.addArgument("Result", didlDoc.toString(-1));
@@ -382,7 +374,9 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
 
     if ((request->operation() == QNetworkAccessManager::GetOperation  || request->operation() == QNetworkAccessManager::HeadOperation) && request->url().path(QUrl::FullyEncoded).startsWith("/get/"))
     {
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << this << request->operationString() << request->url();
+#endif
 
         QUrlQuery url_query(request->url().query());
 
@@ -557,12 +551,10 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
                             if (timeSeekRangeStart != -1 || timeSeekRangeEnd != -1)
                                 streamContent->setTimeSeek(timeSeekRangeStart, timeSeekRangeEnd);
 
-                            connect(socket, SIGNAL(disconnected()), streamContent, SLOT(close()));
+                            connect(socket, &QTcpSocket::disconnected, streamContent, &Device::close);
                             connect(socket, &QTcpSocket::destroyed, streamContent, &Device::deleteLater);
 
                             request->setMaxBufferSize(streamContent->maxBufferSize());
-
-                            streamContent->moveToThread(m_streamingThread);
 
                             connect(streamContent, SIGNAL(readyToOpen()), this, SLOT(streamReadyToOpen()), Qt::UniqueConnection);
                             connect(streamContent, SIGNAL(openedSignal()), request, SLOT(streamOpened()));
@@ -600,7 +592,7 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
         }
         else
         {
-            request->setError(QString("invalid DLNA resource %1 in path %2.").arg(objectID).arg(request->url().toString()));
+            request->setError(QString("invalid DLNA resource %1 in path %2.").arg(objectID, request->url().toString()));
             request->replyError(HttpRequest::HTTP_500_KO);
         }
 
@@ -661,14 +653,19 @@ void ServiceContentDirectory::servingFinished(const QString &host, const QString
     {
         emit incrementCounterPlayedSignal(filename);
 
-        // remove resource from cache
+        // remove resource from cache        
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "SERVING FINISHED" << host << filename << m_dlnaresources.keys();
+#endif
+
         auto it = m_dlnaresources.begin();
         while (it != m_dlnaresources.end())
         {
             if (it.key().startsWith(host) && it.value()->getSystemName() == filename)
             {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "remove from cache" << it.key() << it.value()->getSystemName();
+#endif
                 DlnaResource *resource = it.value();
                 it = m_dlnaresources.erase(it);
                 resource->deleteLater();
@@ -697,7 +694,9 @@ DlnaResource *ServiceContentDirectory::getDlnaResource(const QString &hostaddres
     if (m_dlnaresources.contains(dlnaresourceID))
         return m_dlnaresources[dlnaresourceID];
 
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "request" << objId << "from" << hostaddress;
+#endif
 
     QObject context;
     QList<DlnaResource*> l_dlna = rootFolder.getDLNAResources(objId, false, 0, 0, "", &context);
@@ -720,14 +719,19 @@ void ServiceContentDirectory::dlnaContentUpdated()
     if (dlna)
     {
         // remove from cache chid object of dlna resource updated
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "dlna content updated" << dlna->getResourceId();
+#endif
+
         QString id = QString("_%1").arg(dlna->getResourceId());
         auto it = m_dlnaresources.begin();
         while (it != m_dlnaresources.end())
         {
             if (it.key().contains(id))
             {
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << "remove child" << it.key() << "from cache";
+#endif
                 DlnaResource *resource = it.value();
                 it = m_dlnaresources.erase(it);
                 resource->deleteLater();
@@ -746,13 +750,19 @@ void ServiceContentDirectory::dlnaContentUpdated()
 
 void ServiceContentDirectory::mediaRendererDestroyed(const QString &hostaddress)
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "renderer destroyed" << hostaddress;
+#endif
+
     auto it = m_dlnaresources.begin();
     while (it != m_dlnaresources.end())
     {
         if (it.key().startsWith(hostaddress))
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "remove child" << it.key() << "from cache";
+#endif
+
             DlnaResource *resource = it.value();
             it = m_dlnaresources.erase(it);
             resource->deleteLater();
