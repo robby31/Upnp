@@ -94,7 +94,9 @@ QString DlnaItem::getProtocolInfo() const
 {
     if (m_protocolInfo.isEmpty())
     {
-        qWarning() << getSystemName() << "protocol info is empty";
+#if !defined(QT_NO_DEBUG_OUTPUT)
+        qDebug() << getSystemName() << "protocol info is empty";
+#endif
         return QString("http-get:*:%1:%2").arg(mimeType(), getDlnaContentFeatures());
     }
 
@@ -213,10 +215,12 @@ void DlnaItem::setDlnaProfiles(Protocol *profiles)
         }
         else
         {
+#if !defined(QT_NO_DEBUG_OUTPUT)
             if (sink)
-                qCritical() << "invalid sink found" << sink->toString() << "for" << mimeType() << container() << videoFormat() << audioFormat() << channelCount() << samplerate() << bitrate();
+                qDebug() << "invalid sink found" << sink->toString() << "for" << mimeType() << container() << videoFormat() << audioFormat() << channelCount() << samplerate() << bitrate();
             else
-                qCritical() << "invalid sink found" << mimeType() << container() << videoFormat() << audioFormat() << channelCount() << samplerate() << bitrate();
+                qDebug() << "invalid sink found" << mimeType() << container() << videoFormat() << audioFormat() << channelCount() << samplerate() << bitrate();
+#endif
         }
     }
     else
@@ -230,7 +234,9 @@ void DlnaItem::setDlnaProfiles(Protocol *profiles)
 
     if (m_protocolInfo.isEmpty())
     {
-        qCritical() << "unable to define protocolInfo";
+#if !defined(QT_NO_DEBUG_OUTPUT)
+        qDebug() << "unable to define protocolInfo";
+#endif
     }
     else if (getdlnaOrgPN() == "LPCM")
     {
