@@ -127,6 +127,64 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
 
     xml_obj.appendChild(res);
 
+    // add format AUDIO WAV
+    res = xml->createElement("res");
+    res.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
+
+    // mandatory properties: protocolInfo
+    if (samplerate() == 48000)
+    {
+        if (channelCount() == 2)
+            res.setAttribute("protocolInfo", "http-get:*:audio/L16;rate=48000;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+        else
+            res.setAttribute("protocolInfo", "http-get:*:audio/L16;rate=48000;channels=1:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    }
+    else
+    {
+        if (channelCount() == 2)
+            res.setAttribute("protocolInfo", "http-get:*:audio/L16;rate=44100;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+        else
+            res.setAttribute("protocolInfo", "http-get:*:audio/L16;rate=44100;channels=1:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    }
+
+    // optional properties
+    if ((properties.contains("*") || properties.contains("res@bitrate"))) {
+        // bitrate in bytes/sec
+        if (samplerate() == 48000)
+            res.setAttribute("bitrate", QString("192000"));
+        else
+            res.setAttribute("bitrate", QString("176400"));
+    }
+
+    if ((properties.contains("*") || properties.contains("res@duration")) && getLengthInSeconds() > 0) {
+        QTime duration(0, 0, 0);
+        res.setAttribute("duration", QString("%1").arg(duration.addSecs(getLengthInSeconds()).toString("hh:mm:ss")));
+    }
+
+    if (properties.contains("*") || properties.contains("res@sampleFrequency")) {
+        res.setAttribute("sampleFrequency", QString("%1").arg(samplerate()));
+    }
+
+    if (properties.contains("*") || properties.contains("res@nrAudioChannels")) {
+        res.setAttribute("nrAudioChannels", QString("%1").arg(channelCount()));
+    }
+
+    if ((properties.contains("*") || properties.contains("res@size")) && size() != -1) {
+        // size in bytes
+        if (samplerate() == 48000)
+            res.setAttribute("size", QString("%1").arg(192000*getLengthInSeconds()));
+        else
+            res.setAttribute("size", QString("%1").arg(176400*getLengthInSeconds()));
+    }
+
+    query.clear();
+    query.addQueryItem("id", getResourceId());
+    query.addQueryItem("format", "LPCM");
+    url.setQuery(query);
+    res.appendChild(xml->createTextNode(url.url()));
+
+    xml_obj.appendChild(res);
+
     // add format AUDIO MP3
     res = xml->createElement("res");
     res.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");

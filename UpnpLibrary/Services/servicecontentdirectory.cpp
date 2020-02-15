@@ -394,6 +394,8 @@ bool ServiceContentDirectory::replyRequest(HttpRequest *request)
             {
                 if (url_query.queryItemValue("format") == "MP3")
                     dlna->setTranscodeFormat(MP3);
+                else if (url_query.queryItemValue("format") == "LPCM")
+                    dlna->setTranscodeFormat(LPCM_S16BE);
             }
 
             MediaRenderer* renderer = Q_NULLPTR;
